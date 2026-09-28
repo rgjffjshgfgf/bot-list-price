@@ -608,7 +608,7 @@ def _raster_page(analysis: Analysis, rgb: np.ndarray, index: int, start: int) ->
             bdoc = blayout.from_ocr(bocr.page_words(rgb), rgb.shape[1], rgb.shape[0])
             dec = brain.BRAIN.decide(bdoc, mode)
         except Exception:  # noqa: BLE001 - OCR problems must not stop Gemini
-            log.exception("page OCR failed")
+            log.exception("page %d OCR failed", index + 1)
             bdoc = dec = None
 
     def local(how: str, extra_warn: str = "") -> tuple[list[PriceItem], list[str], str]:
@@ -620,7 +620,7 @@ def _raster_page(analysis: Analysis, rgb: np.ndarray, index: int, start: int) ->
                                  "format": dec.template, "by": dec.how}
         return items, ([extra_warn] if extra_warn else []) + warns, bdoc.currency()
 
-    if dec is not None and dec.selected and (dec.trusted or not ai.enabled()):
+    if dec is not None and (dec.trusted or (dec.selected and not ai.enabled())):
         items, warns, unresolved = _local_raster(analysis, rgb, bdoc, dec, index, start, mode)
         if not ai.enabled() or mode == "local" or unresolved <= max(1, 0.1 * len(dec.selected)):
             how = "local" if dec.trusted else "fallback"

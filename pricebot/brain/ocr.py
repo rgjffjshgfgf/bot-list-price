@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import shutil
 import statistics
 import threading
@@ -33,6 +34,9 @@ except ImportError:  # pragma: no cover - optional until installed
     pytesseract = None
 
 _LANGS: set[str] | None = None
+# Each Tesseract run otherwise starts one thread per core; several runs at once then
+# fight over the CPU and a page that takes 1 s can take minutes.
+os.environ.setdefault("OMP_THREAD_LIMIT", "1")
 # Tesseract is memory hungry on big pages: limit how many run at once.
 _SLOTS = threading.BoundedSemaphore(max(1, config.OCR_PARALLEL))
 TIMEOUT = 180
@@ -95,8 +99,8 @@ def page_words(rgb: np.ndarray, psm: int = 11) -> list[tuple[str, Box, float]]:
     gray = _to_gray(rgb)
     th = text_height(gray)
     s = min(4.0, max(0.6, 30.0 / th))
-    if max(gray.shape) * s > 7000:
-        s = 7000 / max(gray.shape)
+    if max(gray.shape) * s > 4200:          # bigger only costs time (a cover photo can take minutes)
+        s = 4200 / max(gray.shape)
     big = cv2.resize(gray, None, fx=s, fy=s, interpolation=cv2.INTER_CUBIC if s > 1 else cv2.INTER_AREA)
     clean = _remove_lines(big, th * s)
     with _SLOTS:

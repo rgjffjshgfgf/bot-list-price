@@ -397,7 +397,7 @@ class Brain:
         if tpl is not None:
             sel = template_predict(tpl, doc)
             trusted = tpl.get("streak", 0) >= self.trust_after
-            if doc.source == "ocr":
+            if doc.source == "ocr" and tpl.get("cols"):      # nothing to read on a page without prices
                 trusted = trusted and self.reads_ready(tpl)
             # the format memory and the model must not clearly disagree (layout changed?)
             strong = sum(1 for i, p in enumerate(probs) if (i in sel) != (p >= 0.5) and (p < 0.1 or p > 0.9))
@@ -409,6 +409,9 @@ class Brain:
             if doc.source == "ocr":
                 trusted = trusted and self.reads_ready(None)
             dec = Decision(model_sel, probs, "model", trusted, None, sim, confident, model_sel)
+        if not dec.selected and not model_sel and (
+                len(doc.nums) < 3 or (all(p < 0.15 for p in probs) and max(map(len, doc.columns)) < 3)):
+            dec.trusted = True          # a cover / picture / blank page: no column of numbers at all
         if mode == "teacher":
             dec.trusted = False
         elif mode == "local" and (dec.selected or not doc.nums):
@@ -443,7 +446,9 @@ class Brain:
             tpl, _ = self.match(doc)
             outcome = {"teacher": teacher, "model_ok": model_ok}
             if tpl is None:
-                if truth:
+                # pages without prices (covers, pictures) are remembered too, so the
+                # same pages next time need no question
+                if truth or len(doc.words) + len(doc.nums) >= 3:
                     tpl = {"id": f"f{int(time.time() * 1000) % 10**10}", "source": doc.source,
                            "name": doc.title() or "بدون عنوان", "created": time.time(), "streak": 0,
                            "checks": 0, "agree": 0, "seen": 0}
