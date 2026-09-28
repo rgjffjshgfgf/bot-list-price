@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import tempfile
 from pathlib import Path
 
 
@@ -24,7 +25,7 @@ _load_dotenv()
 
 def _int(name: str, default: int) -> int:
     try:
-        return int(os.environ.get(name, default))
+        return int(os.environ.get(name, "").strip() or default)
     except ValueError:
         return default
 
@@ -44,27 +45,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 
-# --- AI providers -----------------------------------------------------------
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "").strip()
-CLAUDE_MODEL = _str("CLAUDE_MODEL", "claude-opus-5")
-
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "").strip()
-OPENAI_MODEL = _str("OPENAI_MODEL", "gpt-6-astra")
-OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL", "").strip()     # optional gateway / proxy
-OPENAI_IMAGE_DETAIL = _str("OPENAI_IMAGE_DETAIL", "original")       # keeps pixel coordinates exact
-
-# Preference order; the first available one leads, the other verifies / takes over.
-AI_PROVIDERS = [p.strip().lower() for p in _str("AI_PROVIDERS", "claude,openai").split(",") if p.strip()]
-# When both keys are set: analyse every page with both models and merge the answers.
-AI_CONSENSUS = _bool("AI_CONSENSUS", True)
+# --- Google Gemini (free tier) -------------------------------------------------
+GEMINI_API_KEY = (os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY") or "").strip()
+# Smarter model, small free quota: photos / scans and free-form commands.
+GEMINI_MODEL = _str("GEMINI_MODEL", "gemini-flash-latest")
+GEMINI_RPM = _int("GEMINI_RPM", 10)
+GEMINI_RPD = _int("GEMINI_RPD", 20)
+# Lighter model, large free quota: text PDFs, Excel, re-reads; takes over when Flash runs out.
+GEMINI_LITE_MODEL = _str("GEMINI_LITE_MODEL", "gemini-flash-lite-latest")
+GEMINI_LITE_RPM = _int("GEMINI_LITE_RPM", 15)
+GEMINI_LITE_RPD = _int("GEMINI_LITE_RPD", 500)
+# 1 = read every page with both models and merge (more accurate, uses twice the quota).
+AI_CONSENSUS = _bool("AI_CONSENSUS", False)
 
 AI_EFFORT_IMAGE = _str("AI_EFFORT_IMAGE", "high")      # photos / scans
-AI_EFFORT_TEXT = _str("AI_EFFORT_TEXT", "medium")      # PDFs with a text layer
+AI_EFFORT_TEXT = _str("AI_EFFORT_TEXT", "low")         # PDFs with a text layer
 AI_EFFORT_COMMAND = _str("AI_EFFORT_COMMAND", "medium")
-AI_EFFORT_TABLE = _str("AI_EFFORT_TABLE", "medium")    # Excel transcription
+AI_EFFORT_TABLE = _str("AI_EFFORT_TABLE", "low")       # Excel transcription
 # Independent re-read of every price that came from pixels (scans/photos).
 AI_VERIFY_IMAGE_PRICES = _bool("AI_VERIFY_IMAGE_PRICES", True)
-AI_PARALLEL_PAGES = max(1, _int("AI_PARALLEL_PAGES", 4))
+AI_PARALLEL_PAGES = max(1, _int("AI_PARALLEL_PAGES", 3))
 
 # --- bot ----------------------------------------------------------------------
 # Comma separated Telegram numeric user ids allowed to use the bot. Empty = everyone.
@@ -74,7 +74,9 @@ ALLOWED_USER_IDS = {
 MAX_PDF_PAGES = _int("MAX_PDF_PAGES", 60)
 SESSION_TTL_MINUTES = _int("SESSION_TTL_MINUTES", 180)
 IMAGE_EXPORT_DPI = _int("IMAGE_EXPORT_DPI", 200)
-WORK_DIR = Path(os.environ["WORK_DIR"]) if os.environ.get("WORK_DIR") else None
+WORK_DIR = Path(os.environ["WORK_DIR"]) if os.environ.get("WORK_DIR") else Path(tempfile.gettempdir()) / "pricebot"
+# Where the daily quota counter is kept (put it on a Railway volume to survive redeploys).
+USAGE_FILE = Path(_str("USAGE_FILE", str(WORK_DIR / "gemini_usage.json")))
 
 # Extra font folder (put B Nazanin, IRANSans, ... TTF files here for better matches on images).
 FONTS_DIR = Path(os.environ.get("FONTS_DIR", str(BASE_DIR / "fonts")))
@@ -83,4 +85,4 @@ LOG_LEVEL = _str("LOG_LEVEL", "INFO")
 
 
 def ai_enabled() -> bool:
-    return bool(ANTHROPIC_API_KEY) or bool(OPENAI_API_KEY)
+    return bool(GEMINI_API_KEY)

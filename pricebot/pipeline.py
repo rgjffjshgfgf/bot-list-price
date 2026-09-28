@@ -154,7 +154,10 @@ def _analyze_pdf_page(analysis: Analysis, index: int) -> tuple[PageInfo, list[Pr
                 data = _merge_page(ai.analyze_page_all(ai_img, listing, raster_only), cands, boxes)
             except Exception as exc:  # noqa: BLE001
                 log.warning("AI failed on page %d: %s", index + 1, exc)
-                warnings.append(f"صفحه {index + 1}: هوش مصنوعی در دسترس نبود؛ تشخیص خودکار ساده استفاده شد.")
+                if isinstance(exc, ai.QuotaExceeded):
+                    warnings.append(f"صفحه {index + 1}: سهمیه رایگان Gemini تمام شده بود؛ با تشخیص ساده بررسی شد.")
+                else:
+                    warnings.append(f"صفحه {index + 1}: هوش مصنوعی در دسترس نبود؛ تشخیص خودکار ساده استفاده شد.")
                 data = None
             if data is not None:
                 currency = data.get("currency", "") or ""
@@ -426,8 +429,8 @@ def _verify(rgb: np.ndarray, targets: list[raster.Target], votes: list[list[tupl
             agreed: list[bool]) -> list[str | None]:
     """Independent re-reads of each crop until two reads agree.
 
-    A read from a provider that has not voted on an item yet is preferred
-    (Claude checks OpenAI and vice versa); the second round uses bigger crops.
+    A read from a model that has not voted on an item yet is preferred
+    (Flash-Lite checks Flash and vice versa); the second round uses bigger crops.
     """
     provs = ai.providers()
     result: list[str | None] = [votes[i][0][1] if agreed[i] else None for i in range(len(targets))]
@@ -485,7 +488,7 @@ def _analyze_image(analysis: Analysis, progress: Progress | None) -> list[str]:
         alpha.save(analysis.workdir / "alpha.png")
     analysis.pages.append(info)
     if not ai.enabled():
-        raise UserError("برای خواندن قیمت از روی عکس، کلید هوش مصنوعی (Claude یا OpenAI) باید تنظیم شده باشد.")
+        raise UserError("برای خواندن قیمت از روی عکس، کلید Gemini (GEMINI_API_KEY) باید تنظیم شده باشد.")
     small, s = ai.fit_for_ai(im)
     data = _merge_page(ai.analyze_page_all(small, [], raster_only=True), [], [])
     columns = {c["column_id"]: c["header"] for c in data.get("columns", [])}

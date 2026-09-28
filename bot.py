@@ -6,7 +6,6 @@ import asyncio
 import io
 import logging
 import shutil
-import tempfile
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -19,6 +18,8 @@ from telegram.error import BadRequest
 from telegram.ext import (Application, CallbackQueryHandler, CommandHandler, ContextTypes, MessageHandler,
                           filters)
 
+import pymupdf
+
 from pricebot import ai, commands, config, pipeline
 from pricebot.commands import Plan, Rule
 from pricebot.models import Analysis
@@ -30,7 +31,7 @@ for noisy in ("httpx", "httpx2", "telegram.ext"):
     logging.getLogger(noisy).setLevel(logging.WARNING)
 log = logging.getLogger("bot")
 
-WORK_ROOT = config.WORK_DIR or Path(tempfile.gettempdir()) / "pricebot"
+WORK_ROOT = config.WORK_DIR
 MAX_DOWNLOAD = 20 * 1024 * 1024   # Telegram bot API download limit
 FORMAT_NAMES = {"pdf": "PDF", "xlsx": "Excel", "image": "عکس"}
 FORMAT_ICONS = {"pdf": "📄", "xlsx": "📊", "image": "🖼"}
@@ -47,7 +48,8 @@ HELP = (
     "۳) فرمت خروجی را انتخاب کن: PDF، Excel یا عکس.\n\n"
     "دستور را می‌توانی در کپشن فایل هم بنویسی. چند فایل پشت سر هم هم قبول است؛ دستور روی همه اعمال می‌شود.\n"
     "هر دستور روی فایل اصلی اعمال می‌شود (نه روی خروجی قبلی).\n\n"
-    "/help راهنما   /reset شروع دوباره   /status وضعیت   /id شناسه شما"
+    "هوش مصنوعی ربات Google Gemini (طرح رایگان) است؛ سهمیه روزانه را با /usage ببین.\n\n"
+    "/help راهنما   /usage سهمیه رایگان   /status وضعیت   /reset شروع دوباره   /id شناسه شما"
 )
 
 
@@ -111,9 +113,15 @@ def _fa(n) -> str:
 
 
 def _ai_error_text(exc: Exception) -> str:
+    if isinstance(exc, ai.QuotaExceeded):
+        return ("⛔️ سهمیه رایگان امروز Gemini تمام شد.\n"
+                f"⏰ تمدید: {ai.reset_text()}\n"
+                "تا آن موقع PDFهای متنی با تشخیص ساده کار می‌کنند؛ عکس‌ها باید تا تمدید صبر کنند.")
     low = str(exc).lower()
     if "authentication" in low or "api key" in low:
-        return "کلید هوش مصنوعی نامعتبر است (ANTHROPIC_API_KEY / OPENAI_API_KEY)."
+        return "کلید Gemini نامعتبر است (GEMINI_API_KEY را بررسی کن)."
+    if "region" in low:
+        return "Gemini در منطقه سرور در دسترس نیست."
     return "سرویس هوش مصنوعی پاسخ نداد. چند لحظه بعد دوباره امتحان کن."
 
 
@@ -167,7 +175,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return await _deny(update)
     extra = "" if ai.enabled() else (
-        "\n\n⚠️ هیچ کلید هوش مصنوعی تنظیم نشده؛ فقط PDFهای متنی با تشخیص ساده پشتیبانی می‌شوند.")
+        "\n\n⚠️ کلید Gemini تنظیم نشده؛ فقط PDFهای متنی با تشخیص ساده پشتیبانی می‌شوند.")
     await update.effective_message.reply_text(HELP + extra)
 
 
@@ -178,9 +186,17 @@ async def cmd_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return await _deny(update)
-    s = SESSIONS.get(update.effective_chat.id)
-    files = f"{_fa(len(s.analyses))} فایل، {_fa(len(s.items))} قیمت" if s and not s.expired() else "فایلی باز نیست"
-    await update.effective_message.reply_text(f"🤖 هوش مصنوعی: {ai.describe()}\n📂 جلسه فعلی: {files}")
+    sess = SESSIONS.get(update.effective_chat.id)
+    files = (f"{_fa(len(sess.analyses))} فایل، {_fa(len(sess.items))} قیمت"
+             if sess and not sess.expired() else "فایلی باز نیست")
+    await update.effective_message.reply_text(
+        f"🤖 هوش مصنوعی: {ai.describe()}\n📂 جلسه فعلی: {files}\n\n{ai.usage_report()}")
+
+
+async def cmd_usage(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not _allowed(update):
+        return await _deny(update)
+    await update.effective_message.reply_text(ai.usage_report())
 
 
 async def cmd_reset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -248,6 +264,7 @@ async def on_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             asyncio.run_coroutine_threadsafe(_safe_edit(status, text), loop)
 
         await context.bot.send_chat_action(chat_id, ChatAction.TYPING)
+        await _quota_warning(msg, src)
         try:
             analysis = await asyncio.to_thread(pipeline.analyze, src, filename, fdir / "work", progress)
         except pipeline.UserError as exc:
@@ -268,6 +285,32 @@ async def on_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         caption = (msg.caption or "").strip()
         if caption and analysis.items:
             await _handle_command_text(update, context, session, caption)
+
+
+async def _quota_warning(msg: Message, src: Path) -> None:
+    """Tell the user up front when today's free quota will not cover this file."""
+    if not ai.enabled():
+        return
+    kind = pipeline.detect_kind(src)
+    pages = 1
+    if kind == "pdf":
+        try:
+            with pymupdf.open(src) as doc:
+                pages = doc.page_count
+        except Exception:  # noqa: BLE001 - the analysis step reports broken files
+            return
+    need = ai.estimate_requests(kind or "pdf", pages)
+    left = ai.remaining_total()
+    if left >= need:
+        return
+    if left == 0:
+        text = ("⚠️ سهمیه رایگان امروز Gemini تمام شده.\n"
+                + ("این PDF با تشخیص ساده (بدون هوش مصنوعی) بررسی می‌شود." if kind == "pdf"
+                   else f"عکس‌ها بعد از تمدید سهمیه قابل بررسی‌اند: {ai.reset_text()}"))
+    else:
+        text = (f"⚠️ این فایل حدود {_fa(need)} درخواست لازم دارد ولی از سهمیه رایگان امروز فقط "
+                f"{_fa(left)} درخواست مانده؛ صفحه‌هایی که به سهمیه نرسند با تشخیص ساده بررسی می‌شوند.")
+    await msg.reply_text(text)
 
 
 async def _report_analysis(status: Message, analysis: Analysis, session: Session) -> None:
@@ -293,6 +336,8 @@ async def _report_analysis(status: Message, analysis: Analysis, session: Session
     if len(session.analyses) > 1:
         lines.append(f"\n📚 {_fa(len(session.analyses))} فایل آماده ({_fa(len(session.items))} قیمت). "
                      "دستور روی همه اعمال می‌شود.")
+    if ai.enabled():
+        lines.append("\n" + ai.usage_line())
     lines.append("\nحالا بگو چه تغییری بدم (مثلاً «۱۰ درصد افزایش») یا یکی از دکمه‌ها را بزن:")
     await _safe_edit(status, "\n".join(lines), reply_markup=_quick_keyboard())
 
@@ -454,7 +499,7 @@ async def _deliver(update: Update, context: ContextTypes.DEFAULT_TYPE, session: 
         except Exception:  # noqa: BLE001
             pass
     warnings = list(dict.fromkeys(pending.exporter.warnings))
-    text = "✅ آماده شد."
+    text = "✅ آماده شد." + (f"\n{ai.usage_line()}" if ai.enabled() else "")
     if warnings:
         text += "\n" + "\n".join(f"⚠️ {w}" for w in warnings[:4])
     more = _more_keyboard(session, pending)
@@ -524,6 +569,7 @@ def main() -> None:
     app.add_handler(CommandHandler(["start", "help"], cmd_start))
     app.add_handler(CommandHandler("id", cmd_id))
     app.add_handler(CommandHandler("status", cmd_status))
+    app.add_handler(CommandHandler(["usage", "quota"], cmd_usage))
     app.add_handler(CommandHandler(["reset", "cancel"], cmd_reset))
     app.add_handler(MessageHandler(filters.PHOTO | filters.Document.ALL, on_file))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))
