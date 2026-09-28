@@ -132,6 +132,13 @@ def report() -> str:
         if r.get("n"):
             lines.append(f"👁 خواندن عدد از عکس: {_fa(r.get('ok', 0))} درست از {_fa(r['n'])} "
                          f"({_fa(round(100 * r.get('ok', 0) / r['n'], 1))}٪)")
+        n_glyphs = len(b.glyphs)
+        if n_glyphs:
+            g = stats.get("glyph_reads", {})
+            acc = (f" — دقت {_fa(round(100 * g.get('ok', 0) / g['n'], 1))}٪ روی {_fa(g['n'])} عدد"
+                   if g.get("n") else "")
+            state = "✅ مستقل" if b.glyph_trusted() else "⏳ در حال یادگیری"
+            lines.append(f"🔠 کتابخانه شکل رقم‌ها: {_fa(n_glyphs)} شکل{acc} ({state})")
     else:
         lines.append("👁 OCR (Tesseract) نصب نیست؛ عکس‌ها فقط با Gemini خوانده می‌شوند.")
     c = stats.get("counts", {})

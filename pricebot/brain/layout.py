@@ -53,6 +53,12 @@ KEYWORDS: dict[str, list[str]] = {
 }
 _SHORT = 3
 
+# Units written right next to a number that is a specification, not a price.
+UNITS = {canon(u) for u in ["درجه", "ولت", "وات", "آمپر", "امپر", "لیتر", "لیتری", "میل", "میلی", "میلیمتر",
+                            "سانت", "سانتی", "متر", "متری", "اینچ", "کیلو", "کیلوگرم", "گرم", "گرمی", "سی‌سی",
+                            "سیسی", "cc", "mm", "cm", "kg", "gr", "v", "w", "kw", "hp", "a", "ah", "lit", "ml",
+                            "inch", "rpm", "°", "٪", "%", "عدد", "عددی", "تایی", "بسته", "جفت"]}
+
 CURRENCIES = {canon(k): v for k, v in {
     "ریال": "ریال", "rial": "ریال", "rials": "ریال", "irr": "ریال",
     "تومان": "تومان", "تومن": "تومان", "toman": "تومان",
@@ -321,7 +327,7 @@ def from_ocr(words: list[tuple[str, Box, float]], width: float, height: float) -
         elif text.strip():
             attached = bool(_LETTER.search(text)) and bool(re.search(r"[\d۰-۹٠-٩]", text))
             text_words.append(Tok(text, box, None, attached, conf))
-    return PageDoc(width, height, text_words, nums, "ocr")
+    return PageDoc(width, height, text_words, _join_pieces(_dedupe(nums)), "ocr")
 
 
 def _char_kind(c: str) -> str:
@@ -371,6 +377,49 @@ def from_pdf(page, cands) -> PageDoc:
     nums = [Tok(t.text, tuple(t.bbox), t.parsed, t.attached) for t in cands]
     rect = page.rect * page.derotation_matrix
     return PageDoc(abs(rect.width) or 1.0, abs(rect.height) or 1.0, pdf_words(page), nums, "pdf")
+
+
+def overlap_share(a: Box, b: Box) -> float:
+    """Overlap area as a share of the smaller box."""
+    inter = _overlap(a[0], a[2], b[0], b[2]) * _overlap(a[1], a[3], b[1], b[3])
+    small = min((a[2] - a[0]) * (a[3] - a[1]), (b[2] - b[0]) * (b[3] - b[1]))
+    return inter / small if small > 0 else 0.0
+
+
+def _dedupe(nums: list[Tok]) -> list[Tok]:
+    """One number per spot: pieces of a number, or the same number found twice,
+    keep only the most complete reading."""
+    order = sorted(nums, key=lambda t: (-len(digits_of(t.text)), -t.conf, -(t.box[2] - t.box[0])))
+    kept: list[Tok] = []
+    for t in order:
+        if not any(overlap_share(t.box, k.box) > 0.3 for k in kept):
+            kept.append(t)
+    return sorted(kept, key=lambda t: (t.box[1], t.box[0]))
+
+
+def _join_pieces(nums: list[Tok]) -> list[Tok]:
+    """OCR sometimes cuts one number in two ("21" + "416,410"): glue neighbours on
+    the same line when the result is one valid number."""
+    nums = sorted(nums, key=lambda t: (round(t.yc / max(1.0, t.h)), t.box[0]))
+    out: list[Tok] = []
+    for t in nums:
+        if out:
+            p = out[-1]
+            h = max(p.h, t.h, 1.0)
+            same_line = _overlap(p.box[1], p.box[3], t.box[1], t.box[3]) >= 0.5 * min(p.h, t.h)
+            gap = t.box[0] - p.box[2]
+            if same_line and -0.2 * h <= gap <= 0.6 * h:
+                for joined in (p.text + t.text, p.text + "," + t.text):
+                    num = parse_number(joined)
+                    if num is not None and num.fmt.group_sep:
+                        out[-1] = Tok(joined, (p.box[0], min(p.box[1], t.box[1]), t.box[2], max(p.box[3], t.box[3])),
+                                      num, False, min(p.conf, t.conf))
+                        break
+                else:
+                    out.append(t)
+                continue
+        out.append(t)
+    return out
 
 
 def box_iou(a: Box, b: Box) -> float:

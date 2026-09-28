@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from pathlib import Path
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaDocument, Message, Update
+from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaDocument, Message, Update
 from telegram.constants import ChatAction
 from telegram.error import BadRequest
 from telegram.ext import (Application, CallbackQueryHandler, CommandHandler, ContextTypes, MessageHandler,
@@ -51,7 +51,8 @@ HELP = (
     "🧠 ربات هوش مصنوعی خودش را دارد: قالب‌های جدید را با کمک Gemini (طرح رایگان) یاد می‌گیرد و بعد از "
     "چند بار تأیید، همان قالب را بدون Gemini و بدون مصرف سهمیه پردازش می‌کند. زیر عکس پیش‌نمایش با 👍 / 👎 "
     "بگو تشخیص درست بود یا نه تا سریع‌تر یاد بگیرد. وضعیت یادگیری: /brain\n\n"
-    "/help راهنما   /brain هوش ربات   /usage سهمیه Gemini   /test آزمایش اتصال Gemini   /status وضعیت   "
+    "/help راهنما   /brain هوش ربات   /backup بکاپ   /restore بازیابی   /usage سهمیه Gemini   "
+    "/test آزمایش اتصال Gemini   /status وضعیت   "
     "/reset شروع دوباره   /id شناسه شما"
 )
 
@@ -221,11 +222,189 @@ def _brain_short() -> str:
     return f"هوش ربات: {_fa(len(tpls))} قالب یادگرفته، {_fa(ready)} مستقل — جزئیات: /brain"
 
 
+def _brain_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("💾 گرفتن بکاپ", callback_data="mem:backup"),
+         InlineKeyboardButton("♻️ بازیابی بکاپ", callback_data="mem:restore")],
+        [InlineKeyboardButton("🔄 به‌روزرسانی", callback_data="mem:refresh"),
+         InlineKeyboardButton("🗑 پاک کردن حافظه", callback_data="mem:reset")],
+    ])
+
+
 async def cmd_brain(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return await _deny(update)
-    kb = InlineKeyboardMarkup([[InlineKeyboardButton("🗑 پاک کردن همه یادگرفته‌ها", callback_data="brainreset:ask")]])
-    await update.effective_message.reply_text(brain.report(), reply_markup=kb if brain.enabled() else None)
+    await update.effective_message.reply_text(brain.report(), reply_markup=_brain_keyboard() if brain.enabled() else None)
+
+
+async def cmd_backup(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not _allowed(update):
+        return await _deny(update)
+    await _send_backup(context, update.effective_chat.id)
+
+
+async def cmd_restore(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not _allowed(update):
+        return await _deny(update)
+    await _ask_for_backup(update.effective_message, update.effective_chat.id)
+
+
+# ------------------------------------------------------- memory backup ----
+
+RESTORE_WAIT: dict[int, float] = {}        # chat -> time the bot started waiting for a backup file
+RESTORE_FILES: dict[int, Path] = {}        # chat -> received backup waiting for "merge / replace"
+BACKUP_DIR = config.DATA_DIR / "brain_backups"
+
+
+def _fa_date(ts: float) -> str:
+    return _fa(time.strftime("%Y/%m/%d %H:%M", time.localtime(ts)))
+
+
+def _auto_backup(reason: str) -> Path:
+    """A safety copy kept on the server before the memory is replaced or wiped (last 5 kept)."""
+    BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+    path = BACKUP_DIR / f"auto-{time.strftime('%Y%m%d-%H%M%S')}-{reason}.zip"
+    brain.BRAIN.export_zip(path)
+    for old in sorted(BACKUP_DIR.glob("auto-*.zip"))[:-5]:
+        old.unlink(missing_ok=True)
+    return path
+
+
+async def _send_backup(context: ContextTypes.DEFAULT_TYPE, chat_id: int) -> None:
+    if not brain.enabled():
+        await context.bot.send_message(chat_id, "هوش ربات خاموش است (BRAIN_MODE=off).")
+        return
+    await context.bot.send_chat_action(chat_id, ChatAction.UPLOAD_DOCUMENT)
+    path = WORK_ROOT / f"pricebot-brain-{time.strftime('%Y-%m-%d_%H-%M')}.zip"
+    WORK_ROOT.mkdir(parents=True, exist_ok=True)
+    info = await asyncio.to_thread(brain.BRAIN.export_zip, path)
+    caption = (f"💾 بکاپ حافظه هوش ربات\n"
+               f"📚 {_fa(info['formats'])} قالب ({_fa(info['trusted'])} مستقل) — {_fa(info['samples'])} نمونه آموزشی\n"
+               f"🕒 {_fa_date(info['created'])}\n\n"
+               "این فایل را نگه دار. برای برگرداندن: /restore یا /brain ← ♻️ بازیابی بکاپ")
+    try:
+        with path.open("rb") as fh:
+            await context.bot.send_document(chat_id, fh, filename=path.name, caption=caption)
+    finally:
+        path.unlink(missing_ok=True)
+
+
+async def _ask_for_backup(message: Message, chat_id: int) -> None:
+    RESTORE_WAIT[chat_id] = time.time()
+    kb = InlineKeyboardMarkup([[InlineKeyboardButton("✖️ لغو", callback_data="mem:cancel")]])
+    await message.reply_text("♻️ فایل بکاپ (zip) را همین‌جا بفرست.\n"
+                             "همان فایلی که با «💾 گرفتن بکاپ» گرفته‌ای.", reply_markup=kb)
+
+
+def _is_backup_upload(chat_id: int, filename: str) -> bool:
+    name = filename.lower()
+    waiting = time.time() - RESTORE_WAIT.get(chat_id, 0) < 600
+    return name.endswith(".zip") and (waiting or name.startswith("pricebot-brain"))
+
+
+async def _on_backup_file(update: Update, context: ContextTypes.DEFAULT_TYPE, doc) -> None:
+    chat_id = update.effective_chat.id
+    msg = update.effective_message
+    RESTORE_WAIT.pop(chat_id, None)
+    path = WORK_ROOT / f"restore_{chat_id}_{uuid.uuid4().hex[:6]}.zip"
+    WORK_ROOT.mkdir(parents=True, exist_ok=True)
+    try:
+        f = await context.bot.get_file(doc.file_id)
+        await f.download_to_drive(path)
+        info, _, _ = await asyncio.to_thread(brain.BRAIN.read_backup, path)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("bad backup file: %s", exc)
+        path.unlink(missing_ok=True)
+        await msg.reply_text("❌ این فایل بکاپ حافظه ربات نیست یا خراب است.\n"
+                             "فقط فایلی که خود ربات با «💾 گرفتن بکاپ» داده قابل بازیابی است.")
+        return
+    old = RESTORE_FILES.pop(chat_id, None)
+    if old:
+        old.unlink(missing_ok=True)
+    RESTORE_FILES[chat_id] = path
+    now = brain.BRAIN.summary()
+    kb = InlineKeyboardMarkup([
+        [InlineKeyboardButton("➕ ادغام با حافظه فعلی (پیشنهادی)", callback_data="mem:merge")],
+        [InlineKeyboardButton("🔁 جایگزینی کامل", callback_data="mem:replace"),
+         InlineKeyboardButton("✖️ لغو", callback_data="mem:cancel")],
+    ])
+    await msg.reply_text(
+        "📦 فایل بکاپ سالم است:\n"
+        f"• تاریخ بکاپ: {_fa_date(info.get('created', 0))}\n"
+        f"• داخل بکاپ: {_fa(info.get('formats', 0))} قالب، {_fa(info.get('samples', 0))} نمونه\n"
+        f"• حافظه فعلی ربات: {_fa(now['formats'])} قالب، {_fa(now['samples'])} نمونه\n\n"
+        "➕ ادغام: هرچه در بکاپ هست به حافظه فعلی اضافه می‌شود و چیزی پاک نمی‌شود.\n"
+        "🔁 جایگزینی: حافظه فعلی کنار می‌رود و دقیقاً همان بکاپ برمی‌گردد.\n"
+        "(در هر دو حالت یک نسخه از حافظه فعلی خودکار نگه داشته می‌شود و قابل برگشت است.)",
+        reply_markup=kb)
+
+
+def _undo_keyboard(path: Path) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([[InlineKeyboardButton("↩️ برگرداندن به قبل", callback_data=f"mem:undo:{path.name}")]])
+
+
+async def _on_memory(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    q = update.callback_query
+    chat_id = update.effective_chat.id
+    parts = (q.data or "").split(":", 2)
+    action = parts[1] if len(parts) > 1 else ""
+    if action == "backup":
+        await _send_backup(context, chat_id)
+    elif action == "restore":
+        await _ask_for_backup(q.message, chat_id)
+    elif action == "refresh":
+        await _safe_edit(q.message, brain.report(), reply_markup=_brain_keyboard())
+    elif action == "cancel":
+        RESTORE_WAIT.pop(chat_id, None)
+        path = RESTORE_FILES.pop(chat_id, None)
+        if path:
+            path.unlink(missing_ok=True)
+        await _safe_edit(q.message, "لغو شد.")
+    elif action in ("merge", "replace"):
+        path = RESTORE_FILES.pop(chat_id, None)
+        if path is None or not path.exists():
+            await _safe_edit(q.message, "فایل بکاپ دیگر در دسترس نیست؛ دوباره بفرست. /restore")
+            return
+        await _safe_edit(q.message, "⏳ در حال بازیابی…")
+        try:
+            safety = await asyncio.to_thread(_auto_backup, "before-restore")
+            _, data, samples = await asyncio.to_thread(brain.BRAIN.read_backup, path)
+            glyphs = await asyncio.to_thread(brain.BRAIN.backup_glyphs, path)
+            n = await asyncio.to_thread(brain.BRAIN.restore, data, samples, action == "merge", glyphs)
+        except Exception:  # noqa: BLE001
+            log.exception("restore failed")
+            await _safe_edit(q.message, "❌ بازیابی انجام نشد؛ حافظه فعلی دست نخورد.")
+            return
+        finally:
+            path.unlink(missing_ok=True)
+        now = brain.BRAIN.summary()
+        head = (f"✅ ادغام شد: {_fa(n)} قالب تازه اضافه شد." if action == "merge"
+                else f"✅ بازیابی کامل شد: {_fa(n)} قالب برگشت.")
+        await _safe_edit(q.message, f"{head}\n🧠 حافظه الان: {_fa(now['formats'])} قالب "
+                                    f"({_fa(now['trusted'])} مستقل)، {_fa(now['samples'])} نمونه.",
+                         reply_markup=_undo_keyboard(safety))
+    elif action == "undo":
+        path = BACKUP_DIR / parts[2] if len(parts) > 2 else None
+        if path is None or not path.exists() or path.parent != BACKUP_DIR:
+            await q.message.reply_text("نسخه قبلی دیگر موجود نیست.")
+            return
+        _, data, samples = await asyncio.to_thread(brain.BRAIN.read_backup, path)
+        glyphs = await asyncio.to_thread(brain.BRAIN.backup_glyphs, path)
+        await asyncio.to_thread(brain.BRAIN.restore, data, samples, False, glyphs)
+        now = brain.BRAIN.summary()
+        await _safe_edit(q.message, f"↩️ حافظه به حالت قبل برگشت: {_fa(now['formats'])} قالب، "
+                                    f"{_fa(now['samples'])} نمونه.")
+    elif action == "reset":
+        kb = InlineKeyboardMarkup([[InlineKeyboardButton("🗑 بله، پاک کن", callback_data="mem:reset_yes"),
+                                    InlineKeyboardButton("✖️ نه", callback_data="mem:cancel")]])
+        await q.message.reply_text("⚠️ مطمئنی؟ هرچه ربات یاد گرفته پاک می‌شود و فقط درس‌های پایه می‌ماند.\n"
+                                   "(قبل از پاک کردن یک نسخه خودکار نگه داشته می‌شود.)", reply_markup=kb)
+    elif action == "reset_yes":
+        safety = await asyncio.to_thread(_auto_backup, "before-reset")
+        await asyncio.to_thread(brain.BRAIN.reset)
+        await asyncio.to_thread(brain.BRAIN.merge_seed, brain.SEED_DIR)
+        await _safe_edit(q.message, "🗑 حافظه پاک شد و ربات به درس‌های پایه برگشت.",
+                         reply_markup=_undo_keyboard(safety))
 
 
 async def cmd_reset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -251,6 +430,8 @@ async def on_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         doc = msg.document
         filename = doc.file_name or f"file_{msg.message_id}"
         mime = (doc.mime_type or "").lower()
+        if _is_backup_upload(chat_id, filename):
+            return await _on_backup_file(update, context, doc)
         if not (mime == "application/pdf" or mime.startswith("image/")
                 or filename.lower().endswith((".pdf", ".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"))):
             await msg.reply_text("این نوع فایل پشتیبانی نمی‌شود. لطفاً PDF یا عکس بفرست.")
@@ -590,8 +771,8 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         await q.answer("دسترسی ندارید", show_alert=True)
         return
     await q.answer()
-    if (q.data or "").startswith("brainreset:"):
-        return await _on_brain_reset(q)
+    if (q.data or "").startswith("mem:"):
+        return await _on_memory(update, context)
     async with _chat_lock(update.effective_chat.id):
         session = SESSIONS.get(update.effective_chat.id)
         if (q.data or "").startswith("fb:"):
@@ -616,19 +797,6 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         elif kind == "out":
             formats = ["pdf", "xlsx", "image"] if parts[1] == "all" else [parts[1]]
             await _deliver(update, context, session, pending, formats)
-
-
-async def _on_brain_reset(q) -> None:
-    if q.data == "brainreset:ask":
-        kb = InlineKeyboardMarkup([[InlineKeyboardButton("بله، همه را پاک کن", callback_data="brainreset:yes"),
-                                    InlineKeyboardButton("نه", callback_data="brainreset:no")]])
-        await q.message.reply_text("مطمئنی؟ هرچه ربات تا الان یاد گرفته پاک می‌شود و از صفر شروع می‌کند.",
-                                   reply_markup=kb)
-    elif q.data == "brainreset:yes":
-        await asyncio.to_thread(brain.BRAIN.reset)
-        await _safe_edit(q.message, "🗑 حافظه هوش ربات پاک شد.")
-    else:
-        await _safe_edit(q.message, "لغو شد.")
 
 
 def _learn_from_user(analysis: Analysis, good: bool) -> None:
@@ -692,13 +860,31 @@ async def on_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     log.error("unhandled error", exc_info=context.error)
 
 
+async def _set_menu(app: Application) -> None:
+    """The command list shown by Telegram's menu button."""
+    try:
+        await app.bot.set_my_commands([
+            BotCommand("start", "راهنمای ربات"),
+            BotCommand("brain", "هوش ربات: وضعیت یادگیری، بکاپ و بازیابی"),
+            BotCommand("backup", "گرفتن بکاپ از حافظه ربات"),
+            BotCommand("restore", "بازیابی بکاپ حافظه ربات"),
+            BotCommand("usage", "سهمیه امروز Gemini"),
+            BotCommand("test", "آزمایش اتصال به Gemini"),
+            BotCommand("status", "وضعیت ربات و فایل‌های باز"),
+            BotCommand("reset", "شروع دوباره (بستن فایل‌های باز)"),
+            BotCommand("id", "شناسه عددی شما"),
+        ])
+    except Exception as exc:  # noqa: BLE001 - the menu is a nicety
+        log.warning("could not set the command menu: %s", exc)
+
+
 def main() -> None:
     if not config.TELEGRAM_BOT_TOKEN:
         raise SystemExit("TELEGRAM_BOT_TOKEN is not set")
     if not ai.enabled():
         log.warning("no AI key set: images/scans will not work, PDFs use simple detection")
     WORK_ROOT.mkdir(parents=True, exist_ok=True)
-    app = (Application.builder().token(config.TELEGRAM_BOT_TOKEN).concurrent_updates(True)
+    app = (Application.builder().token(config.TELEGRAM_BOT_TOKEN).concurrent_updates(True).post_init(_set_menu)
            .read_timeout(60).write_timeout(180).connect_timeout(30).media_write_timeout(180).build())
     app.add_handler(CommandHandler(["start", "help"], cmd_start))
     app.add_handler(CommandHandler("id", cmd_id))
@@ -706,6 +892,8 @@ def main() -> None:
     app.add_handler(CommandHandler(["usage", "quota"], cmd_usage))
     app.add_handler(CommandHandler(["test", "diag"], cmd_test))
     app.add_handler(CommandHandler(["brain", "learn", "ai"], cmd_brain))
+    app.add_handler(CommandHandler("backup", cmd_backup))
+    app.add_handler(CommandHandler("restore", cmd_restore))
     app.add_handler(CommandHandler(["reset", "cancel"], cmd_reset))
     app.add_handler(MessageHandler(filters.PHOTO | filters.Document.ALL, on_file))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))

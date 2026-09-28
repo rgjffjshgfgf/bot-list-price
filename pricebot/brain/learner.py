@@ -26,7 +26,8 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .layout import (CURRENCIES, PageDoc, _is_sequence, canon, digits_of, keyword_groups,
+from .ocr import GlyphBank
+from .layout import (CURRENCIES, UNITS, PageDoc, _is_sequence, canon, digits_of, keyword_groups,
                      magnitude)
 
 log = logging.getLogger(__name__)
@@ -42,7 +43,7 @@ PRIOR: dict[str, float] = {
     "attached": -4.0, "yearlike": -1.2, "dec": -0.3,
     "col_code_like": -2.2, "col_seq": -4.0, "len_outlier": -0.6,
     "colgrp:hi": 0.8, "colgrp:lo": -0.4,
-    "cur_adj": 1.5, "row_phone": -2.0,
+    "cur_adj": 1.5, "row_phone": -2.0, "unit_adj": -3.5,
 }
 
 _SEP_NAMES = {",": "comma", "٬": "comma", "،": "comma", "/": "slash", ".": "dot", "٫": "dot",
@@ -112,7 +113,23 @@ def features(doc: PageDoc, i: int) -> list[str]:
             break
     if any("phone" in keyword_groups(w.text) for w in words):
         f.append("row_phone")
+    for w in words:
+        if _is_unit(canon(w.text)) and min(abs(w.box[0] - t.box[2]), abs(t.box[0] - w.box[2])) <= 3.5 * doc.line_h:
+            f.append("unit_adj")                     # "۹۰ درجه", "12 V": a specification
+            break
     return f
+
+
+def _is_unit(w: str) -> bool:
+    """A unit word, allowing one wrong letter from OCR in longer ones ("درحه")."""
+    if w in UNITS:
+        return True
+    if len(w) < 4:
+        return False
+    for u in UNITS:
+        if len(u) == len(w) and sum(1 for a, b in zip(u, w) if a != b) == 1:
+            return True
+    return False
 
 
 def _sigmoid(z: float) -> float:
@@ -249,6 +266,7 @@ class Brain:
         self.templates: list[dict] = []
         self.stats: dict = {}
         self.samples: list[tuple[list[str], int]] = []
+        self.glyphs = GlyphBank()          # digit shapes learned from checked lists
         self._load()
 
     # ---- persistence ------------------------------------------------------
@@ -259,6 +277,29 @@ class Brain:
     @property
     def _samples_path(self) -> Path:
         return self.dir / "samples.jsonl"
+
+    @property
+    def _glyphs_path(self) -> Path:
+        return self.dir / "glyphs.npz"
+
+    def glyph_trusted(self) -> bool:
+        """Shape-only reads were checked often enough and were (almost) never wrong."""
+        r = self.stats.get("glyph_reads", {})
+        return r.get("n", 0) >= 50 and r.get("ok", 0) >= 0.995 * r["n"]
+
+    def record_glyph_reads(self, n: int, ok: int) -> None:
+        with self.lock:
+            r = self.stats.setdefault("glyph_reads", {"n": 0, "ok": 0})
+            r["n"] += n
+            r["ok"] += ok
+
+    def save_glyphs(self) -> None:
+        with self.lock:
+            try:
+                self.dir.mkdir(parents=True, exist_ok=True)
+                self.glyphs.save(self._glyphs_path)
+            except OSError as exc:
+                log.warning("could not save glyphs: %s", exc)
 
     def _load(self) -> None:
         try:
@@ -279,6 +320,7 @@ class Brain:
             self.samples = self.samples[-self.SAMPLE_CAP:]
         except OSError:
             pass
+        self.glyphs = GlyphBank.load(self._glyphs_path)
 
     def merge_seed(self, seed_dir: Path) -> int:
         """Add lessons shipped with the code (taught and checked by hand) that this
@@ -312,6 +354,114 @@ class Brain:
                 self.model.train(seed_samples + random.sample(self.samples, min(len(self.samples), 3000)), epochs=3)
             elif seed_samples and not self.samples:
                 self._append_samples(seed_samples)
+            if new or not len(self.glyphs):
+                seed_glyphs = GlyphBank.load(seed_dir / "glyphs.npz")
+                if len(seed_glyphs):
+                    self.glyphs.extend(seed_glyphs)
+                    self.glyphs.trim()
+                    self.save_glyphs()
+                sg = data.get("stats", {}).get("glyph_reads")
+                if sg and not self.stats.get("glyph_reads"):
+                    self.stats["glyph_reads"] = dict(sg)
+            self.save()
+            return len(new)
+
+    # ---- backup / restore -------------------------------------------------
+    BACKUP_KIND = "pricebot-brain-backup"
+
+    def summary(self) -> dict:
+        with self.lock:
+            return {"formats": len(self.templates),
+                    "trusted": sum(1 for t in self.templates if t.get("streak", 0) >= self.trust_after),
+                    "samples": len(self.samples), "glyphs": len(self.glyphs)}
+
+    def export_zip(self, path: Path) -> dict:
+        """Everything learned, in one zip file."""
+        import zipfile
+        with self.lock:
+            self.save()
+            info = {"kind": self.BACKUP_KIND, "version": 1, "created": time.time(), **self.summary()}
+            with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as zf:
+                zf.writestr("manifest.json", json.dumps(info, ensure_ascii=False))
+                zf.writestr("brain.json", json.dumps({"version": 1, "weights": self.model.w, "g2": self.model.g2,
+                                                      "templates": self.templates, "stats": self.stats},
+                                                     ensure_ascii=False))
+                zf.writestr("samples.jsonl", "".join(json.dumps({"f": f, "y": y}, ensure_ascii=False) + "\n"
+                                                     for f, y in self.samples))
+                if len(self.glyphs):
+                    self.save_glyphs()
+                    zf.write(self._glyphs_path, "glyphs.npz")
+        return info
+
+    @staticmethod
+    def backup_glyphs(path: Path) -> GlyphBank:
+        import tempfile
+        import zipfile
+        with zipfile.ZipFile(path) as zf:
+            if "glyphs.npz" not in zf.namelist():
+                return GlyphBank()
+            with tempfile.TemporaryDirectory() as tmp:
+                zf.extract("glyphs.npz", tmp)
+                return GlyphBank.load(Path(tmp) / "glyphs.npz")
+
+    @classmethod
+    def read_backup(cls, path: Path) -> tuple[dict, dict, list]:
+        """(manifest, brain data, samples) of a backup zip; ValueError if it is not one."""
+        import zipfile
+        try:
+            with zipfile.ZipFile(path) as zf:
+                names = set(zf.namelist())
+                if not {"manifest.json", "brain.json"} <= names:
+                    raise ValueError("not a brain backup")
+                info = json.loads(zf.read("manifest.json"))
+                data = json.loads(zf.read("brain.json"))
+                samples = []
+                if "samples.jsonl" in names:
+                    for line in zf.read("samples.jsonl").decode("utf-8").splitlines():
+                        if line.strip():
+                            s = json.loads(line)
+                            samples.append((list(s["f"]), int(s["y"])))
+        except (zipfile.BadZipFile, KeyError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ValueError(str(exc)) from exc
+        if info.get("kind") != cls.BACKUP_KIND or not isinstance(data.get("templates"), list):
+            raise ValueError("not a brain backup")
+        return info, data, samples
+
+    def restore(self, data: dict, samples: list, merge: bool, glyphs: GlyphBank | None = None) -> int:
+        """Replace everything with a backup, or add what the backup knows (merge).
+        Returns the number of formats added (merge) or restored (replace)."""
+        with self.lock:
+            if not merge:
+                self.model = PriceModel(data.get("weights"), data.get("g2"))
+                self.templates = list(data.get("templates", []))
+                self.stats = data.get("stats", {})
+                self.samples = []
+                try:
+                    self._samples_path.unlink()
+                except OSError:
+                    pass
+                self._append_samples(samples)
+                self.glyphs = glyphs if glyphs is not None else GlyphBank()
+                try:
+                    self._glyphs_path.unlink()
+                except OSError:
+                    pass
+                self.save_glyphs()
+                self.save()
+                return len(self.templates)
+            have = {t["id"] for t in self.templates}
+            new = [t for t in data.get("templates", []) if t.get("id") not in have]
+            self.templates.extend(new)
+            seen = {(tuple(f), y) for f, y in self.samples}
+            samples = [(f, y) for f, y in samples if (tuple(f), y) not in seen]
+            if samples:
+                old = random.sample(self.samples, min(len(self.samples), 3000))
+                self._append_samples(samples)
+                self.model.train(samples + old, epochs=3)
+            if glyphs is not None and len(glyphs):
+                self.glyphs.extend(glyphs)
+                self.glyphs.trim()
+                self.save_glyphs()
             self.save()
             return len(new)
 
@@ -348,7 +498,8 @@ class Brain:
         with self.lock:
             self.model = PriceModel()
             self.templates, self.stats, self.samples = [], {}, []
-            for p in (self._main, self._samples_path):
+            self.glyphs = GlyphBank()
+            for p in (self._main, self._samples_path, self._glyphs_path):
                 try:
                     p.unlink()
                 except OSError:
@@ -392,6 +543,15 @@ class Brain:
     def decide(self, doc: PageDoc, mode: str = "auto") -> Decision:
         probs = self.model.predict(doc) if doc.nums else []
         model_sel = {i for i, p in enumerate(probs) if p >= 0.5}
+        if doc.source == "ocr" and len(doc.nums) >= 5:
+            # prices come in columns: a lone number or two picked in a column is a
+            # specification inside a description ("۹۰ درجه"), not a price
+            per_col: dict[int, int] = {}
+            for i in model_sel:
+                per_col[doc.col_of[i]] = per_col.get(doc.col_of[i], 0) + 1
+            model_sel = {i for i in model_sel if per_col[doc.col_of[i]] >= 3
+                         and (len(doc.columns[doc.col_of[i]]) < 6
+                              or per_col[doc.col_of[i]] >= 0.4 * len(doc.columns[doc.col_of[i]]))}
         confident = bool(probs) and all(p <= 0.15 or p >= 0.85 for p in probs)
         tpl, sim = self.match(doc)
         if tpl is not None:

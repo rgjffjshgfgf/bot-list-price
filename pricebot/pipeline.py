@@ -368,6 +368,41 @@ def _ocr_text_at(bdoc: blayout.PageDoc, box) -> str:
     return best
 
 
+def _learn_shapes(ink: raster.InkMap, targets: list, finals: list, local: list) -> None:
+    """Checked numbers teach the lasting digit-shape library; the library's own
+    reads are scored against them (it is trusted alone only after proving itself)."""
+    if not brain.enabled():
+        return
+    try:
+        sure = [(r.glyph, f) for r, f in zip(local, finals) if r.glyph and r.glyph_sure and f]
+        brain.BRAIN.record_glyph_reads(len(sure), sum(1 for g, f in sure if _digits(g) == _digits(f)))
+        ok = [(t, f) for t, f in zip(targets, finals) if f]
+        with brain.BRAIN.lock:
+            added = bocr.harvest(ink, [t for t, _ in ok], [f for _, f in ok], brain.BRAIN.glyphs)
+        if added:
+            brain.BRAIN.save_glyphs()
+    except Exception:  # noqa: BLE001 - learning shapes must never break a job
+        log.exception("shape learning failed")
+
+
+def _complete(ink: raster.InkMap, t: raster.Target) -> bool:
+    """False when more ink sits glued to the number on its line (then only a piece
+    of a bigger number was found, and rewriting it would corrupt the price)."""
+    x0, y0, x1, y1 = t.box
+    h = max(1, y1 - y0)
+    for w in ink.words:
+        if w.polarity != t.polarity or min(w.y1, y1) - max(w.y0, y0) < 0.5 * min(w.h, h):
+            continue
+        if w.x0 >= x0 and w.x1 <= x1:
+            continue                                   # part of the number itself
+        if w.h < 0.3 * h:
+            continue                                   # dust
+        gap = max(w.x0 - x1, x0 - w.x1)
+        if gap < 0.45 * h and not raster._vline_between(ink, min(x1, w.x1), max(x0, w.x0), y0, y1):
+            return False
+    return True
+
+
 def _raster_items(rgb: np.ndarray, prices: list[dict], page: int, start: int, columns: dict[int, str],
                   bdoc: blayout.PageDoc | None = None, local_only: bool = False,
                   mode: str = "auto") -> tuple[list[PriceItem], list[str], tuple[int, int], int]:
@@ -390,6 +425,12 @@ def _raster_items(rgb: np.ndarray, prices: list[dict], page: int, start: int, co
 
     keep: list[tuple[raster.Target, dict]] = []
     for t, p in zip(targets, prices):
+        if t is not None and any(blayout.overlap_share(t.box, k.box) > 0.3 for k, _ in keep):
+            continue            # the same ink found twice: change it once
+        if t is not None and not _complete(ink, t):
+            warnings.append(f"صفحه {page + 1}: عدد «{p.get('text', '')}» ({p.get('label', '')}) کامل پیدا نشد "
+                            "(بخشی از یک عدد بزرگ‌تر است) و تغییر نمی‌کند.")
+            continue
         if t is None:
             warnings.append(f"صفحه {page + 1}: قیمت «{p.get('text', '')}» ({p.get('label', '')}) دقیق پیدا نشد و تغییر نمی‌کند.")
         elif t.style is None:
@@ -402,7 +443,8 @@ def _raster_items(rgb: np.ndarray, prices: list[dict], page: int, start: int, co
         if bdoc is not None and bocr.available():
             first = [p.get("ocr") or _ocr_text_at(bdoc, t.box) for t, p in keep]
             try:
-                local = bocr.read_targets(ink, [t for t, _ in keep], first)
+                local = bocr.read_targets(ink, [t for t, _ in keep], first, brain.BRAIN.glyphs,
+                                          brain.BRAIN.glyph_trusted())
             except Exception:  # noqa: BLE001 - the local reader is an extra, never a blocker
                 log.exception("local reading failed")
         if local_only:
@@ -430,6 +472,7 @@ def _raster_items(rgb: np.ndarray, prices: list[dict], page: int, start: int, co
             if local:
                 done = [(r.text, f) for r, f in zip(local, finals) if r.text and f]
                 stat = (len(done), sum(1 for a, b in done if _digits(a) == _digits(b)))
+                _learn_shapes(ink, [t for t, _ in keep], finals, local)
         checked = []
         for (t, p), text in zip(keep, finals):
             if text is None:
@@ -605,7 +648,8 @@ def _raster_page(analysis: Analysis, rgb: np.ndarray, index: int, start: int) ->
     bdoc = dec = None
     if brain.enabled() and bocr.available():
         try:
-            bdoc = blayout.from_ocr(bocr.page_words(rgb), rgb.shape[1], rgb.shape[0])
+            words = bocr.glyph_words(rgb, bocr.page_words(rgb), brain.BRAIN.glyphs)
+            bdoc = blayout.from_ocr(words, rgb.shape[1], rgb.shape[0])
             dec = brain.BRAIN.decide(bdoc, mode)
         except Exception:  # noqa: BLE001 - OCR problems must not stop Gemini
             log.exception("page %d OCR failed", index + 1)
