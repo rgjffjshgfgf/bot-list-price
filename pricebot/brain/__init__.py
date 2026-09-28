@@ -9,6 +9,7 @@ model also handles formats it has never seen.
 from __future__ import annotations
 
 import time
+from pathlib import Path
 
 from .. import config
 from . import layout, ocr
@@ -16,6 +17,10 @@ from .layout import PageDoc
 from .learner import Brain, Decision
 
 BRAIN = Brain(config.BRAIN_DIR, config.BRAIN_TRUST_AFTER, config.BRAIN_GENERAL_AFTER)
+# Lessons taught and checked by hand, shipped with the code (see tools/teach.py).
+SEED_DIR = Path(__file__).resolve().parent / "seed"
+if config.BRAIN_MODE != "off":
+    BRAIN.merge_seed(SEED_DIR)
 
 __all__ = ["BRAIN", "Decision", "PageDoc", "enabled", "mode", "layout", "ocr", "column_names",
            "report", "page_note", "truth_from_boxes"]

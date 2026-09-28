@@ -280,6 +280,41 @@ class Brain:
         except OSError:
             pass
 
+    def merge_seed(self, seed_dir: Path) -> int:
+        """Add lessons shipped with the code (taught and checked by hand) that this
+        brain has not got yet. Returns the number of new formats."""
+        try:
+            data = json.loads((seed_dir / "brain.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return 0
+        if seed_dir.resolve() == self.dir.resolve():
+            return 0
+        with self.lock:
+            done = set(self.stats.get("seed_formats", []))
+            have = {t["id"] for t in self.templates}
+            new = [t for t in data.get("templates", []) if t["id"] not in have and t["id"] not in done]
+            if not new and done:
+                return 0
+            self.templates.extend(new)
+            self.stats["seed_formats"] = sorted(done | {t["id"] for t in data.get("templates", [])})
+            if not self.model.w:
+                self.model = PriceModel(data.get("weights"), data.get("g2"))
+            try:
+                seed_samples = []
+                with (seed_dir / "samples.jsonl").open(encoding="utf-8") as fh:
+                    for line in fh:
+                        s = json.loads(line)
+                        seed_samples.append((s["f"], int(s["y"])))
+            except (OSError, ValueError, KeyError):
+                seed_samples = []
+            if new and seed_samples and self.samples:
+                self._append_samples(seed_samples)
+                self.model.train(seed_samples + random.sample(self.samples, min(len(self.samples), 3000)), epochs=3)
+            elif seed_samples and not self.samples:
+                self._append_samples(seed_samples)
+            self.save()
+            return len(new)
+
     def save(self) -> None:
         with self.lock:
             try:
