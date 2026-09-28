@@ -202,6 +202,37 @@ def _plain_schema(schema):
     return schema
 
 
+_SKIP_MODELS = ("image", "tts", "audio", "live", "embedding", "robotics", "computer", "exp", "native")
+
+
+def _version(name: str) -> float:
+    m = re.search(r"gemini-(\d+(?:\.\d+)?)", name)
+    return float(m.group(1)) if m else 0.0
+
+
+def discover_model(lite: bool, exclude: set[str]) -> str | None:
+    """Pick a working Flash / Flash-Lite model from the key's own model list
+    (used when the configured name no longer exists)."""
+    names = []
+    for m in _client().models.list(config={"page_size": 200}):
+        if "generateContent" not in (m.supported_actions or []):
+            continue
+        n = (m.name or "").removeprefix("models/")
+        if ("flash" in n and ("lite" in n) == lite and n not in exclude
+                and not any(s in n for s in _SKIP_MODELS)):
+            names.append(n)
+    if not names:
+        return None
+    # "-latest" alias first, then the newest stable version, previews last.
+    names.sort(key=lambda n: (n.endswith("-latest"), "preview" not in n, _version(n)), reverse=True)
+    return names[0]
+
+
+def short_error(exc: BaseException | str, limit: int = 300) -> str:
+    text = re.sub(r"\s+", " ", str(exc)).strip()
+    return text if len(text) <= limit else text[:limit] + "…"
+
+
 class GeminiModel:
     def __init__(self, name: str, model: str, label: str, rpm: int, rpd: int):
         self.name = name
@@ -211,6 +242,36 @@ class GeminiModel:
         self.pacer = Pacer(rpm)
         self._thinking_ok = True
         self._media_ok = True
+        self._schema_ok = True
+        self._tried: set[str] = {model}
+        self.last_error = ""
+        self.last_ok: datetime | None = None
+
+    def _degrade(self, has_media: bool) -> str | None:
+        """Drop the next optional request feature after an unexplained 400."""
+        if self._thinking_ok:
+            self._thinking_ok = False
+            return "thinking_config"
+        if has_media and self._media_ok:
+            self._media_ok = False
+            return "media_resolution"
+        if self._schema_ok:
+            self._schema_ok = False
+            return "response_json_schema"
+        return None
+
+    def _switch_model(self) -> bool:
+        try:
+            new = discover_model(self.name == "lite", self._tried)
+        except Exception as exc:  # noqa: BLE001
+            log.warning("could not list gemini models: %s", exc)
+            return False
+        if not new:
+            return False
+        log.warning("%s not found, switching to %s", self.model, new)
+        self._tried.add(new)
+        self.model = new
+        return True
 
     # ---- quota ------------------------------------------------------------
     @property
@@ -230,26 +291,45 @@ class GeminiModel:
     # ---- call -------------------------------------------------------------
     def call(self, system: str, text: str, images: list[tuple[Image.Image, str]], schema: dict,
              schema_name: str, effort: str, max_tokens: int) -> dict:
+        try:
+            data = self._call(system, text, images, schema, schema_name, effort, max_tokens)
+        except Exception as exc:
+            self.last_error = f"{_fa(datetime.now(TEHRAN).strftime('%H:%M'))} — {short_error(exc, 400)}"
+            raise
+        self.last_error = ""
+        self.last_ok = datetime.now(TEHRAN)
+        return data
+
+    def _call(self, system: str, text: str, images: list[tuple[Image.Image, str]], schema: dict,
+              schema_name: str, effort: str, max_tokens: int) -> dict:
         if not self.available():
             raise QuotaExceeded(f"{self.label}: daily quota used up", next_reset())
-        parts = [types.Part.from_bytes(data=_jpeg(img) if fmt == "JPEG" else _png(img),
+        media = [types.Part.from_bytes(data=_jpeg(img) if fmt == "JPEG" else _png(img),
                                        mime_type="image/jpeg" if fmt == "JPEG" else "image/png")
                  for img, fmt in images]
-        parts.append(types.Part.from_text(text=text))
         attempts = 0
+        empty_answers = 0
         while True:
             attempts += 1
+            if attempts > 12:
+                raise AIError(f"gemini kept failing on {self.model}")
+            prompt = text
             cfg = {
                 "system_instruction": system,
                 "response_mime_type": "application/json",
-                "response_json_schema": _plain_schema(schema),
                 "max_output_tokens": max_tokens,
                 "automatic_function_calling": types.AutomaticFunctionCallingConfig(disable=True),
             }
+            if self._schema_ok:
+                cfg["response_json_schema"] = _plain_schema(schema)
+            else:
+                prompt = (f"{text}\n\nAnswer with one JSON object that follows this JSON schema exactly:\n"
+                          f"{json.dumps(_plain_schema(schema), ensure_ascii=False)}")
             if self._thinking_ok:
                 cfg["thinking_config"] = types.ThinkingConfig(thinking_level=_THINKING.get(effort, "MEDIUM"))
-            if images and self._media_ok:
+            if media and self._media_ok:
                 cfg["media_resolution"] = types.MediaResolution.MEDIA_RESOLUTION_HIGH
+            parts = [*media, types.Part.from_text(text=prompt)]
             self.pacer.wait()
             try:
                 resp = _client().models.generate_content(
@@ -257,6 +337,7 @@ class GeminiModel:
                     config=types.GenerateContentConfig(**cfg))
             except errors.APIError as exc:
                 msg = f"{exc.message or ''} {exc.status or ''}".lower()
+                log.warning("%s error %s: %s", self.model, exc.code, short_error(exc.message or exc))
                 if exc.code == 429:
                     info = _quota_info(exc)
                     if info.daily or attempts > 3:
@@ -267,19 +348,26 @@ class GeminiModel:
                     log.info("%s per-minute limit hit, waiting %.0fs", self.model, wait)
                     time.sleep(wait)
                     continue
+                if "api key" in msg or (exc.code in (401, 403) and "permission" in msg):
+                    raise AIError(f"gemini authentication failed: {exc.message}") from exc
+                if "location is not supported" in msg:
+                    raise AIError("gemini is not available in this server's region") from exc
                 if exc.code == 400 and self._thinking_ok and "thinking" in msg:
                     self._thinking_ok = False
                     continue
                 if exc.code == 400 and self._media_ok and "media" in msg:
                     self._media_ok = False
                     continue
-                if exc.code in (500, 502, 503, 504) and attempts <= 3:
-                    time.sleep(2 * attempts)      # "model overloaded" is common on the free tier
+                if exc.code == 400:
+                    dropped = self._degrade(bool(media))     # some models reject optional features
+                    if dropped:
+                        log.warning("%s rejected the request, retrying without %s", self.model, dropped)
+                        continue
+                if exc.code == 404 and self._switch_model():
                     continue
-                if "api key" in msg or (exc.code in (401, 403) and "permission" in msg):
-                    raise AIError(f"gemini authentication failed: {exc.message}") from exc
-                if "location is not supported" in msg:
-                    raise AIError("gemini is not available in this server's region") from exc
+                if exc.code in (500, 502, 503, 504) and attempts <= 4:
+                    time.sleep(3 * attempts)      # "model overloaded" is common on the free tier
+                    continue
                 if exc.code == 404:
                     raise AIError(f"gemini model not found: {self.model}") from exc
                 raise AIError(f"gemini error {exc.code}: {exc.message}") from exc
@@ -299,13 +387,21 @@ class GeminiModel:
                 raise AIError(f"gemini returned no answer ({getattr(resp, 'prompt_feedback', '')})")
             if "MAX_TOKENS" in finish:
                 raise AIError("gemini answer was cut off (max tokens)")
-            return _parse_json(resp.text or "")
+            try:
+                return _parse_json(resp.text or "")
+            except AIError:
+                empty_answers += 1
+                if empty_answers > 1:
+                    raise
+                log.warning("%s gave an unusable answer (finish %s), asking again", self.model, finish)
 
 
 def _parse_json(text: str) -> dict:
     text = text.strip()
     if text.startswith("```"):
         text = re.sub(r"^```(?:json)?|```$", "", text).strip()
+    if not text.startswith("{") and "{" in text and "}" in text:   # prose around the JSON (no-schema mode)
+        text = text[text.index("{"): text.rindex("}") + 1]
     try:
         data = json.loads(text)
     except json.JSONDecodeError as exc:
@@ -415,11 +511,38 @@ def usage_report() -> str:
         state = "✅" if left > limit * 0.2 else ("⚠️" if left > 0 else "⛔️")
         lines.append(f"\n{state} {m.label}  ({m.model})")
         lines.append(f"{_bar(used, limit)}  {_fa(used)} از {_fa(limit)} درخواست — {_fa(left)} باقی‌مانده")
+        if m.last_error:
+            lines.append(f"❗️ آخرین خطا: {m.last_error}")
         total_tokens += e["input"] + e["output"]
     lines.append(f"\n🔤 توکن مصرف‌شده امروز: {_fa(f'{total_tokens:,}')}")
     lines.append(f"⏰ تمدید سهمیه: {reset_text()}")
     lines.append(f"📄 ظرفیت تقریبی باقی‌مانده: {capacity_text()}")
     lines.append("\nℹ️ این آمار را خود ربات می‌شمارد؛ آمار دقیق پروژه در aistudio.google.com است.")
+    return "\n".join(lines)
+
+
+def self_test() -> str:
+    """Send one tiny request to each model and report what Google answers."""
+    if not enabled():
+        return "❌ GEMINI_API_KEY تنظیم نشده."
+    lines = ["🩺 آزمایش اتصال به Gemini"]
+    for m in MODELS.values():
+        started = time.monotonic()
+        try:
+            data = m.call("Reply in JSON.", "Say OK.", [], _obj({"answer": _STR}), "self_test", "low", 2048)
+        except QuotaExceeded:
+            lines.append(f"\n⛔️ {m.label} ({m.model})\nسهمیه امروز تمام شده — تمدید: {reset_text()}")
+            continue
+        except Exception as exc:  # noqa: BLE001
+            lines.append(f"\n❌ {m.label} ({m.model})\n{short_error(exc, 500)}")
+            continue
+        took = time.monotonic() - started
+        notes = [n for n, ok in (("بدون thinking", m._thinking_ok), ("بدون media_resolution", m._media_ok),
+                                 ("بدون schema", m._schema_ok)) if not ok]
+        extra = f" ({'، '.join(notes)})" if notes else ""
+        lines.append(f"\n✅ {m.label} ({m.model})\nپاسخ داد در {_fa(f'{took:.1f}')} ثانیه{extra}: "
+                     f"{short_error(data.get('answer', ''), 40)}")
+    lines.append("\n(این آزمایش از هر مدل ۱ درخواست سهمیه مصرف می‌کند.)")
     return "\n".join(lines)
 
 

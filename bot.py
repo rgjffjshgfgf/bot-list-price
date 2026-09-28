@@ -49,7 +49,7 @@ HELP = (
     "دستور را می‌توانی در کپشن فایل هم بنویسی. چند فایل پشت سر هم هم قبول است؛ دستور روی همه اعمال می‌شود.\n"
     "هر دستور روی فایل اصلی اعمال می‌شود (نه روی خروجی قبلی).\n\n"
     "هوش مصنوعی ربات Google Gemini (طرح رایگان) است؛ سهمیه روزانه را با /usage ببین.\n\n"
-    "/help راهنما   /usage سهمیه رایگان   /status وضعیت   /reset شروع دوباره   /id شناسه شما"
+    "/help راهنما   /usage سهمیه رایگان   /test آزمایش اتصال Gemini   /status وضعیت   /reset شروع دوباره   /id شناسه شما"
 )
 
 
@@ -122,7 +122,9 @@ def _ai_error_text(exc: Exception) -> str:
         return "کلید Gemini نامعتبر است (GEMINI_API_KEY را بررسی کن)."
     if "region" in low:
         return "Gemini در منطقه سرور در دسترس نیست."
-    return "سرویس هوش مصنوعی پاسخ نداد. چند لحظه بعد دوباره امتحان کن."
+    return ("سرویس هوش مصنوعی پاسخ نداد. چند لحظه بعد دوباره امتحان کن.\n"
+            f"جزئیات: {ai.short_error(exc)}\n"
+            "برای آزمایش اتصال: /test")
 
 
 async def _safe_edit(message: Message, text: str, **kwargs) -> None:
@@ -197,6 +199,14 @@ async def cmd_usage(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return await _deny(update)
     await update.effective_message.reply_text(ai.usage_report())
+
+
+async def cmd_test(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not _allowed(update):
+        return await _deny(update)
+    status = await update.effective_message.reply_text("🩺 در حال آزمایش اتصال به Gemini…")
+    report = await asyncio.to_thread(ai.self_test)
+    await _safe_edit(status, report)
 
 
 async def cmd_reset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -402,7 +412,9 @@ async def _handle_command_text(update: Update, context: ContextTypes.DEFAULT_TYP
         data = await asyncio.to_thread(ai.interpret_command, text, listing, currency)
     except Exception as exc:  # noqa: BLE001
         log.warning("command AI failed: %s", exc)
-        await _safe_edit(thinking, "❌ نتوانستم دستور را بفهمم. ساده‌تر بنویس، مثلاً «۱۰ درصد افزایش».")
+        detail = _ai_error_text(exc) if isinstance(exc, ai.AIError) else ""
+        await _safe_edit(thinking, "❌ نتوانستم دستور را بفهمم. ساده‌تر بنویس، مثلاً «۱۰ درصد افزایش»."
+                         + (f"\n\n{detail}" if detail else ""))
         return
     status = data.get("status")
     if status == "clarify":
@@ -570,6 +582,7 @@ def main() -> None:
     app.add_handler(CommandHandler("id", cmd_id))
     app.add_handler(CommandHandler("status", cmd_status))
     app.add_handler(CommandHandler(["usage", "quota"], cmd_usage))
+    app.add_handler(CommandHandler(["test", "diag"], cmd_test))
     app.add_handler(CommandHandler(["reset", "cancel"], cmd_reset))
     app.add_handler(MessageHandler(filters.PHOTO | filters.Document.ALL, on_file))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))
