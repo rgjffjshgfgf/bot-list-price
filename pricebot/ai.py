@@ -309,10 +309,12 @@ class GeminiModel:
                  for img, fmt in images]
         attempts = 0
         empty_answers = 0
+        # a slow or broken Gemini must never keep the user waiting for minutes
+        deadline = time.monotonic() + config.AI_CALL_BUDGET
         while True:
             attempts += 1
-            if attempts > 12:
-                raise AIError(f"gemini kept failing on {self.model}")
+            if attempts > 8 or time.monotonic() > deadline:
+                raise AIError(f"gemini kept failing or too slow on {self.model}")
             prompt = text
             cfg = {
                 "system_instruction": system,
@@ -340,11 +342,13 @@ class GeminiModel:
                 log.warning("%s error %s: %s", self.model, exc.code, short_error(exc.message or exc))
                 if exc.code == 429:
                     info = _quota_info(exc)
-                    if info.daily or attempts > 3:
+                    if info.daily:
                         USAGE.mark_exhausted(self.model, info.limit)
                         log.warning("%s daily quota exhausted (limit %s)", self.model, info.limit)
                         raise QuotaExceeded(f"{self.label}: daily quota used up", next_reset()) from exc
-                    wait = min(info.retry_after or 20.0, 65.0)
+                    wait = min(info.retry_after or 10.0, 20.0)
+                    if attempts > 2 or time.monotonic() + wait > deadline:
+                        raise AIError(f"gemini busy (per-minute limit): {exc.message}") from exc
                     log.info("%s per-minute limit hit, waiting %.0fs", self.model, wait)
                     time.sleep(wait)
                     continue
@@ -365,17 +369,18 @@ class GeminiModel:
                         continue
                 if exc.code == 404 and self._switch_model():
                     continue
-                if exc.code in (500, 502, 503, 504) and attempts <= 4:
-                    time.sleep(3 * attempts)      # "model overloaded" is common on the free tier
+                if exc.code in (500, 502, 503, 504) and attempts <= 2 and time.monotonic() + 3 < deadline:
+                    time.sleep(3)                 # "model overloaded" is common on the free tier
                     continue
                 if exc.code == 404:
                     raise AIError(f"gemini model not found: {self.model}") from exc
                 raise AIError(f"gemini error {exc.code}: {exc.message}") from exc
             except Exception as exc:  # noqa: BLE001 - network hiccups
-                if attempts <= 2:
-                    time.sleep(2 * attempts)
+                slow = "timeout" in type(exc).__name__.lower() or "timed out" in str(exc).lower()
+                if not slow and attempts <= 1 and time.monotonic() + 2 < deadline:
+                    time.sleep(2)
                     continue
-                raise AIError(f"gemini unreachable: {exc}") from exc
+                raise AIError(f"gemini {'too slow' if slow else 'unreachable'}: {exc}") from exc
             um = resp.usage_metadata
             tin = (um.prompt_token_count or 0) if um else 0
             tout = ((um.candidates_token_count or 0) + (um.thoughts_token_count or 0)) if um else 0
@@ -420,7 +425,7 @@ def _client() -> genai.Client:
     with _client_lock:
         if _client_obj is None:
             _client_obj = genai.Client(api_key=config.GEMINI_API_KEY,
-                                       http_options=types.HttpOptions(timeout=300_000))
+                                       http_options=types.HttpOptions(timeout=config.AI_TIMEOUT * 1000))
         return _client_obj
 
 

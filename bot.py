@@ -3,6 +3,7 @@ then pick the output format (PDF / Excel / image)."""
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import io
 import logging
 import shutil
@@ -196,7 +197,8 @@ async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     files = (f"{_fa(len(sess.analyses))} فایل، {_fa(len(sess.items))} قیمت"
              if sess and not sess.expired() else "فایلی باز نیست")
     await update.effective_message.reply_text(
-        f"🤖 Gemini: {ai.describe()}\n🧠 {_brain_short()}\n📂 جلسه فعلی: {files}\n\n{ai.usage_report()}")
+        f"🤖 Gemini: {ai.describe()}\n🧠 {_brain_short()}\n👁 {_ocr_status()}\n📂 جلسه فعلی: {files}\n\n"
+        f"{ai.usage_report()}")
 
 
 async def cmd_usage(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -211,6 +213,14 @@ async def cmd_test(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     status = await update.effective_message.reply_text("🩺 در حال آزمایش اتصال به Gemini…")
     report = await asyncio.to_thread(ai.self_test)
     await _safe_edit(status, report)
+
+
+def _ocr_status() -> str:
+    if not brain.ocr.available():
+        return "OCR (Tesseract): نصب نیست — عکس‌ها فقط با Gemini"
+    langs = sorted(brain.ocr._LANGS or [])
+    fa = "fas" in langs
+    return f"OCR (Tesseract): فعال — زبان‌ها: {', '.join(langs)}" + ("" if fa else " ⚠️ فارسی نصب نیست")
 
 
 def _brain_short() -> str:
@@ -463,20 +473,33 @@ async def on_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await _safe_edit(status, "❌ دانلود فایل از تلگرام انجام نشد. دوباره بفرست.")
             return
 
-        loop = asyncio.get_running_loop()
-        last_edit = [0.0]
+        live = {"stage": "🔎 در حال بررسی", "pages": "", "start": time.monotonic()}
 
         def progress(done: int, total: int) -> None:
-            if total <= 1 or time.time() - last_edit[0] < 3:
-                return
-            last_edit[0] = time.time()
-            text = f"🔎 در حال بررسی… صفحه {_fa(done)} از {_fa(total)}"
-            asyncio.run_coroutine_threadsafe(_safe_edit(status, text), loop)
+            if total > 1:
+                live["pages"] = f" — صفحه {_fa(done)} از {_fa(total)}"
+
+        def stage(text: str) -> None:
+            live["stage"] = text
+
+        async def ticker() -> None:
+            """Keep the status message alive: what is happening and for how long."""
+            shown = ""
+            while True:
+                await asyncio.sleep(3)
+                secs = int(time.monotonic() - live["start"])
+                text = f"{live['stage']}…{live['pages']}\n⏱ {_fa(secs)} ثانیه"
+                if text != shown:
+                    shown = text
+                    await _safe_edit(status, text)
+                with contextlib.suppress(Exception):
+                    await context.bot.send_chat_action(chat_id, ChatAction.TYPING)
 
         await context.bot.send_chat_action(chat_id, ChatAction.TYPING)
         await _quota_warning(msg, src)
+        tick = asyncio.create_task(ticker())
         try:
-            analysis = await asyncio.to_thread(pipeline.analyze, src, filename, fdir / "work", progress)
+            analysis = await asyncio.to_thread(pipeline.analyze, src, filename, fdir / "work", progress, False, stage)
         except pipeline.UserError as exc:
             await _safe_edit(status, f"❌ {exc}")
             return
@@ -488,6 +511,10 @@ async def on_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             log.exception("analysis failed")
             await _safe_edit(status, "❌ در بررسی فایل خطایی رخ داد.")
             return
+        finally:
+            tick.cancel()
+        analysis.cache["seconds"] = time.monotonic() - live["start"]
+        log.info("%s analysed in %.1fs", filename, analysis.cache["seconds"])
         session.analyses.append(analysis)
         await _report_analysis(status, analysis, session)
         await _send_preview(context, chat_id, analysis)
@@ -558,6 +585,8 @@ async def _report_analysis(status: Message, analysis: Analysis, session: Session
     if n > 4:
         lines.append("• …")
     notes = _brain_notes(analysis)
+    if analysis.cache.get("seconds"):
+        notes.append(f"⏱ زمان بررسی: {_fa(round(analysis.cache['seconds']))} ثانیه")
     if notes:
         lines.append("")
         lines += notes

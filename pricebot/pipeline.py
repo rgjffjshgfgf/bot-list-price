@@ -49,8 +49,18 @@ def detect_kind(path: Path) -> str | None:
         return None
 
 
+def _stage(analysis: Analysis, text: str) -> None:
+    """Tell the user what is happening right now (shown live in the chat)."""
+    cb = analysis.cache.get("stage")
+    if cb:
+        try:
+            cb(text)
+        except Exception:  # noqa: BLE001
+            pass
+
+
 def analyze(path: Path, filename: str, workdir: Path, progress: Progress | None = None,
-            force_teacher: bool = False) -> Analysis:
+            force_teacher: bool = False, stage: Callable[[str], None] | None = None) -> Analysis:
     """force_teacher: ask Gemini even for formats the brain already knows (after a 👎)."""
     kind = detect_kind(path)
     if kind is None:
@@ -58,6 +68,7 @@ def analyze(path: Path, filename: str, workdir: Path, progress: Progress | None 
     workdir.mkdir(parents=True, exist_ok=True)
     analysis = Analysis(source=path, filename=filename, kind=kind, workdir=workdir, used_ai=ai.enabled())
     analysis.cache["force_teacher"] = force_teacher
+    analysis.cache["stage"] = stage
     currencies = _analyze_pdf(analysis, progress) if kind == "pdf" else _analyze_image(analysis, progress)
     currencies = [c for c in currencies if c]
     analysis.currency = max(set(currencies), key=currencies.count) if currencies else ""
@@ -184,6 +195,7 @@ def _analyze_pdf_page(analysis: Analysis, index: int) -> tuple[PageInfo, list[Pr
             to_px = page.rotation_matrix * pymupdf.Matrix(zoom_ai, zoom_ai)
             boxes = [_px_box(t.bbox * to_px) for t in cands]
             listing = [(k, t.text, boxes[k]) for k, t in enumerate(cands)]
+            _stage(analysis, "🎓 قالب ناآشناست؛ پرسیدن از Gemini")
             try:
                 data = _merge_page(ai.analyze_page_all(ai_img, listing, False), cands, boxes)
             except Exception as exc:  # noqa: BLE001
@@ -647,6 +659,7 @@ def _raster_page(analysis: Analysis, rgb: np.ndarray, index: int, start: int) ->
     mode = _brain_mode(analysis)
     bdoc = dec = None
     if brain.enabled() and bocr.available():
+        _stage(analysis, "🧠 خواندن عکس با هوش ربات")
         try:
             words = bocr.glyph_words(rgb, bocr.page_words(rgb), brain.BRAIN.glyphs)
             bdoc = blayout.from_ocr(words, rgb.shape[1], rgb.shape[0])
@@ -677,6 +690,7 @@ def _raster_page(analysis: Analysis, rgb: np.ndarray, index: int, start: int) ->
         log.info("page %d: %d local reads unsure, asking the teacher", index + 1, unresolved)
 
     small, s = ai.fit_for_ai(Image.fromarray(rgb))
+    _stage(analysis, "🎓 قالب ناآشناست؛ پرسیدن از Gemini")
     try:
         data = _merge_page(ai.analyze_page_all(small, [], raster_only=True), [], [])
     except Exception as exc:  # noqa: BLE001

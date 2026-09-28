@@ -65,6 +65,9 @@ AI_EFFORT_TABLE = _str("AI_EFFORT_TABLE", "low")       # Excel transcription
 # Independent re-read of every price that came from pixels (scans/photos).
 AI_VERIFY_IMAGE_PRICES = _bool("AI_VERIFY_IMAGE_PRICES", True)
 AI_PARALLEL_PAGES = max(1, _int("AI_PARALLEL_PAGES", 3))
+# Seconds one Gemini request may take, and all retries of one call together.
+AI_TIMEOUT = _int("AI_TIMEOUT", 75)
+AI_CALL_BUDGET = _int("AI_CALL_BUDGET", 100)
 
 # --- bot ----------------------------------------------------------------------
 # Comma separated Telegram numeric user ids allowed to use the bot. Empty = everyone.
