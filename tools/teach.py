@@ -172,7 +172,9 @@ def learn_photos(path: Path, cols: str, skip: str, trust: bool) -> None:
             found = brain.truth_from_boxes(odoc, boxes)
             ink = raster.InkMap(rgb, float(np.median([b[3] - b[1] for b in boxes])))
             targets = raster.locate(ink, boxes, texts)
-            pairs = [(t, x) for t, x in zip(targets, texts) if t is not None]
+            # only numbers found where the PDF has them (a target snapped to another row is not scored)
+            pairs = [(t, x) for t, x, b in zip(targets, texts, boxes)
+                     if t is not None and layout.center_in(t.box, b, 0.2 * (b[3] - b[1]))]
             first = [pipeline._ocr_text_at(odoc, t.box) for t, _ in pairs]
             reads = ocr.read_targets(ink, [t for t, _ in pairs], first, B.glyphs, True)
             acc = [(r.text, x) for r, (_, x) in zip(reads, pairs) if r.text]

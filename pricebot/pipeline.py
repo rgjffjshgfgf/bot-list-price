@@ -372,8 +372,11 @@ def _merge_page(results: list[tuple[str, dict]], cands: list[TextToken], boxes: 
 # ============================================================ raster work ==
 
 def _ocr_text_at(bdoc: blayout.PageDoc, box) -> str:
+    """Tesseract's reading at this spot (not the shape library's: that is no independent vote)."""
     best, best_iou = "", 0.3
     for n in bdoc.nums:
+        if n.conf == bocr.GLYPH_CONF:
+            continue
         iou = blayout.box_iou(n.box, tuple(box))
         if iou > best_iou:
             best, best_iou = n.text, iou
@@ -395,24 +398,6 @@ def _learn_shapes(ink: raster.InkMap, targets: list, finals: list, local: list) 
             brain.BRAIN.save_glyphs()
     except Exception:  # noqa: BLE001 - learning shapes must never break a job
         log.exception("shape learning failed")
-
-
-def _complete(ink: raster.InkMap, t: raster.Target) -> bool:
-    """False when more ink sits glued to the number on its line (then only a piece
-    of a bigger number was found, and rewriting it would corrupt the price)."""
-    x0, y0, x1, y1 = t.box
-    h = max(1, y1 - y0)
-    for w in ink.words:
-        if w.polarity != t.polarity or min(w.y1, y1) - max(w.y0, y0) < 0.5 * min(w.h, h):
-            continue
-        if w.x0 >= x0 and w.x1 <= x1:
-            continue                                   # part of the number itself
-        if w.h < 0.3 * h:
-            continue                                   # dust
-        gap = max(w.x0 - x1, x0 - w.x1)
-        if gap < 0.45 * h and not raster._vline_between(ink, min(x1, w.x1), max(x0, w.x0), y0, y1):
-            return False
-    return True
 
 
 def _raster_items(rgb: np.ndarray, prices: list[dict], page: int, start: int, columns: dict[int, str],
@@ -439,7 +424,7 @@ def _raster_items(rgb: np.ndarray, prices: list[dict], page: int, start: int, co
     for t, p in zip(targets, prices):
         if t is not None and any(blayout.overlap_share(t.box, k.box) > 0.3 for k, _ in keep):
             continue            # the same ink found twice: change it once
-        if t is not None and not _complete(ink, t):
+        if t is not None and not bocr.complete(ink, t):
             warnings.append(f"صفحه {page + 1}: عدد «{p.get('text', '')}» ({p.get('label', '')}) کامل پیدا نشد "
                             "(بخشی از یک عدد بزرگ‌تر است) و تغییر نمی‌کند.")
             continue
@@ -648,7 +633,8 @@ def _analyze_image(analysis: Analysis, progress: Progress | None) -> list[str]:
 def _local_raster(analysis: Analysis, rgb: np.ndarray, bdoc: blayout.PageDoc, dec: brain.Decision,
                   index: int, start: int, mode: str) -> tuple[list[PriceItem], list[str], int]:
     prices = [{"text": bdoc.nums[i].text, "bbox": list(bdoc.nums[i].box), "label": bdoc.label(i),
-               "column_id": bdoc.col_of[i] + 1, "ocr": bdoc.nums[i].text} for i in sorted(dec.selected)]
+               "column_id": bdoc.col_of[i] + 1,
+               "ocr": "" if bdoc.nums[i].conf == bocr.GLYPH_CONF else bdoc.nums[i].text} for i in sorted(dec.selected)]
     items, warns, _, unresolved = _raster_items(rgb, prices, index, start, brain.column_names(bdoc), bdoc,
                                                 local_only=True, mode=mode)
     return items, warns, unresolved

@@ -336,14 +336,17 @@ class GlyphBank:
 
     def _arrays(self):
         if self._cache is None:
-            self._cache = (np.stack(self.vecs), np.stack(self.geos), np.array(self.labels), np.array(self.scripts))
+            G = np.stack(self.geos)
+            L = np.array(self.labels)
+            widths = {c: float(np.median(G[L == c, 1])) for c in set(self.labels)}
+            self._cache = (np.stack(self.vecs), G, L, np.array(self.scripts), widths)
         return self._cache
 
     def read(self, glyphs: list[Glyph]) -> tuple[str | None, bool]:
         """(text, sure). `sure`: every character's 5 nearest shapes agree and are close."""
         if not self.ready():
             return None, False
-        V, G, L, S = self._arrays()
+        V, G, L, S, widths = self._arrays()
         out, sure = [], True
         looks: dict[str, int] = {}
         for g in glyphs:
@@ -359,11 +362,18 @@ class GlyphBank:
                 return None, False
             if len(ranked) > 1 or d[order[0]] > 0.35 or len(order) < 5:
                 sure = False
+            label = ranked[0][0]
+            if g.geo[1] > 1.6 * widths.get(label, 9.0) + 0.1:
+                return None, False          # a blob far wider than this character: several glued together
             for k in order:
                 if S[k]:
                     looks[S[k]] = looks.get(S[k], 0) + 1
-            out.append(ranked[0][0])
+            out.append(label)
         text = "".join(out)
+        # zeros read as separators ("۳۴,۷۵۴,,,,") must not be tidied into a shorter number
+        if not text or text[0] in _SEPS or text[-1] in _SEPS or any(
+                a in _SEPS and b in _SEPS for a, b in zip(text, text[1:])):
+            return None, False
         script = max(looks, key=looks.get) if looks else "latin"
         return (to_script(text, script) if script != "latin" else text), sure
 
@@ -420,6 +430,35 @@ class Read:
     glyph_sure: bool = False
 
 
+# Confidence given to numbers the shape library found on a page: marks them as
+# NOT an independent read (the library cannot confirm itself).
+GLYPH_CONF = -1.0
+
+
+def complete(ink: raster.InkMap, t: raster.Target) -> bool:
+    """False when more ink sits glued to the number on its line (then only a piece
+    of a bigger number was found, and rewriting it would corrupt the price)."""
+    x0, y0, x1, y1 = t.box
+    h = max(1, y1 - y0)
+    for w in ink.words:
+        if w.polarity != t.polarity or min(w.y1, y1) - max(w.y0, y0) < 0.5 * min(w.h, h):
+            continue
+        if w.x0 >= x0 and w.x1 <= x1:
+            continue                                   # part of the number itself
+        if w.h < 0.3 * h:
+            continue                                   # dust
+        gap = max(w.x0 - x1, x0 - w.x1)
+        if raster._vline_between(ink, min(x1, w.x1), max(x0, w.x0), y0, y1):
+            continue                                   # another cell
+        if gap < 0.45 * h:
+            return False
+        # a wider gap still continues the number when the neighbour is digit-sized ink
+        # (fonts with wide thousands separators: "۹,۷۶۴  ,۰۰۰")
+        if gap < 1.1 * h and 0.3 * h <= w.h <= 1.3 * h and w.w <= 4 * h:
+            return False
+    return True
+
+
 def glyph_words(rgb: np.ndarray, words: list[tuple[str, Box, float]],
                 library: GlyphBank) -> list[tuple[str, Box, float]]:
     """Add the numbers the shape library recognises on the page to the OCR words
@@ -470,7 +509,7 @@ def glyph_words(rgb: np.ndarray, words: list[tuple[str, Box, float]],
                     used = k
                     break
             if hit:
-                found.append((hit[0], hit[2], 99.0 if hit[1] else 80.0))
+                found.append((hit[0], hit[2], GLYPH_CONF))
             i = used + 1
     if not found:
         return words
@@ -535,7 +574,17 @@ def read_targets(ink: raster.InkMap, targets: list[raster.Target], first_reads: 
             text, how = tess[0], "ocr×3"
         if text and not _plausible(text, glyphs[k]):
             text, how = None, "shape"
+        if text and not complete(ink, targets[k]):
+            text, how = None, "piece"
         out.append(Read(text, votes, how, g, sure))
+
+    # a price far shorter than the others (a piece: "۹,۷۶۴" of 9,764,000) is not trusted
+    lens = sorted(len([c for c in to_latin_digits(r.text) if c.isdigit()]) for r in out if r.text)
+    if len(lens) >= 3:
+        typical = lens[len(lens) // 2]
+        for r in out:
+            if r.text and len([c for c in to_latin_digits(r.text) if c.isdigit()]) <= typical - 3:
+                r.text, r.how = None, "short"
 
     # a column's prices share one number style
     seps = [parse_number(r.text).fmt.group_sep for r in out if r.text]
