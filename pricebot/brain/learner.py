@@ -255,6 +255,7 @@ class Decision:
 
 class Brain:
     SAMPLE_CAP = 40000
+    TEMPLATE_CAP = 3000
     HISTORY = 60
 
     def __init__(self, directory: Path, trust_after: int = 2, general_after: int = 20):
@@ -639,7 +640,11 @@ class Brain:
                 r = self.stats.setdefault("reads", {"n": 0, "ok": 0})
                 r["n"] += extra["reads"][0]
                 r["ok"] += extra["reads"][1]
-            self.templates = self.templates[-300:]
+            if len(self.templates) > self.TEMPLATE_CAP:
+                # forget the formats not seen for the longest time, never the newest lessons
+                keep = sorted(self.templates, key=lambda t: t.get("updated", t.get("created", 0)))[-self.TEMPLATE_CAP:]
+                keep_ids = {id(t) for t in keep}
+                self.templates = [t for t in self.templates if id(t) in keep_ids]
             self.save()
             return outcome
 
