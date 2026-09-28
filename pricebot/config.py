@@ -75,8 +75,27 @@ MAX_PDF_PAGES = _int("MAX_PDF_PAGES", 60)
 SESSION_TTL_MINUTES = _int("SESSION_TTL_MINUTES", 180)
 IMAGE_EXPORT_DPI = _int("IMAGE_EXPORT_DPI", 200)
 WORK_DIR = Path(os.environ["WORK_DIR"]) if os.environ.get("WORK_DIR") else Path(tempfile.gettempdir()) / "pricebot"
-# Where the daily quota counter is kept (put it on a Railway volume to survive redeploys).
-USAGE_FILE = Path(_str("USAGE_FILE", str(WORK_DIR / "gemini_usage.json")))
+# Lasting data (learned knowledge, quota counter). A Railway volume mounted at /data
+# is used automatically; without one everything learned is lost on every redeploy.
+DATA_DIR = Path(_str("DATA_DIR", "/data" if os.path.isdir("/data") and os.access("/data", os.W_OK)
+                     else str(WORK_DIR)))
+USAGE_FILE = Path(_str("USAGE_FILE", str(DATA_DIR / "gemini_usage.json")))
+# False = files live in the container only and vanish on every redeploy
+DATA_PERSISTENT = bool(os.environ.get("DATA_DIR") or os.environ.get("BRAIN_DIR")) or str(DATA_DIR) == "/data"
+
+# --- the bot's own AI ("brain") --------------------------------------------------
+# auto    = handle known formats itself, ask Gemini (the teacher) about the rest and learn
+# teacher = always ask Gemini, but keep learning in the background
+# local   = never ask Gemini to find prices (uses what it has learned so far)
+# off     = do not use the brain at all (old behaviour)
+BRAIN_MODE = _str("BRAIN_MODE", "auto").lower()
+BRAIN_DIR = Path(_str("BRAIN_DIR", str(DATA_DIR / "brain")))
+# Checked answers in a row a list format needs before the bot handles it alone.
+BRAIN_TRUST_AFTER = _int("BRAIN_TRUST_AFTER", 2)
+# Whole pages in a row the price model must get right before it handles unseen formats alone.
+BRAIN_GENERAL_AFTER = _int("BRAIN_GENERAL_AFTER", 20)
+# Tesseract OCR runs allowed at the same time (each needs a few hundred MB on big pages).
+OCR_PARALLEL = _int("OCR_PARALLEL", 2)
 
 # Extra font folder (put B Nazanin, IRANSans, ... TTF files here for better matches on images).
 FONTS_DIR = Path(os.environ.get("FONTS_DIR", str(BASE_DIR / "fonts")))

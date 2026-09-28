@@ -20,7 +20,7 @@ from telegram.ext import (Application, CallbackQueryHandler, CommandHandler, Con
 
 import pymupdf
 
-from pricebot import ai, commands, config, pipeline
+from pricebot import ai, brain, commands, config, pipeline
 from pricebot.commands import Plan, Rule
 from pricebot.models import Analysis
 from pricebot.numfmt import fmt_plain
@@ -48,8 +48,11 @@ HELP = (
     "۳) فرمت خروجی را انتخاب کن: PDF، Excel یا عکس.\n\n"
     "دستور را می‌توانی در کپشن فایل هم بنویسی. چند فایل پشت سر هم هم قبول است؛ دستور روی همه اعمال می‌شود.\n"
     "هر دستور روی فایل اصلی اعمال می‌شود (نه روی خروجی قبلی).\n\n"
-    "هوش مصنوعی ربات Google Gemini (طرح رایگان) است؛ سهمیه روزانه را با /usage ببین.\n\n"
-    "/help راهنما   /usage سهمیه رایگان   /test آزمایش اتصال Gemini   /status وضعیت   /reset شروع دوباره   /id شناسه شما"
+    "🧠 ربات هوش مصنوعی خودش را دارد: قالب‌های جدید را با کمک Gemini (طرح رایگان) یاد می‌گیرد و بعد از "
+    "چند بار تأیید، همان قالب را بدون Gemini و بدون مصرف سهمیه پردازش می‌کند. زیر عکس پیش‌نمایش با 👍 / 👎 "
+    "بگو تشخیص درست بود یا نه تا سریع‌تر یاد بگیرد. وضعیت یادگیری: /brain\n\n"
+    "/help راهنما   /brain هوش ربات   /usage سهمیه Gemini   /test آزمایش اتصال Gemini   /status وضعیت   "
+    "/reset شروع دوباره   /id شناسه شما"
 )
 
 
@@ -192,7 +195,7 @@ async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     files = (f"{_fa(len(sess.analyses))} فایل، {_fa(len(sess.items))} قیمت"
              if sess and not sess.expired() else "فایلی باز نیست")
     await update.effective_message.reply_text(
-        f"🤖 هوش مصنوعی: {ai.describe()}\n📂 جلسه فعلی: {files}\n\n{ai.usage_report()}")
+        f"🤖 Gemini: {ai.describe()}\n🧠 {_brain_short()}\n📂 جلسه فعلی: {files}\n\n{ai.usage_report()}")
 
 
 async def cmd_usage(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -207,6 +210,22 @@ async def cmd_test(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     status = await update.effective_message.reply_text("🩺 در حال آزمایش اتصال به Gemini…")
     report = await asyncio.to_thread(ai.self_test)
     await _safe_edit(status, report)
+
+
+def _brain_short() -> str:
+    if not brain.enabled():
+        return "هوش ربات: خاموش"
+    with brain.BRAIN.lock:
+        tpls = list(brain.BRAIN.templates)
+    ready = sum(1 for t in tpls if t.get("streak", 0) >= brain.BRAIN.trust_after)
+    return f"هوش ربات: {_fa(len(tpls))} قالب یادگرفته، {_fa(ready)} مستقل — جزئیات: /brain"
+
+
+async def cmd_brain(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not _allowed(update):
+        return await _deny(update)
+    kb = InlineKeyboardMarkup([[InlineKeyboardButton("🗑 پاک کردن همه یادگرفته‌ها", callback_data="brainreset:ask")]])
+    await update.effective_message.reply_text(brain.report(), reply_markup=kb if brain.enabled() else None)
 
 
 async def cmd_reset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -313,6 +332,11 @@ async def _quota_warning(msg: Message, src: Path) -> None:
     left = ai.remaining_total()
     if left >= need:
         return
+    if brain.enabled():
+        if left == 0:
+            await msg.reply_text("⚠️ سهمیه رایگان امروز Gemini تمام شده؛ این فایل را هوش خود ربات بررسی می‌کند "
+                                 f"(تمدید سهمیه: {ai.reset_text()}).")
+        return
     if left == 0:
         text = ("⚠️ سهمیه رایگان امروز Gemini تمام شده.\n"
                 + ("این PDF با تشخیص ساده (بدون هوش مصنوعی) بررسی می‌شود." if kind == "pdf"
@@ -321,6 +345,18 @@ async def _quota_warning(msg: Message, src: Path) -> None:
         text = (f"⚠️ این فایل حدود {_fa(need)} درخواست لازم دارد ولی از سهمیه رایگان امروز فقط "
                 f"{_fa(left)} درخواست مانده؛ صفحه‌هایی که به سهمیه نرسند با تشخیص ساده بررسی می‌شوند.")
     await msg.reply_text(text)
+
+
+def _brain_notes(analysis: Analysis) -> list[str]:
+    notes: list[str] = []
+    for page in sorted(analysis.brain):
+        note = brain.page_note(analysis.brain[page])
+        if note and note not in notes:
+            notes.append(note)
+    local = sum(1 for i in analysis.brain.values() if i.get("how") == "local")
+    if local and analysis.page_count > 1:
+        notes.append(f"🧠 {_fa(local)} از {_fa(analysis.page_count)} صفحه بدون Gemini پردازش شد.")
+    return notes[:3]
 
 
 async def _report_analysis(status: Message, analysis: Analysis, session: Session) -> None:
@@ -340,6 +376,10 @@ async def _report_analysis(status: Message, analysis: Analysis, session: Session
         lines.append(f"• {label}{it.text}")
     if n > 4:
         lines.append("• …")
+    notes = _brain_notes(analysis)
+    if notes:
+        lines.append("")
+        lines += notes
     if analysis.warnings:
         lines.append("")
         lines += [f"⚠️ {w}" for w in analysis.warnings[:4]]
@@ -350,6 +390,14 @@ async def _report_analysis(status: Message, analysis: Analysis, session: Session
         lines.append("\n" + ai.usage_line())
     lines.append("\nحالا بگو چه تغییری بدم (مثلاً «۱۰ درصد افزایش») یا یکی از دکمه‌ها را بزن:")
     await _safe_edit(status, "\n".join(lines), reply_markup=_quick_keyboard())
+
+
+def _feedback_keyboard(analysis: Analysis) -> InlineKeyboardMarkup | None:
+    if not brain.enabled() or not analysis.brain:
+        return None
+    aid = analysis.cache.setdefault("aid", uuid.uuid4().hex[:8])
+    return InlineKeyboardMarkup([[InlineKeyboardButton("👍 تشخیص درست است", callback_data=f"fb:ok:{aid}"),
+                                  InlineKeyboardButton("👎 اشتباه دارد", callback_data=f"fb:bad:{aid}")]])
 
 
 async def _send_preview(context: ContextTypes.DEFAULT_TYPE, chat_id: int, analysis: Analysis) -> None:
@@ -365,7 +413,7 @@ async def _send_preview(context: ContextTypes.DEFAULT_TYPE, chat_id: int, analys
     im.save(buf, "JPEG", quality=85)
     buf.seek(0)
     cap = "قیمت‌های پیدا شده با کادر سبز مشخص شده‌اند" + (f" (صفحه {_fa(page + 1)})" if analysis.kind == "pdf" else "")
-    await context.bot.send_photo(chat_id, buf, caption=cap)
+    await context.bot.send_photo(chat_id, buf, caption=cap, reply_markup=_feedback_keyboard(analysis))
 
 
 # --------------------------------------------------------- price commands ---
@@ -542,8 +590,12 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         await q.answer("دسترسی ندارید", show_alert=True)
         return
     await q.answer()
+    if (q.data or "").startswith("brainreset:"):
+        return await _on_brain_reset(q)
     async with _chat_lock(update.effective_chat.id):
         session = SESSIONS.get(update.effective_chat.id)
+        if (q.data or "").startswith("fb:"):
+            return await _on_feedback(update, context, session)
         if session is None or session.expired() or not session.items:
             await q.message.reply_text("جلسه قبلی تمام شده. فایل را دوباره بفرست.")
             return
@@ -566,6 +618,76 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             await _deliver(update, context, session, pending, formats)
 
 
+async def _on_brain_reset(q) -> None:
+    if q.data == "brainreset:ask":
+        kb = InlineKeyboardMarkup([[InlineKeyboardButton("بله، همه را پاک کن", callback_data="brainreset:yes"),
+                                    InlineKeyboardButton("نه", callback_data="brainreset:no")]])
+        await q.message.reply_text("مطمئنی؟ هرچه ربات تا الان یاد گرفته پاک می‌شود و از صفر شروع می‌کند.",
+                                   reply_markup=kb)
+    elif q.data == "brainreset:yes":
+        await asyncio.to_thread(brain.BRAIN.reset)
+        await _safe_edit(q.message, "🗑 حافظه هوش ربات پاک شد.")
+    else:
+        await _safe_edit(q.message, "لغو شد.")
+
+
+def _learn_from_user(analysis: Analysis, good: bool) -> None:
+    """👍: every page becomes a checked example. 👎: formats lose their trust."""
+    ids: set[str] = set()
+    wrong_models: list[str] = []
+    for info in analysis.brain.values():
+        tpl = info.get("format") or {}
+        if good and not info.get("taught") and info.get("doc") is not None:
+            brain.BRAIN.learn(info["doc"], set(info.get("selected", set())), info.get("decision"), "user")
+            info["taught"] = True
+            continue
+        if tpl.get("id"):
+            ids.add(tpl["id"])
+        if not good and info.get("how") in ("local", "fallback") and info.get("by") == "model":
+            wrong_models.append(info["doc"].source)
+    brain.BRAIN.feedback(ids, good, wrong_models)
+
+
+async def _on_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE, session: Session | None) -> None:
+    q = update.callback_query
+    _, verdict, aid = (q.data.split(":") + ["", ""])[:3]
+    analysis = next((a for a in session.analyses if a.cache.get("aid") == aid), None) if session else None
+    if analysis is None:
+        await q.message.reply_text("این پیش‌نمایش مربوط به فایل قدیمی است.")
+        return
+    if analysis.cache.get("feedback"):
+        return
+    analysis.cache["feedback"] = verdict
+    good = verdict == "ok"
+    await asyncio.to_thread(_learn_from_user, analysis, good)
+    try:
+        await q.message.edit_reply_markup(None)
+    except BadRequest:
+        pass
+    if good:
+        await q.message.reply_text("👍 ممنون، یاد گرفتم. دفعه بعد این قالب را بهتر می‌شناسم.")
+        return
+    was_local = any(i.get("how") in ("local", "fallback") for i in analysis.brain.values())
+    if not (was_local and ai.enabled()):
+        await q.message.reply_text("👎 ثبت شد؛ این قالب دوباره با احتیاط بررسی می‌شود تا درست یاد بگیرد."
+                                   + ("" if ai.enabled() else "\nبرای بررسی دوباره، کلید Gemini لازم است."))
+        return
+    # the brain got it wrong: ask the teacher now, and learn from its answer
+    status = await q.message.reply_text("🔁 با Gemini دوباره بررسی می‌کنم و ربات از جوابش یاد می‌گیرد…")
+    idx = session.analyses.index(analysis)
+    try:
+        fresh = await asyncio.to_thread(pipeline.analyze, analysis.source, analysis.filename,
+                                        analysis.workdir.parent / f"work_{uuid.uuid4().hex[:6]}", None, True)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("re-check failed: %s", exc)
+        await _safe_edit(status, "❌ " + (_ai_error_text(exc) if isinstance(exc, ai.AIError) else "بررسی دوباره انجام نشد."))
+        return
+    session.analyses[idx] = fresh
+    session.pending = None
+    await _report_analysis(status, fresh, session)
+    await _send_preview(context, update.effective_chat.id, fresh)
+
+
 async def on_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     log.error("unhandled error", exc_info=context.error)
 
@@ -583,12 +705,15 @@ def main() -> None:
     app.add_handler(CommandHandler("status", cmd_status))
     app.add_handler(CommandHandler(["usage", "quota"], cmd_usage))
     app.add_handler(CommandHandler(["test", "diag"], cmd_test))
+    app.add_handler(CommandHandler(["brain", "learn", "ai"], cmd_brain))
     app.add_handler(CommandHandler(["reset", "cancel"], cmd_reset))
     app.add_handler(MessageHandler(filters.PHOTO | filters.Document.ALL, on_file))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))
     app.add_handler(CallbackQueryHandler(on_callback))
     app.add_error_handler(on_error)
-    log.info("bot started — AI: %s", ai.describe())
+    if brain.enabled() and not brain.ocr.available():
+        log.warning("Tesseract OCR not found: the brain can learn PDFs only, photos still need Gemini")
+    log.info("bot started — AI: %s — brain: %s (%s)", ai.describe(), brain.mode(), config.BRAIN_DIR)
     app.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
 
 

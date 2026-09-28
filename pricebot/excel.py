@@ -5,6 +5,7 @@ from __future__ import annotations
 import concurrent.futures
 import logging
 import re
+import unicodedata
 from dataclasses import dataclass, field
 from decimal import Decimal
 from pathlib import Path
@@ -12,9 +13,11 @@ from pathlib import Path
 import pymupdf
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 from openpyxl.utils import get_column_letter
 
-from . import ai, config
+from . import ai, brain, config
+from .brain import tables as btables
 from .models import Analysis, PriceItem
 from .pipeline import AI_TEXT_EDGE, page_view
 
@@ -52,6 +55,12 @@ def extract_tables(analysis: Analysis) -> tuple[list[Table], str]:
     source "ai", "pdf" (PyMuPDF table finder) or "list" (just the prices).
     Every price appears somewhere: prices outside any table are listed last."""
     tables, source = _extract(analysis)
+    for t in tables:
+        t.title = _clean_text(t.title)
+        t.headers = [_clean_text(h) for h in t.headers]
+        for row in t.rows:
+            for c in row:
+                c.text = _clean_text(c.text)
     placed = {c.price_id for t in tables for r in t.rows for c in r if c.price_id}
     rest = [it for it in analysis.items if it.id not in placed]
     if rest and source != "list":
@@ -61,10 +70,53 @@ def extract_tables(analysis: Analysis) -> tuple[list[Table], str]:
     return tables, source
 
 
+def _local_pages(analysis: Analysis, pages: list[int]) -> set[int]:
+    """Pages the brain handled on its own: their tables are rebuilt without Gemini too."""
+    if not brain.enabled():
+        return set()
+    return {p for p in pages if analysis.brain.get(p, {}).get("how") in ("local", "fallback")}
+
+
+def _ocr_table(analysis: Analysis, page: int) -> list[Table]:
+    info = analysis.brain.get(page, {})
+    doc = info.get("doc")
+    if doc is None or doc.source != "ocr" or analysis.pages[page].raster_path is None:
+        return []
+    try:
+        import numpy as np
+        from PIL import Image
+        rgb = np.asarray(Image.open(analysis.pages[page].raster_path).convert("RGB"))
+        prices = [(it.id, it.bbox) for it in analysis.items if it.page == page]
+        t = btables.build(doc, rgb, prices)
+    except Exception:  # noqa: BLE001 - fall back to the plain list
+        log.exception("local table failed on page %d", page + 1)
+        return []
+    if not t:
+        return []
+    rows = [[Cell(text, pid) for text, pid in r] for r in t["rows"]]
+    return [Table(t["title"], t["direction"], t["headers"], rows)]
+
+
+def _clean_text(s: str) -> str:
+    """Presentation-form Persian letters -> normal letters; drop characters Excel refuses."""
+    return ILLEGAL_CHARACTERS_RE.sub("", unicodedata.normalize("NFKC", s or ""))
+
+
 def _extract(analysis: Analysis) -> tuple[list[Table], str]:
     pages = sorted({it.page for it in analysis.items})
     if not pages:
         return [], "list"
+    local = _local_pages(analysis, pages)
+    if local:
+        tables = []
+        for p in pages:
+            if p in local:
+                found = (_pdf_tables(analysis, [p]) if analysis.pages[p].mode == "text" else _ocr_table(analysis, p))
+            else:
+                found = _ai_page_safe(analysis, p) if ai.enabled() else []
+                found = found or (_pdf_tables(analysis, [p]) if analysis.kind == "pdf" else [])
+            tables += found or _list_table(analysis, [p])
+        return _merge_tables(tables), "brain"
     if ai.enabled():
         results: dict[int, list[Table] | None] = {}
         with concurrent.futures.ThreadPoolExecutor(max_workers=config.AI_PARALLEL_PAGES) as pool:
@@ -89,6 +141,14 @@ def _extract(analysis: Analysis) -> tuple[list[Table], str]:
         if tables:
             return _merge_tables(tables), "pdf"
     return _list_table(analysis, pages), "list"
+
+
+def _ai_page_safe(analysis: Analysis, page: int) -> list[Table]:
+    try:
+        return _ai_page(analysis, page)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("table transcription failed on page %d: %s", page + 1, exc)
+        return []
 
 
 def _ai_page(analysis: Analysis, page: int) -> list[Table]:
@@ -151,7 +211,7 @@ def _pdf_tables(analysis: Analysis, pages: list[int]) -> list[Table]:
     try:
         for pno in pages:
             page = doc[pno]
-            text = page.get_text()
+            text = unicodedata.normalize("NFKC", page.get_text())
             page_words = set(_ARABIC_WORD.findall(text))
             rtl = len(_ARABIC.findall(text)) >= len(_LATIN.findall(text))
             items = [it for it in analysis.items if it.page == pno and it.kind == "text"]
@@ -177,7 +237,7 @@ def _pdf_tables(analysis: Analysis, pages: list[int]) -> list[Table]:
                                 if r.contains(pymupdf.Point((b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2)):
                                     pid = it.id
                                     break
-                        clean = re.sub(r"\s+", " ", (txt or "").replace("\n", " ")).strip()
+                        clean = re.sub(r"\s+", " ", unicodedata.normalize("NFKC", txt or "").replace("\n", " ")).strip()
                         cells.append(Cell(_fix_order(clean, page_words), pid))
                     grid.append(cells[::-1] if rtl else cells)
                 grid = _drop_empty_columns(grid)

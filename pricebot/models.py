@@ -46,6 +46,7 @@ class Analysis:
     image_format: str | None = None   # PIL format name for images
     page_count: int = 1
     cache: dict = field(default_factory=dict)   # e.g. transcribed tables for Excel
+    brain: dict = field(default_factory=dict)   # page -> how the bot's own AI handled it
 
     def item(self, item_id: str) -> PriceItem | None:
         return next((it for it in self.items if it.id == item_id), None)

@@ -1,9 +1,11 @@
 """analyze(file) -> Analysis: every price in the file, located exactly.
 
-Text-layer PDFs: numbers come from the PDF itself; the AI (one or both
-providers) decides which of them are prices.
-Photos / scans: the AI reads the prices from pixels; the rough boxes are then
-snapped to the real ink, and every read is double-checked.
+Text-layer PDFs: numbers come from the PDF itself; the bot's own AI (brain)
+decides which of them are prices when it knows the format, otherwise Gemini
+does and the brain learns from the answer.
+Photos / scans: read from pixels (by the brain's OCR once proven, otherwise by
+Gemini); the rough boxes are then snapped to the real ink, and every read is
+double-checked.
 """
 from __future__ import annotations
 
@@ -18,7 +20,9 @@ import numpy as np
 import pymupdf
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
-from . import ai, config, fonts, raster
+from . import ai, brain, config, fonts, raster
+from .brain import layout as blayout
+from .brain import ocr as bocr
 from .models import Analysis, PageInfo, PriceItem
 from .numfmt import looks_like_price, parse_number, to_latin_digits
 from .pdftext import TextToken, compute_layout, extract_tokens, page_chars
@@ -45,12 +49,15 @@ def detect_kind(path: Path) -> str | None:
         return None
 
 
-def analyze(path: Path, filename: str, workdir: Path, progress: Progress | None = None) -> Analysis:
+def analyze(path: Path, filename: str, workdir: Path, progress: Progress | None = None,
+            force_teacher: bool = False) -> Analysis:
+    """force_teacher: ask Gemini even for formats the brain already knows (after a 👎)."""
     kind = detect_kind(path)
     if kind is None:
         raise UserError("این فایل PDF یا عکس نیست. لطفاً فایل PDF یا عکس (JPG/PNG/WEBP) بفرست.")
     workdir.mkdir(parents=True, exist_ok=True)
     analysis = Analysis(source=path, filename=filename, kind=kind, workdir=workdir, used_ai=ai.enabled())
+    analysis.cache["force_teacher"] = force_teacher
     currencies = _analyze_pdf(analysis, progress) if kind == "pdf" else _analyze_image(analysis, progress)
     currencies = [c for c in currencies if c]
     analysis.currency = max(set(currencies), key=currencies.count) if currencies else ""
@@ -73,7 +80,7 @@ def _analyze_pdf(analysis: Analysis, progress: Progress | None) -> list[str]:
     analysis.page_count = n
     results: list = [None] * n
     done = 0
-    workers = config.AI_PARALLEL_PAGES if ai.enabled() else 1
+    workers = config.AI_PARALLEL_PAGES if ai.enabled() or brain.enabled() else 1
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
         futs = {pool.submit(_analyze_pdf_page, analysis, i): i for i in range(n)}
         for fut in concurrent.futures.as_completed(futs):
@@ -126,6 +133,10 @@ def _px_box(r: pymupdf.Rect) -> tuple[int, int, int, int]:
     return int(r.x0), int(r.y0), int(math.ceil(r.x1)), int(math.ceil(r.y1))
 
 
+def _brain_mode(analysis: Analysis) -> str:
+    return "teacher" if analysis.cache.get("force_teacher") else brain.mode()
+
+
 def _analyze_pdf_page(analysis: Analysis, index: int) -> tuple[PageInfo, list[PriceItem], list[str], str]:
     doc = pymupdf.open(analysis.source)
     try:
@@ -136,28 +147,52 @@ def _analyze_pdf_page(analysis: Analysis, index: int) -> tuple[PageInfo, list[Pr
         coverage = _image_coverage(page)
         warnings: list[str] = []
         info = PageInfo(index, "empty")
+
+        if not cands:
+            # a scan / picture page: read it from pixels
+            if coverage > 0.02 and (ai.enabled() or (brain.enabled() and bocr.available())):
+                zoom_r = _raster_zoom(page)
+                rgb = render_page(page, zoom_r)
+                items, warns, currency = _raster_page(analysis, rgb, index, 1)
+                if items:
+                    info = PageInfo(index, "raster", analysis.workdir / f"page_{index + 1}.png", zoom_r,
+                                    rgb.shape[1], rgb.shape[0])
+                    Image.fromarray(rgb).save(info.raster_path)
+                return info, items, warnings + warns, currency
+            if coverage > 0.3:
+                warnings.append(f"صفحه {index + 1} عکس/اسکن است و برای خواندن آن کلید Gemini یا OCR لازم است.")
+            return info, [], warnings, ""
+
         selected: list[tuple[TextToken, str, int]] = []   # token, label, column
         image_prices: list[dict] = []
         currency = ""
         columns: dict[int, str] = {}
+        mode = _brain_mode(analysis)
+        bdoc = dec = None
+        if brain.enabled():
+            bdoc = blayout.from_pdf(page, cands)
+            dec = brain.BRAIN.decide(bdoc, mode)
+            # prices drawn inside pictures are only seen by the teacher
+            if dec.trusted and mode != "local" and coverage > 0.15 and (dec.template or {}).get("img", True):
+                dec.trusted = False
 
-        if ai.enabled() and (cands or coverage > 0.02 or not chars):
-            raster_only = not cands
-            edge = ai.MAX_IMAGE_EDGE if raster_only else AI_TEXT_EDGE
-            zoom_ai = edge / max(page.rect.width, page.rect.height)
+        data = None
+        if ai.enabled() and not (dec is not None and dec.trusted):
+            zoom_ai = AI_TEXT_EDGE / max(page.rect.width, page.rect.height)
             ai_img, s = ai.fit_for_ai(Image.fromarray(render_page(page, zoom_ai)))
             zoom_ai *= s
             to_px = page.rotation_matrix * pymupdf.Matrix(zoom_ai, zoom_ai)
             boxes = [_px_box(t.bbox * to_px) for t in cands]
             listing = [(k, t.text, boxes[k]) for k, t in enumerate(cands)]
             try:
-                data = _merge_page(ai.analyze_page_all(ai_img, listing, raster_only), cands, boxes)
+                data = _merge_page(ai.analyze_page_all(ai_img, listing, False), cands, boxes)
             except Exception as exc:  # noqa: BLE001
                 log.warning("AI failed on page %d: %s", index + 1, exc)
+                who = "هوش خود ربات" if dec is not None else "تشخیص ساده"
                 if isinstance(exc, ai.QuotaExceeded):
-                    warnings.append(f"صفحه {index + 1}: سهمیه رایگان Gemini تمام شده بود؛ با تشخیص ساده بررسی شد.")
+                    warnings.append(f"صفحه {index + 1}: سهمیه رایگان Gemini تمام شده بود؛ با {who} بررسی شد.")
                 else:
-                    warnings.append(f"صفحه {index + 1}: هوش مصنوعی در دسترس نبود؛ تشخیص خودکار ساده استفاده شد.")
+                    warnings.append(f"صفحه {index + 1}: Gemini در دسترس نبود؛ با {who} بررسی شد.")
                 data = None
             if data is not None:
                 currency = data.get("currency", "") or ""
@@ -168,12 +203,27 @@ def _analyze_pdf_page(analysis: Analysis, index: int) -> tuple[PageInfo, list[Pr
                         selected.append((cands[k], p.get("label", ""), int(p.get("column_id", 0))))
                 for p in data.get("image_prices", []):
                     image_prices.append({**p, "bbox": [v / zoom_ai for v in p["bbox"]]})  # -> points
+                if bdoc is not None:
+                    truth = {k for k, t in enumerate(cands) if any(t is s[0] for s in selected)}
+                    outcome = brain.BRAIN.learn(bdoc, truth, dec, "gemini", {"img": bool(image_prices)})
+                    brain.BRAIN.count("teacher")
+                    analysis.brain[index] = {"how": "teacher", "doc": bdoc, "decision": dec, "taught": True,
+                                             "selected": truth, "format": outcome.get("format"),
+                                             "new_format": outcome.get("new_format", False),
+                                             "guess_ok": outcome.get("model_ok")}
+        if data is None:
+            if dec is not None:
+                for i in sorted(dec.selected):
+                    selected.append((cands[i], bdoc.label(i), bdoc.col_of[i] + 1))
+                columns = brain.column_names(bdoc)
+                currency = bdoc.currency()
+                how = "local" if dec.trusted else "fallback"
+                if how == "local":
+                    brain.BRAIN.count("local")
+                analysis.brain[index] = {"how": how, "doc": bdoc, "decision": dec, "taught": False,
+                                         "selected": set(dec.selected), "format": dec.template, "by": dec.how}
             else:
                 selected = [(t, "", 0) for t in _heuristic_select(cands)]
-        else:
-            selected = [(t, "", 0) for t in _heuristic_select(cands)]
-            if not cands and coverage > 0.3:
-                warnings.append(f"صفحه {index + 1} عکس/اسکن است و برای خواندن آن کلید هوش مصنوعی لازم است.")
 
         seen: set[int] = set()
         selected = [s for s in selected if not (id(s[0]) in seen or seen.add(id(s[0])))]
@@ -197,7 +247,7 @@ def _analyze_pdf_page(analysis: Analysis, index: int) -> tuple[PageInfo, list[Pr
             Image.fromarray(rgb).save(info.raster_path)
             for p in image_prices:
                 p["bbox"] = [v * zoom_r for v in p["bbox"]]
-            r_items, r_warn = _raster_items(rgb, image_prices, index, len(items) + 1, columns)
+            r_items, r_warn, _, _ = _raster_items(rgb, image_prices, index, len(items) + 1, columns)
             items.extend(r_items)
             warnings.extend(r_warn)
         return info, items, warnings, currency
@@ -309,14 +359,31 @@ def _merge_page(results: list[tuple[str, dict]], cands: list[TextToken], boxes: 
 
 # ============================================================ raster work ==
 
-def _raster_items(rgb: np.ndarray, prices: list[dict], page: int, start: int,
-                  columns: dict[int, str]) -> tuple[list[PriceItem], list[str]]:
+def _ocr_text_at(bdoc: blayout.PageDoc, box) -> str:
+    best, best_iou = "", 0.3
+    for n in bdoc.nums:
+        iou = blayout.box_iou(n.box, tuple(box))
+        if iou > best_iou:
+            best, best_iou = n.text, iou
+    return best
+
+
+def _raster_items(rgb: np.ndarray, prices: list[dict], page: int, start: int, columns: dict[int, str],
+                  bdoc: blayout.PageDoc | None = None, local_only: bool = False,
+                  mode: str = "auto") -> tuple[list[PriceItem], list[str], tuple[int, int], int]:
+    """Returns (items, warnings, (local reads checked, local reads right), unresolved).
+
+    With `bdoc` (the page's OCR), every price is also read locally; a local read
+    that matches Gemini's saves the Gemini re-read. `local_only`: the prices came
+    from the brain, so the local reads are the answer (Gemini only settles the
+    ones the local reads disagree on, when available)."""
     warnings: list[str] = []
     approx = [tuple(p["bbox"]) for p in prices]
     texts = [p.get("text", "") for p in prices]
     heights = [b[3] - b[1] for b in approx if b[3] > b[1]]
+    stat, unresolved = (0, 0), 0
     if not heights:
-        return [], warnings
+        return [], warnings, stat, unresolved
     ink = raster.InkMap(rgb, float(np.median(heights)))
     targets = raster.locate(ink, approx, texts)
     raster.style_columns(ink, targets)
@@ -331,12 +398,38 @@ def _raster_items(rgb: np.ndarray, prices: list[dict], page: int, start: int,
             keep.append((t, p))
 
     if keep:
-        votes = [list(p.get("votes") or [("?", p.get("text", ""))]) for _, p in keep]
-        agreed = [bool(p.get("agreed")) for _, p in keep]
-        if config.AI_VERIFY_IMAGE_PRICES and ai.enabled():
-            finals = _verify(rgb, [t for t, _ in keep], votes, agreed)
+        local = None
+        if bdoc is not None and bocr.available():
+            first = [p.get("ocr") or _ocr_text_at(bdoc, t.box) for t, p in keep]
+            try:
+                local = bocr.read_targets(ink, [t for t, _ in keep], first)
+            except Exception:  # noqa: BLE001 - the local reader is an extra, never a blocker
+                log.exception("local reading failed")
+        if local_only:
+            finals = [r.text for r in local] if local else [None] * len(keep)
+            pending = [k for k, f in enumerate(finals) if f is None]
+            if pending and ai.enabled() and config.AI_VERIFY_IMAGE_PRICES and mode != "local":
+                sub = [[("ocr", first[k])] if first[k] else [] for k in pending]
+                for k, r in zip(pending, _verify(rgb, [keep[k][0] for k in pending], sub, [False] * len(pending))):
+                    finals[k] = r
+            unresolved = sum(1 for f in finals if f is None)
         else:
-            finals = [v[0][1] for v in votes]
+            votes = [list(p.get("votes") or [("?", p.get("text", ""))]) for _, p in keep]
+            agreed = [bool(p.get("agreed")) for _, p in keep]
+            if local:
+                for k, r in enumerate(local):
+                    if not r.text:
+                        continue
+                    if not agreed[k] and _digits(votes[k][0][1]) == _digits(r.text) and parse_number(votes[k][0][1]):
+                        agreed[k] = True        # Gemini and the independent local read agree
+                    votes[k].append(("ocr", r.text))
+            if config.AI_VERIFY_IMAGE_PRICES and ai.enabled():
+                finals = _verify(rgb, [t for t, _ in keep], votes, agreed)
+            else:
+                finals = [v[0][1] for v in votes]
+            if local:
+                done = [(r.text, f) for r, f in zip(local, finals) if r.text and f]
+                stat = (len(done), sum(1 for a, b in done if _digits(a) == _digits(b)))
         checked = []
         for (t, p), text in zip(keep, finals):
             if text is None:
@@ -357,7 +450,7 @@ def _raster_items(rgb: np.ndarray, prices: list[dict], page: int, start: int,
             id=f"p{page + 1}-{start + len(items)}", page=page, kind="raster", value=parsed.value, text=t.text,
             fmt=parsed.fmt, bbox=tuple(float(v) for v in t.box), label=p.get("label", ""),
             column=columns.get(col, str(col) if col else ""), payload=t))
-    return items, warnings
+    return items, warnings, stat, unresolved
 
 
 def _label_font(size: int) -> ImageFont.ImageFont:
@@ -487,18 +580,80 @@ def _analyze_image(analysis: Analysis, progress: Progress | None) -> list[str]:
     if alpha is not None:
         alpha.save(analysis.workdir / "alpha.png")
     analysis.pages.append(info)
-    if not ai.enabled():
-        raise UserError("برای خواندن قیمت از روی عکس، کلید Gemini (GEMINI_API_KEY) باید تنظیم شده باشد.")
-    small, s = ai.fit_for_ai(im)
-    data = _merge_page(ai.analyze_page_all(small, [], raster_only=True), [], [])
-    columns = {c["column_id"]: c["header"] for c in data.get("columns", [])}
-    prices = [{**p, "bbox": [v / s for v in p["bbox"]]} for p in data.get("image_prices", [])]
-    items, warns = _raster_items(rgb, prices, 0, 1, columns)
+    if not ai.enabled() and not (brain.enabled() and bocr.available()):
+        raise UserError("برای خواندن قیمت از روی عکس، کلید Gemini (GEMINI_API_KEY) یا OCR لازم است.")
+    items, warns, currency = _raster_page(analysis, rgb, 0, 1)
     analysis.items = items
     analysis.warnings.extend(warns)
     if progress:
         progress(1, 1)
-    return [data.get("currency", "")]
+    return [currency]
+
+
+def _local_raster(analysis: Analysis, rgb: np.ndarray, bdoc: blayout.PageDoc, dec: brain.Decision,
+                  index: int, start: int, mode: str) -> tuple[list[PriceItem], list[str], int]:
+    prices = [{"text": bdoc.nums[i].text, "bbox": list(bdoc.nums[i].box), "label": bdoc.label(i),
+               "column_id": bdoc.col_of[i] + 1, "ocr": bdoc.nums[i].text} for i in sorted(dec.selected)]
+    items, warns, _, unresolved = _raster_items(rgb, prices, index, start, brain.column_names(bdoc), bdoc,
+                                                local_only=True, mode=mode)
+    return items, warns, unresolved
+
+
+def _raster_page(analysis: Analysis, rgb: np.ndarray, index: int, start: int) -> tuple[list[PriceItem], list[str], str]:
+    """Prices of one photo / scanned page (pixel coordinates of `rgb`)."""
+    mode = _brain_mode(analysis)
+    bdoc = dec = None
+    if brain.enabled() and bocr.available():
+        try:
+            bdoc = blayout.from_ocr(bocr.page_words(rgb), rgb.shape[1], rgb.shape[0])
+            dec = brain.BRAIN.decide(bdoc, mode)
+        except Exception:  # noqa: BLE001 - OCR problems must not stop Gemini
+            log.exception("page OCR failed")
+            bdoc = dec = None
+
+    def local(how: str, extra_warn: str = "") -> tuple[list[PriceItem], list[str], str]:
+        items, warns, _ = _local_raster(analysis, rgb, bdoc, dec, index, start, mode)
+        if how == "local":
+            brain.BRAIN.count("local")
+        analysis.brain[index] = {"how": how, "doc": bdoc, "decision": dec, "taught": False,
+                                 "selected": set(dec.selected),
+                                 "format": dec.template, "by": dec.how}
+        return items, ([extra_warn] if extra_warn else []) + warns, bdoc.currency()
+
+    if dec is not None and dec.selected and (dec.trusted or not ai.enabled()):
+        items, warns, unresolved = _local_raster(analysis, rgb, bdoc, dec, index, start, mode)
+        if not ai.enabled() or mode == "local" or unresolved <= max(1, 0.1 * len(dec.selected)):
+            how = "local" if dec.trusted else "fallback"
+            if how == "local":
+                brain.BRAIN.count("local")
+            analysis.brain[index] = {"how": how, "doc": bdoc, "decision": dec, "taught": False,
+                                     "selected": set(dec.selected),
+                                     "format": dec.template, "by": dec.how}
+            return items, warns, bdoc.currency()
+        log.info("page %d: %d local reads unsure, asking the teacher", index + 1, unresolved)
+
+    small, s = ai.fit_for_ai(Image.fromarray(rgb))
+    try:
+        data = _merge_page(ai.analyze_page_all(small, [], raster_only=True), [], [])
+    except Exception as exc:  # noqa: BLE001
+        if dec is not None and dec.selected:
+            log.warning("AI failed on page %d, using the brain: %s", index + 1, exc)
+            quota = isinstance(exc, ai.QuotaExceeded)
+            why = "سهمیه Gemini تمام شده بود" if quota else "Gemini در دسترس نبود"
+            return local("fallback", f"صفحه {index + 1}: {why}؛ با هوش خود ربات بررسی شد.")
+        raise
+    columns = {c["column_id"]: c["header"] for c in data.get("columns", [])}
+    prices = [{**p, "bbox": [v / s for v in p["bbox"]]} for p in data.get("image_prices", [])]
+    items, warns, reads, _ = _raster_items(rgb, prices, index, start, columns, bdoc)
+    if bdoc is not None:
+        truth = brain.truth_from_boxes(bdoc, [it.bbox for it in items], [tuple(p["bbox"]) for p in prices])
+        outcome = brain.BRAIN.learn(bdoc, truth, dec, "gemini", {"reads": reads, "img": False})
+        brain.BRAIN.count("teacher")
+        analysis.brain[index] = {"how": "teacher", "doc": bdoc, "decision": dec, "taught": True,
+                                 "selected": truth, "format": outcome.get("format"),
+                                 "new_format": outcome.get("new_format", False),
+                                 "guess_ok": outcome.get("model_ok")}
+    return items, warns, data.get("currency", "")
 
 
 # ============================================== page images (preview/excel) ==
