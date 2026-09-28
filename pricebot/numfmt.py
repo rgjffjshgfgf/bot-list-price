@@ -114,11 +114,20 @@ def parse_number(text: str) -> ParsedNumber | None:
         if first_ok and all(len(g) == 3 for g in groups[1:]):
             value = Decimal("".join(groups))
             return ParsedNumber(value, NumberFormat(script=script, group_sep=sep), text.strip())
+        if len(seps) == 1 and sep in ",٬،/" and len(groups[0]) >= 4 and len(groups[1]) == 3:
+            # "4950,000": a missing separator, not three decimals (no price has those)
+            return ParsedNumber(Decimal("".join(groups)), NumberFormat(script=script, group_sep=sep), text.strip())
         if len(seps) == 1 and sep != " " and 1 <= len(groups[1]) <= 4:
             value = Decimal(f"{groups[0]}.{groups[1]}")
             fmt = NumberFormat(script=script, decimal_sep=sep, decimals=len(groups[1]))
             return ParsedNumber(value, fmt, text.strip())
         return None
+
+    if len(distinct) == 2 and first_ok and all(len(g) == 3 for g in groups[1:]) and " " not in distinct:
+        # "6.850,000": thousands groups with a typo'd separator. Prices in Rial/Toman
+        # have no 3-digit decimals, so this is 6,850,000 (written back with one separator).
+        sep = "," if "," in distinct else max(distinct, key=seps.count)
+        return ParsedNumber(Decimal("".join(groups)), NumberFormat(script=script, group_sep=sep), text.strip())
 
     if len(distinct) == 2 and seps[-1] not in seps[:-1] and len(set(seps[:-1])) == 1:
         group_sep, dec_sep = seps[0], seps[-1]
