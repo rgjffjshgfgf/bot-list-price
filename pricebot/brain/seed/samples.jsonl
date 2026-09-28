@@ -40241,3 +40241,1072 @@
 {"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:4", "kw:code", "h:wey", "a:cples", "a:sku"], "y": 0}
 {"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:2", "h:cs", "h:ojuul", "a:steel", "a:ply"], "y": 0}
 {"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:wey", "a:a", "a:ah"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:0", "mag:4", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "kw:code", "h:part", "h:rara", "a:part", "a:rara"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:persian", "tz:0", "mag:3", "yearlike", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:bb", "h:os", "a:os"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:1", "h:ot", "a:ot", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:2", "h:ot", "a:ama", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:0", "h:vofoe", "h:vvofoce", "a:vofoe"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:2", "coln:10+", "colgrp:lo", "len_outlier", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:of", "a:kan", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:2", "h:ot", "a:ot", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:2", "h:ot", "a:vo", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:ama", "a:v", "a:dl", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:2", "h:ot", "a:ae"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:aly", "a:vf", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:2", "h:ot", "a:a", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:ar", "a:whe", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:0", "h:vofoe", "h:vvofoce", "a:vvofoe"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "len_outlier", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:vd", "a:we"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:0", "h:vofoe", "h:vvofoce"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:0", "h:vofoe", "h:vvofoce"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:aly", "a:ave", "a:yyy"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:par", "a:se"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "kw:code", "h:part", "h:rara", "a:chey", "a:j", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:z", "a:lal", "a:wg"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:wk", "a:vv"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:4", "h:shep", "h:yp", "h:j", "a:yp", "a:j"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:wep", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:pp", "a:ley", "a:vn"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:2", "rl:4", "h:uy", "h:shee", "a:gy", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:shep", "a:vf", "a:oy", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:va", "a:wy", "a:she"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:0", "rl:4", "a:wy"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:a", "a:_", "a:ma", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:av", "a:py", "a:cle", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:vfs", "a:ee"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:wk", "a:vv"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:wk", "a:vv"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:4", "h:shep", "h:yp", "h:j", "a:yy"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "kw:code", "h:part", "a:oy", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:4", "h:shep", "h:yp", "h:j", "a:ap", "a:pd", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:3", "rl:4", "h:tf", "h:uy", "a:tf"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:3", "rl:4", "h:tf", "h:uy", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:vo", "h:a", "h:ae", "a:a"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:2", "rl:4", "h:uy", "h:shee", "a:uy", "a:shee"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:lal", "a:pam", "a:pd", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:1", "h:ot", "a:poe"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:kan", "h:of", "h:sak", "h:wee", "a:vo", "a:ek", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:0", "mag:4", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:persian", "tz:0", "mag:3", "yearlike", "coln:2-3", "colgrp:lo", "len_outlier", "rr:4", "rl:1", "h:cs", "h:lb", "a:cs", "a:lb"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:2", "h:cs", "a:ot", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:2", "h:cs", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:yt", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge", "a:skew", "a:ge"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:ita", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:0", "h:14pyo00", "a:14pyo00"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:ita", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:of", "a:mes"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:of", "a:mes"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge", "a:ye", "a:oke", "a:j"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:0", "h:14pyo00", "a:vokoce"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:llp"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:a", "a:ls", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:dm", "a:y", "a:gy"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge", "a:ye"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:dm", "a:y", "a:gy"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge", "a:ye", "a:lin"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:dm", "a:y", "a:gy", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:gy"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:0", "h:14pyo00", "a:vokoce"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "dec", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:0", "h:14pyo00", "a:vokoce"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:0", "h:14pyo00", "a:1yp9oee"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:a", "a:ls", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4", "a:ro"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:ls"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:ls"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:0", "h:14pyo00", "a:pjolejooo"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:ob", "h:lb", "a:sat"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:yy", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:a", "a:ay"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "nohdr", "a:j", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:cples", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:clin", "a:ge", "a:f"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:yy", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:skew", "a:ge", "a:f"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:2", "rl:4", "nohdr", "a:baba"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:2", "rl:4", "nohdr", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:wky", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:3", "rl:4", "h:slew", "h:ly", "a:slew", "a:ly"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:2", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:0", "h:14pyo00", "a:polojooo"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "kw:code", "nohdr", "a:part", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:eft"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:3", "rl:4", "h:slew", "h:ly"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "kw:code", "nohdr", "a:baba", "a:part"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:wky"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:clin", "a:ge", "a:f"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:3", "rl:4", "h:slew", "h:ly"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:l9o0"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:0", "h:14pyo00", "a:pjoleooe"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge", "a:vf"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:ge", "a:fj", "a:slew"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge", "a:stuy"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge", "a:ge", "a:slew"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge", "a:amo", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge", "a:ge", "a:she"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge", "a:stuy"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:joo", "a:joo", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:f", "a:ge", "a:lin"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge", "a:ge"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge", "a:vf"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge", "a:vf", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:skew", "h:ge", "a:yd", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:clin", "a:yd", "a:ge", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:2", "h:cs", "a:dm"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:ah", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:2", "h:cs", "a:clin"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:cples", "h:skin", "a:cples", "a:skin"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:ab", "a:ah"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:stasd", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:2", "h:cs"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:clin", "a:yd", "a:ge", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:cples", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:1", "h:cs", "h:lb", "a:poly", "a:gy"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:1", "h:cs", "h:lb", "a:poly"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "a:ah", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:yt", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:0", "mag:3", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:os", "h:ww", "a:ww", "a:os"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "nohdr", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:ll", "a:ll"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:10+", "colgrp:hi", "len_outlier", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "nohdr", "a:baba"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:mg", "a:one", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:j", "h:absense", "a:j", "a:absense"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:0", "rl:4", "a:la"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:2", "h:mg", "h:a", "a:mg", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:fs"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:dm", "a:jo", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:dm", "a:jo", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr", "a:po", "a:glin", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:jus"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:fo", "a:fo"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:je", "h:of", "h:olin", "a:je", "a:of"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:a", "a:tas"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:oh", "a:ass", "a:bl"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:jaacoce"], "y": 1}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:kays"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:cku", "a:ysl", "a:fd"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr", "a:yigomyblbl"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:sy", "a:ru", "a:bly"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:sacfo"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:sacloo"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:ali", "a:pat"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:gue", "a:oe"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:1-2", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:absense", "a:je", "a:se"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr", "a:yigomyblbl"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:pjaacooe"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:2", "rl:4", "h:o", "h:ogbol", "a:o", "a:ogbol"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:ali"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:c"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:cs", "a:he", "a:nye"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:2", "h:mg", "h:a", "a:oe"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:2-3", "colgrp:lo", "rr:2", "rl:4", "h:o", "h:ogbol", "a:yal"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:dbetmee", "a:ys%", "a:yo"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:dbetmee", "a:ys%", "a:yo"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:ls", "a:ea"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:yal", "a:era", "a:yf"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:2-3", "colgrp:mid", "rr:4", "rl:2", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:0", "mag:3", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "kw:code", "h:baba", "h:part", "a:baba", "a:motor", "a:part"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:3", "rl:3", "h:llcs", "a:llcs"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:2", "rl:4", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:3", "rl:3", "h:llcs", "a:td"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:2", "rl:4", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:2", "rl:4", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:2", "rl:4", "a:a"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr", "a:olin", "a:pe", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:f", "a:f"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:2", "rl:4", "a:am", "a:fo", "a:dom"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:2", "rl:4", "a:re"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:jb"], "y": 1}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:aacece"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:pp", "a:ola"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr", "a:io", "a:on"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:2", "rl:4", "a:j", "a:ee", "a:oe"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:baba", "a:z", "a:ge"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:sacle"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr", "a:ola"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:2", "rl:4", "a:am"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:dacloo"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:1-2", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "kw:code", "h:baba", "h:part", "a:je", "a:jsp", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:paacooe"], "y": 1}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:comma", "script:latin", "tz:0", "mag:3", "coln:2-3", "colgrp:mid", "rr:4", "rl:2", "nohdr", "a:aw"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:2", "rl:4", "a:y", "a:yh", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:2", "rl:4", "a:sk", "a:ogbel", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:2", "rl:4", "a:gh", "a:vf", "a:kay"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:o", "h:ogbel", "a:o"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:am", "h:a", "h:gts", "a:a", "a:gts"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:if", "a:sac"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:ob", "h:llcs", "a:se", "a:fs"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:2", "rl:4", "a:gue", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:2", "rl:4", "a:soy", "a:ka", "a:ly"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:2", "rl:4", "a:soy", "a:ka", "a:ly"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:2", "rl:4", "a:ts", "a:ls"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:4", "coln:2-3", "colgrp:lo", "rr:4", "rl:2", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:0", "mag:4", "coln:4-9", "colgrp:lo", "len_outlier", "rr:1", "rl:4", "kw:code", "h:baba", "h:part", "a:baba", "a:motor", "a:part"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:ob", "h:ul", "a:ob", "a:ul"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:2", "rl:4", "h:baba", "a:baba"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:2", "rl:4", "h:baba"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "a:nd"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:of", "h:olen", "a:of"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:2", "rl:4", "h:baba"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "a:tote", "a:dm", "a:ems"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "a:tote", "a:dm", "a:ems"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "a:fo", "a:de", "a:pam"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:1", "rl:4", "kw:code", "h:baba", "h:part", "a:j"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:baba", "a:baba"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:4", "nohdr", "a:po", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:jb"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:4", "nohdr", "a:fo"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:3", "rl:4", "h:ge", "h:olen", "a:ge", "a:olen"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "a:spans", "a:qe", "a:nde"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:ppoooo"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:stad"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:1", "rl:4", "kw:code", "h:baba", "h:part"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "a:ke", "a:spy", "a:bly"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "a:seams", "a:yo"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:saclfo"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "a:oh", "a:aw", "a:bl"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "a:bist", "a:gins"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:sicloo"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:1-2", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:ob", "h:ul", "a:f", "a:ke"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:1", "rl:4", "kw:code", "h:baba", "h:part", "a:fj", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:1", "rl:4", "kw:code", "h:baba", "h:part", "a:fj", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:o", "h:ogbel", "a:o"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "a:cs", "a:ne", "a:ee"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:gins", "h:aw", "a:gins"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:if", "a:sac"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "a:fo", "a:ea"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:3", "rl:4", "h:ge", "h:olen"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:seams", "a:seams"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:ipaooe"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:0", "coln:4-9", "colgrp:lo", "rr:1", "rl:4", "kw:code", "h:baba", "h:part", "a:fj", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:2", "nohdr", "a:a"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr", "a:stad"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "a:ere", "a:ls"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "dec", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:hi", "len_outlier", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:4", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "kw:code", "h:part", "h:bara", "a:part", "a:bara"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:pee"], "y": 1}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:at"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:3", "rl:3", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:f", "h:jp", "h:ch", "a:f", "a:jp", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:pe"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:2", "h:ae", "a:ae"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:2-3", "colgrp:lo", "rr:2", "rl:4", "h:ke", "h:ye", "h:sm", "a:pp", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:o"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:vaaseee"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:2", "coln:2-3", "colgrp:lo", "rr:2", "rl:4", "h:ke", "h:ye", "h:sm", "a:pp", "a:he", "a:pe"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:sz", "a:iz"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:sacke"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:foeeee"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:0", "rl:4", "nohdr", "a:el", "a:i"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:hi", "len_outlier", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:sz"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:aaclee"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:1-2", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:voeeoe"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "kw:code", "h:part", "h:bara", "a:je", "a:ja", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "kw:code", "h:part", "h:muiur", "a:syl", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:es"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:psaaseee"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:oc"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:ip", "a:oy"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:2-3", "colgrp:lo", "len_outlier", "rr:4", "rl:2", "h:ae", "a:yy", "a:yp"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:f", "a:sac"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:3", "rl:3", "nohdr", "a:yy", "a:yp", "a:be"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:4-9", "colgrp:lo", "rr:3", "rl:3", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "kw:code", "h:part", "a:syl", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:paeee"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:sf", "a:be"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:2", "h:ae", "a:ts"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:4", "coln:4-9", "colgrp:lo", "len_outlier", "rr:4", "rl:2", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:4", "coln:2-3", "colgrp:lo", "len_outlier", "rr:1", "rl:4", "kw:code", "h:baba", "h:part", "a:baba", "a:part"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:vnv", "a:fs"], "y": 1}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:2", "rl:4", "h:baba", "a:baba"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4", "nohdr", "a:we"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:2", "nohdr", "a:ob"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:2", "rl:4", "h:baba"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:3", "h:e", "h:af", "h:hy", "a:af", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "a:pems", "a:de"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "kw:code", "h:baba", "h:part", "a:alanis"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr", "a:pe", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "kw:code", "h:baba", "h:part"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:jb"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:10+", "colgrp:hi", "len_outlier", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:aacoce"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:a", "a:tad"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "kw:code", "h:part", "a:sy"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:saclfo"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "a:aban", "a:ys", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:dacloo"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "a:oh", "a:vor", "a:bls"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "a:oft", "a:ae"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:clin", "h:sj", "a:sj"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:1-2", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:4", "rl:3", "h:e", "h:af", "h:hy", "a:pps"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:5", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "nohdr", "a:paacoce"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "kw:code", "h:motor", "h:part", "a:sy", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:2", "nohdr", "a:ty"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:o", "h:ogikaly", "a:o"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:c"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:gl", "a:gl"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "a:cs", "a:nye"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:4", "rl:2", "nohdr", "a:ty"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr", "a:c", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "a:fed"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "col_seq", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "a:cs", "a:kal", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:kay", "a:kay"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:cka", "h:gl", "a:gl"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:hi", "len_outlier", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:3", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cen", "h:pis", "h:wg", "h:os", "a:pis", "a:wg"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:4", "coln:2-3", "colgrp:lo", "rr:2", "rl:4", "kw:code", "h:baba", "h:part", "a:baba", "a:part"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cen", "h:pis", "h:wg", "h:os", "a:pis", "a:wg"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:10+", "colgrp:lo", "len_outlier", "rr:4", "rl:3", "h:cen", "h:pis", "h:wg", "h:os", "a:mee", "a:lets"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:cen", "h:oot", "a:oi"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:cen", "h:oot", "a:cen", "a:oot"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:cen", "h:oot", "a:cen", "a:oot"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of", "a:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cen", "h:pis", "h:wg", "h:os", "a:goyt", "a:sly", "a:oikge"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:peel", "a:gi", "a:llp", "a:by"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:cen", "h:oot", "a:oi"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:0", "rl:4", "a:on"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:cen", "h:oot", "a:shb"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:peel", "a:peel"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:cen", "h:oot", "a:roa", "a:caee", "a:ol", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:il", "a:il"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:peel", "a:sy", "a:clan", "a:lh"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:sacpo"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cen", "h:pis", "h:wg", "h:os"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:cen", "a:cen"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:peel", "a:sle", "a:pp", "a:sama"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:2", "h:og", "a:sl"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:peel", "a:ln", "a:bo", "a:poo"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "h:ye", "h:pel", "a:ye", "a:pel"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:0", "rl:4"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cen", "h:pis", "h:wg", "h:os", "a:mis", "a:deg"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of", "a:jb"], "y": 1}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cen", "h:pis", "h:wg", "h:os", "a:s", "a:oe"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cen", "h:pis", "h:wg", "h:os", "a:s", "a:oe"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cen", "h:pis", "h:wg", "h:os", "a:vf"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:stas"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:spares", "h:anse", "a:a", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:cen", "h:oot", "a:cw", "a:ge"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cen", "h:pis", "h:wg", "h:os", "a:on", "a:ix", "a:ags"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:hi", "len_outlier", "rr:4", "rl:0", "colk:hi", "h:of", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cen", "h:pis", "h:wg", "h:os", "a:sel", "a:fa"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:peel", "a:cily", "a:ik", "a:te", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cen", "h:pis", "h:wg", "h:os", "a:ca", "a:ax", "a:suis"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:sgige", "a:sgige"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:4", "coln:10+", "colgrp:lo", "len_outlier", "rr:4", "rl:3", "h:cen", "h:pis", "h:wg", "h:os", "a:fd", "a:sigs", "a:sey"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:2", "h:og", "a:suis", "a:c"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:2", "rl:4", "kw:code", "h:baba", "h:part", "a:oo"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "h:ye", "h:pel", "a:lalj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:4", "coln:10+", "colgrp:lo", "len_outlier", "rr:4", "rl:3", "h:cen", "h:pis", "h:wg", "h:os", "a:2b040"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:0", "mag:4", "coln:10+", "colgrp:lo", "len_outlier", "rr:4", "rl:4", "h:cen", "h:oot", "a:2b040"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:peel", "a:roa", "a:caee", "a:rota"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:peel", "a:hy", "a:gen"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:peel", "a:gl", "a:vers"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:peel", "a:pew", "a:ssat", "a:an"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:peel", "a:ars", "a:ge", "a:cr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:anse", "a:sis", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:2", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:cen", "h:oot", "a:ge", "a:fg"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cen", "h:pis", "h:wg", "h:os"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:cen", "h:oot", "a:cw", "a:ge"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:of"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:peel", "a:gus", "a:zs"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:peel", "a:ok", "a:gy"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:peel", "a:gl", "a:vers"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:cen", "h:oot", "a:deg"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:4", "h:cen", "h:oot", "a:e", "a:wos", "a:sti"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:4", "coln:2-3", "colgrp:lo", "rr:4", "rl:2", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:0", "mag:3", "coln:2-3", "colgrp:lo", "len_outlier", "rr:1", "rl:4", "kw:code", "h:baba", "h:part", "a:baba", "a:part"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on", "a:ug", "a:ou", "a:cs"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs", "a:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:yt", "a:yt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:10+", "colgrp:lo", "len_outlier", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on", "a:vhf"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:la", "a:la"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "h:el", "h:ge", "a:hb"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "h:el", "h:ge", "a:ss", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:1", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "h:el", "h:ge", "a:hb"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs", "a:oeoecoe"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:yt", "a:jb", "a:ye", "a:ssat"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:yeu", "a:yeu"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "dec", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "len_outlier", "rr:2", "rl:4", "h:el", "h:ge", "a:sh"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:sacpe"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on", "a:ibs", "a:pw", "a:ds"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:sacpe", "a:sacpe"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:1", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "h:el", "h:ge", "a:cae", "a:lt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on", "a:yt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:yt", "a:yt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:yt", "a:cp", "a:cy", "a:pelolsl"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on", "a:jb", "a:ssat", "a:iis"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs", "a:s", "a:jb"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:yt", "a:sb", "a:des", "a:ags"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on", "a:gh", "a:sole", "a:dg"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on", "a:by", "a:a", "a:jz"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:ofa"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:jgaaone", "a:a"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on", "a:seleg", "a:fa"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on", "a:an", "a:ome"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on", "a:iu", "a:sl"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on", "a:gis", "a:an"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on", "a:dn", "a:ags"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on", "a:an", "a:ome"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on", "a:seleg", "a:fa"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:4", "coln:10+", "colgrp:lo", "len_outlier", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on", "a:y", "a:te", "a:suis"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "h:el", "h:ge", "a:bea", "a:caee"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "kw:code", "h:baba", "h:part", "a:enced"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "kw:code", "h:motor", "h:part", "a:lil"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:4", "coln:10+", "colgrp:lo", "len_outlier", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:0", "mag:4", "coln:10+", "colgrp:lo", "len_outlier", "rr:3", "rl:4", "h:yt", "a:2b040"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:yt", "a:_"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on", "a:pee", "a:a", "a:fis"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "h:el", "h:ge", "a:sew"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:0", "mag:3", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:jgaaone", "h:apa", "a:apa"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "h:el", "h:ge", "a:gl"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "h:el", "h:ge", "a:svqvese"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on", "a:ags"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:jgaaone", "h:apa", "a:oss"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:yt", "a:pee", "a:fis", "a:de"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:cs", "h:ug", "h:ou", "h:pi", "h:on"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "kw:code", "h:part", "a:polars"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "kw:code", "h:part", "a:lil"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:yt", "a:y", "a:te", "a:vee"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "h:yt", "a:sb", "a:des", "a:ags"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:2", "nohdr", "a:tar", "a:oss"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "kw:code", "h:baba", "h:part", "a:el", "a:os"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:4", "coln:10+", "colgrp:lo", "len_outlier", "rr:4", "rl:2", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "kw:code", "h:motor", "h:part", "a:motor", "a:part"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:5", "coln:1", "colgrp:lo", "rr:4", "rl:4", "kw:code", "h:baba", "h:part", "a:baba", "a:part"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:2", "nohdr", "a:ob", "a:ll", "a:cs"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:2", "nohdr", "a:ob", "a:ll", "a:cs"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:10+", "colgrp:lo", "len_outlier", "rr:3", "rl:3"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "a:eo", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs", "a:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "a:ol", "a:ge", "a:yg", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "h:el", "a:el"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:0", "rl:4", "nohdr", "a:a"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:2", "nohdr", "a:lt", "a:dew", "a:pe"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "a:ol", "a:ge", "a:yg", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "a:ity", "a:llp"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:2", "nohdr", "a:f", "a:re", "a:paren", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:2", "nohdr", "a:se", "a:sf", "a:ph"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:0", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:sacpo"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "a:ity", "a:llp"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:sacpo", "a:sacpo", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "a:se", "a:ee", "a:or"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "a:roa", "a:la", "a:ol", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "a:foye", "a:gens", "a:prrer"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:pool", "a:pool"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs", "a:sb"], "y": 1}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:stasi"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:2", "nohdr", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "a:rake", "a:gel", "a:f"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:comma", "script:latin", "tz:0", "mag:7", "coln:1", "colgrp:hi", "rr:4", "rl:4", "nohdr", "a:cases"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:2", "nohdr", "a:se", "a:sf", "a:ph"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:2", "nohdr", "a:soles", "a:ys"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:2", "nohdr", "a:de", "a:on"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "a:yusys", "a:oes", "a:gee"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:2", "nohdr", "a:soles", "a:ys"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:2", "nohdr", "a:stl", "a:os", "a:c"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:4", "coln:10+", "colgrp:lo", "len_outlier", "rr:4", "rl:2", "nohdr", "a:hs", "a:a", "a:coie"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "a:od", "a:ps", "a:su"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "h:el", "a:dbo"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:0", "mag:4", "coln:10+", "colgrp:lo", "len_outlier", "rr:3", "rl:3", "a:f", "a:gl", "a:2b040"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "kw:code", "h:motor", "h:part", "a:lal", "a:ples", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:2", "nohdr", "a:stl", "a:os", "a:c"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:4", "coln:10+", "colgrp:lo", "len_outlier", "rr:4", "rl:2", "nohdr", "a:2b040"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:3"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "h:el"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:2", "nohdr", "a:sp", "a:pips", "a:gel"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "a:a", "a:pel", "a:fay"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "a:pewhkfay", "a:beak"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "a:ssat", "a:te", "a:ons"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "a:rake", "a:gel", "a:f"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "dec", "script:persian", "tz:0", "mag:1", "yearlike", "coln:10+", "colgrp:hi", "len_outlier", "rr:4", "rl:0", "colk:hi", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "a:ssat", "a:te", "a:ons"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:2", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:2", "nohdr", "a:stl", "a:os", "a:c"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "h:el", "a:fa"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:3", "a:e", "a:gti", "a:os"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:mid", "len_outlier", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:persian", "tz:0", "mag:3", "yearlike", "coln:10+", "colgrp:lo", "len_outlier", "rr:2", "rl:2", "h:cs", "h:ub", "h:ptt", "a:ob", "a:cs", "a:ub"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:mid", "rr:4", "rl:0", "colk:hi", "nohdr", "a:ys"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:2", "rl:2", "h:cs", "h:ub", "h:ptt", "a:ay", "a:kgs"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:0", "mag:3", "coln:10+", "colgrp:lo", "len_outlier", "rr:2", "rl:2", "h:cs", "h:ub", "h:ptt", "a:vf"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:aacpe", "a:aacpe"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:1", "rl:3", "h:sm", "h:we", "h:pe", "h:tee", "h:he", "a:he", "a:sm", "a:tee"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:1", "rl:3", "h:sm", "h:we", "h:pe", "h:tee", "h:he", "a:iy", "a:sh", "a:vf"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:mid", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:mid", "rr:4", "rl:0", "colk:hi", "nohdr", "a:oeleoee"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:a", "a:es"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:mid", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:1", "rl:3", "h:sm", "h:we", "h:pe", "h:tee", "h:he", "a:ae", "a:ap"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:mid", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:0", "mag:2", "coln:4-9", "colgrp:lo", "len_outlier", "rr:0", "rl:4", "h:ye", "h:me", "h:eg", "a:sh"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:ye"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:mid", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:1", "rl:3", "h:sm", "h:we", "h:pe", "h:tee", "h:he", "a:pres", "a:at", "a:odes", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:1", "coln:4-9", "colgrp:lo", "rr:0", "rl:4", "h:ye", "h:me", "h:eg", "a:me", "a:eg"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:mid", "rr:4", "rl:0", "colk:hi", "nohdr", "a:jey", "a:ood"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:2", "rl:2", "h:cs", "h:ub", "h:ptt", "a:tle", "a:pre", "a:pins"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:yes", "sep:comma", "script:latin", "tz:0", "mag:4", "coln:10+", "colgrp:lo", "len_outlier", "rr:1", "rl:3", "h:sm", "h:we", "h:pe", "h:tee", "h:he", "a:tle", "a:pre", "a:pins"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:mid", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:mid", "len_outlier", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr", "a:bw", "a:staal"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:2", "rl:2", "h:cs", "h:ub", "h:ptt", "a:sda", "a:ss", "a:phe"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:mid", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:ect", "h:pam", "a:mot", "a:fa"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:mid", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:2", "rl:2", "h:cs", "h:ub", "h:ptt", "a:a", "a:ge", "a:eft"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:1", "rl:3", "h:sm", "h:we", "h:pe", "h:tee", "h:he", "a:iy", "a:sh", "a:vf"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:1", "rl:3", "h:sm", "h:we", "h:pe", "h:tee", "h:he"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:1", "rl:3", "h:sm", "h:we", "h:pe", "h:tee", "h:he", "a:iy", "a:sh", "a:vf"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:mid", "rr:4", "rl:0", "colk:hi", "nohdr", "a:if", "a:fieece"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:mid", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:mid", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:2", "rl:2", "h:cs", "h:ub", "h:ptt", "a:ses", "a:an", "a:i"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:2", "rl:2", "h:cs", "h:ub", "h:ptt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:2", "rl:2", "h:cs", "h:ub", "h:ptt", "a:galego"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:mid", "len_outlier", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:4", "coln:10+", "colgrp:lo", "len_outlier", "rr:1", "rl:3", "h:sm", "h:we", "h:pe", "h:tee", "h:he", "a:oses", "a:y", "a:ay"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:0", "rl:4", "h:ye", "h:me", "h:eg", "a:ok", "a:gy"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:mid", "len_outlier", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:4", "coln:10+", "colgrp:lo", "len_outlier", "rr:2", "rl:2", "h:cs", "h:ub", "h:ptt", "a:oses", "a:y", "a:ay"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:sw", "h:ol", "a:pemetel"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:mid", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:a", "h:sw", "a:la"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "dec", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:mid", "len_outlier", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:1", "rl:3", "h:sm", "h:we", "h:pe", "h:tee", "h:he", "a:_", "a:eee"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:mid", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:1", "rl:3", "h:sm", "h:we", "h:pe", "h:tee", "h:he", "a:e", "a:sti"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:4", "coln:10+", "colgrp:lo", "len_outlier", "rr:2", "rl:2", "h:cs", "h:ub", "h:ptt"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:mid", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:0", "mag:4", "coln:10+", "colgrp:lo", "len_outlier", "rr:1", "rl:3", "h:sm", "h:we", "h:pe", "h:tee", "h:he", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr", "a:le"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:0", "rl:4", "h:ye", "h:me", "h:eg", "a:ut"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:mid", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:mid", "rr:4", "rl:0", "colk:hi", "nohdr", "a:_"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:mid", "rr:4", "rl:0", "colk:hi", "nohdr"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:1", "rl:3", "h:sm", "h:we", "h:pe", "h:tee", "h:he", "a:oses", "a:y", "a:ay"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:sw", "a:la"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:yp", "h:hotel", "h:she", "a:yp", "a:hotel"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:1", "rl:3", "h:sm", "h:we", "h:pe", "h:tee", "h:he", "a:y", "a:ty", "a:ws"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:0", "mag:4", "coln:2-3", "colgrp:lo", "rr:4", "rl:2", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans", "a:vf"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "nohdr", "a:a"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs", "a:av", "a:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "nohdr", "a:a"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans", "a:calg", "a:goyt"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans", "a:ae", "a:lap", "a:sans"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "col_seq", "rr:0", "rl:4", "h:ro", "a:ro"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "nohdr", "a:oike", "a:llp"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:pool", "a:pool"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "col_seq", "rr:0", "rl:4", "h:ro"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:sacpo"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:ee", "a:ee"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "col_seq", "rr:0", "rl:4", "h:ro"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:4", "nohdr", "a:a"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:6", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "nohdr", "a:oi", "a:gems"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "col_seq", "rr:0", "rl:4", "h:ro"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans", "a:igs", "a:ssat", "a:j"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs", "a:jt"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "col_seq", "rr:0", "rl:4", "h:ro"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans", "a:ab", "a:cd", "a:sgh"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans", "a:igs", "a:ssat", "a:j"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans", "a:vf"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:2", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "nohdr", "a:ik", "a:sly", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans", "a:gem", "a:cog", "a:eft"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr", "a:a", "a:had"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans", "a:seis", "a:ony", "a:dn"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "nohdr", "a:cok"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans", "a:pew", "a:ds", "a:otroa"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:4", "nohdr", "a:de", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans", "a:seelee"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:0", "mag:3", "coln:4-9", "colgrp:lo", "len_outlier", "rr:2", "rl:4", "nohdr", "a:deen", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans", "a:eas", "a:stl", "a:c"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:4", "coln:10+", "colgrp:lo", "len_outlier", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans", "a:sis"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:yp", "h:eyo", "a:yp", "a:eyo"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:a", "h:sdl", "a:gel", "a:pele", "a:doli", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:el", "h:ye", "a:lal", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:1-2", "mag:4", "coln:10+", "colgrp:lo", "len_outlier", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans", "a:2b040"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:0", "mag:4", "coln:10+", "colgrp:lo", "len_outlier", "rr:3", "rl:4", "nohdr", "a:2b040"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:1", "coln:2-3", "colgrp:lo", "rr:1", "rl:4", "nohdr", "a:sl", "a:ye", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans", "a:geese", "a:fh", "a:fs"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans", "a:igs", "a:de"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "nohdr", "a:gene", "a:hy"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans", "a:igs", "a:de"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "nohdr", "a:rake"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:2", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "nohdr", "a:gh", "a:ys", "a:gy"], "y": 0}
+{"f": ["bias", "digits:4-6", "grp:no", "script:latin", "tz:0", "mag:3", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:agta", "a:sis", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "nohdr", "a:cs", "a:ys", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:7-9", "grp:yes", "sep:slash", "script:persian", "tz:3+", "mag:7", "coln:10+", "colgrp:hi", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs"], "y": 1}
+{"f": ["bias", "digits:1-3", "grp:no", "dec", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:hi", "len_outlier", "rr:4", "rl:0", "colk:hi", "h:av", "h:fs", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:0", "mag:1", "coln:4-9", "colgrp:lo", "rr:2", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "nohdr", "a:ew", "a:gel"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "h:ye", "a:lal", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:2-3", "colgrp:lo", "rr:4", "rl:2", "nohdr", "a:sis", "a:eyo"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:persian", "tz:1-2", "mag:1", "coln:10+", "colgrp:lo", "rr:4", "rl:1", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:1-2", "mag:1", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr", "a:had", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "nohdr"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:4", "rl:3", "h:ae", "h:lap", "h:sans"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:10+", "colgrp:lo", "rr:3", "rl:4", "nohdr", "unit_adj"], "y": 0}
+{"f": ["bias", "digits:1-3", "grp:no", "script:latin", "tz:0", "mag:0", "coln:1", "colgrp:lo", "rr:4", "rl:4", "nohdr", "a:tye", "unit_adj"], "y": 0}
