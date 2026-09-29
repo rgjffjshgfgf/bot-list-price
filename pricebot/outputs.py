@@ -17,7 +17,8 @@ from .pdftext import FontBank, Replacement, apply_page
 
 log = logging.getLogger(__name__)
 
-FORMATS = ("pdf", "xlsx", "image")
+FORMATS = ("pdf", "xlsx", "image", "arizon", "arizon_image")
+ARIZON_IMAGE_DPI = 170
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff", ".gif"}
 
 
@@ -162,6 +163,7 @@ class Exporter:
         self.summary = summary
         self.warnings: list[str] = []
         self._native: dict[int, Path] = {}
+        self._arizon: dict[int, Path] = {}
         out_dir.mkdir(parents=True, exist_ok=True)
 
     def _stem(self, analysis: Analysis) -> str:
@@ -220,7 +222,32 @@ class Exporter:
         excel.write_workbook(rows, path, self.summary)
         return path
 
+    def arizon(self, as_images: bool = False) -> list[Path]:
+        """The list rebuilt in the Arizon template (PDF, or one PNG per page)."""
+        from . import arizon   # heavy import, only when asked for
+
+        out = []
+        for i, (analysis, values) in enumerate(self.entries):
+            # the supplier's file name is not reused: the template carries the Arizon name only
+            stem = f"لیست قیمت آریزون {arizon.render.today_fa()[0].replace('/', '-')}"
+            if len(self.entries) > 1:
+                stem += f" ({i + 1})"
+            if i not in self._arizon:
+                self._arizon[i] = arizon.build(analysis, values, lambda: self.native(i), self.out_dir, stem)
+            pdf = self._arizon[i]
+            if as_images:
+                pages_dir = self.out_dir / f"arizon_{i + 1}"
+                pages_dir.mkdir(exist_ok=True)
+                out += pdf_to_images(pdf, pages_dir, stem, dpi=ARIZON_IMAGE_DPI)
+            else:
+                out.append(pdf)
+        return out
+
     def build(self, fmt: str) -> list[Path]:
+        if fmt == "arizon":
+            return self.arizon()
+        if fmt == "arizon_image":
+            return self.arizon(as_images=True)
         if fmt == "pdf":
             return self.pdf()
         if fmt == "image":
