@@ -168,6 +168,7 @@ class GCell:
     image: pymupdf.Rect | None = None
     text: str = ""
     bold: bool = False
+    suspect: bool = False     # the text layer of this cell cannot be trusted
 
     def has(self) -> bool:
         return bool(self.text or self.prices or self.image)
@@ -269,7 +270,14 @@ def _fill(grid: Grid, phrases: list[Phrase], prices: list[tuple[str, pymupdf.Rec
         c.text = text_of(c.glyphs)
         solid = [g for g in c.glyphs if not g.c.isspace()]
         c.bold = bool(solid) and sum(g.bold for g in solid) >= 0.6 * len(solid)
+        c.suspect = any(unreadable(g) for g in c.glyphs)
     return outside
+
+
+def unreadable(g: Glyph) -> bool:
+    """A glyph the PDF does not name correctly: no character at all, or a
+    zero-width dot mark it calls a space (Word + Calibri write «سبز» as «ستز»)."""
+    return g.c == "\ufffd" or "\ue000" <= g.c <= "\uf8ff" or (g.c == " " and g.w < 0.05 * g.size)
 
 
 # ============================================= columns of a list without lines ==
@@ -315,7 +323,10 @@ def _text_columns(glyphs: list[Glyph], prices: list[tuple[str, pymupdf.Rect]],
             if run >= max(2.0, 0.3 * size) and x - run > 0:
                 seps.append(x0 + x - run / 2)
             run = 0
-    return [region.x0] + seps + [region.x1]
+    # outer edges just outside the text: lines at the page edge are ignored by the table finder
+    lo = min(g.x0 for ln in lines for g in ln)
+    hi = max(g.x1 for ln in lines for g in ln)
+    return [max(region.x0, lo - 4)] + seps + [min(region.x1, hi + 4)]
 
 
 def _text_grid(page: pymupdf.Page, glyphs: list[Glyph], prices: list[tuple[str, pymupdf.Rect]],
@@ -327,7 +338,8 @@ def _text_grid(page: pymupdf.Page, glyphs: list[Glyph], prices: list[tuple[str, 
         pr |= b
     region = pymupdf.Rect(near) if near is not None else pymupdf.Rect(0, pr.y0, page.rect.width, pr.y1)
     region.x0, region.x1 = 0, page.rect.width
-    region.y0 = max(0.0, region.y0 - 60)
+    region.y0 = max(0.0, region.y0 - 110)     # room for a tall header
+    region.y1 = min(page.rect.height, max(region.y1, pr.y1) + 20)
     xs = _text_columns(glyphs, prices, region)
     if len(xs) < 4:
         return None
@@ -355,6 +367,8 @@ class RawTable:
     bottom: float = 0.0
     x0: float = 0.0
     late_headers: list[str] = field(default_factory=list)   # a header met only further down
+    cells: int = 0              # text cells of the items
+    suspect: int = 0            # ... of them with an unreadable text layer (headers count too)
 
 
 def _looks_header(cells: list[GCell]) -> bool:
@@ -379,7 +393,8 @@ def _group_columns(grid: Grid, item_rows: set[int]) -> set[int]:
 
 
 _TITLE_WORDS = re.compile(r"لیست|فهرست|قیمت|تاریخ|شرکت|بازرگانی|گروه صنعتی|فروشگاه|نمایندگی|price|list|"
-                          r"فروردین|اردیبهشت|خرداد|تیر|مرداد|شهریور|مهر|آبان|آذر|دی ماه|بهمن|اسفند|"
+                          r"(?<![ؠ-ي])(فروردین|اردیبهشت|خرداد|تیر|مرداد|شهریور|مهر|[اآ]بان|[اآ]ذر|دی|بهمن|اسفند)"
+                          r"(\s*ماه)?(?![ؠ-ي])|"
                           r"[\d۰-۹]{2,4}\s*[/\-.]\s*[\d۰-۹]{1,2}\s*[/\-.]\s*[\d۰-۹]{1,4}", re.I)
 
 
@@ -389,6 +404,26 @@ _NOTE_WORDS = re.compile(r"می\s*باشد|میباشد|\bاست\b|هستند|ب
 
 def is_note_line(text: str) -> bool:
     return bool(_NOTE_WORDS.search(unicodedata.normalize("NFKC", text).translate(_CANON).replace("\u200c", "")))
+
+
+# notes that belong to the supplier (who, where, which edition): not repeated in the Arizon list
+_SUPPLIER_NOTE = re.compile(
+    r"تاریخ|شرکت|بازرگانی|دفتر|ادرس|آدرس|تلفن|تماس|فکس|همراه|واتس|تلگرام|اینستا|ایتا|روبیکا|"
+    r"whatsapp|telegram|instagram|www|http|@|\.com|\.ir|شماره حساب|شماره کارت|کارت|شبا|حساب|"
+    r"فروشگاه|نمایندگی|منتشر|لیست قبلی|فاقد اعتبار|نام مشتری|امضا|مهر و|"
+    r"[\d۰-۹]{2,4}\s*[/\-.]\s*[\d۰-۹]{1,2}\s*[/\-.]\s*[\d۰-۹]{1,4}|[\d۰-۹]{7,}|"
+    r"(?<![ؠ-ي])(فروردین|اردیبهشت|خرداد|تیر|مرداد|شهریور|مهر|[اآ]بان|[اآ]ذر|دی|بهمن|اسفند)(?![ؠ-ي])", re.I)
+
+
+_PRICE_NOTE = re.compile(r"مالیات|ارزش افزوده|احتساب|vat", re.I)
+
+
+def is_price_note(text: str) -> bool:
+    return bool(_PRICE_NOTE.search(text))
+
+
+def is_supplier_note(text: str) -> bool:
+    return bool(_SUPPLIER_NOTE.search(unicodedata.normalize("NFKC", text).translate(_CANON)))
 
 
 def is_title_line(text: str) -> bool:
@@ -491,15 +526,30 @@ def logical_table(grid: Grid, rtl: bool, crop: Callable[[pymupdf.Rect], bytes | 
                 continue
             k0 = got[0]
             img = crop(cell.image) if cell.image is not None else None
+            snap = None
+            if cell.suspect and not cell.prices:
+                snap = crop(_ink_box(cell))
             prev = line[k0]
-            line[k0] = Cell((prev.text + " " + cell.text).strip(), prev.price_ids + cell.prices, prev.image or img)
+            line[k0] = Cell((prev.text + " " + cell.text).strip(), prev.price_ids + cell.prices, prev.image or img,
+                            prev.snapshot or snap)
         if not all(c.empty() for c in line):
             rows.append(Row(line, "item"))
     # group rows with nothing after them are notes, not groups
     while rows and rows[-1].kind == "group":
         notes.insert(0, rows.pop().cells[0].text)
     headers, rows, late = _merge_split_columns(headers, rows, late)
-    return RawTable(headers, rows, rtl, titles, notes, grid.bbox.y0, grid.bbox.y1, grid.bbox.x0, late)
+    used = [c for c in grid.cells if c.text and not c.prices and (kinds.get(c.r0) in ("item", "banner")
+                                                                  or c.r0 in header_rows)]
+    bad = sum(1 for c in used if c.suspect) + sum(3 for r in header_rows for c in starts[r] if c.suspect)
+    return RawTable(headers, rows, rtl, titles, notes, grid.bbox.y0, grid.bbox.y1, grid.bbox.x0, late,
+                    len(used), bad)
+
+
+def _ink_box(cell: GCell) -> pymupdf.Rect:
+    solid = [g for g in cell.glyphs if not g.c.isspace()] or cell.glyphs
+    r = pymupdf.Rect(min(g.x0 for g in solid), min(g.y0 for g in solid),
+                     max(g.x1 for g in solid), max(g.y1 for g in solid))
+    return (r + (-1.5, -1, 1.5, 1)) & cell.rect
 
 
 def _merge_split_columns(headers: list[str], rows: list[Row],
@@ -559,7 +609,7 @@ def split_blocks(t: RawTable) -> RawTable:
             segment.append(row)
     flush()
     return RawTable(t.headers[:p], rows, t.rtl, t.title_rows, t.note_rows, t.top, t.bottom, t.x0,
-                    t.late_headers[:p])
+                    t.late_headers[:p], t.cells, t.suspect)
 
 
 # ================================================================ roles ==
@@ -634,6 +684,13 @@ class PageRead:
     below: list[str]          # text lines under the tables (notes)
     placed: int               # prices that ended up in a table cell
     total: int
+    in_title: int = 0         # "prices" in the title lines above the tables (not shown)
+
+    @property
+    def unreadable(self) -> float:
+        """Share of the text cells whose text layer is gibberish."""
+        cells = sum(t.cells for t in self.tables)
+        return sum(t.suspect for t in self.tables) / max(1, cells)
 
 
 def _page_rtl(glyphs: list[Glyph]) -> bool:
@@ -755,14 +812,18 @@ def _read_grids(page: pymupdf.Page, glyphs: list[Glyph], grids: list[Grid], pric
             tables.append(split_blocks(t))
     if not tables:
         return None
-    placed = sum(len(c.price_ids) for t in tables for r in t.rows for c in r.cells)
+    placed_ids = {pid for t in tables for r in t.rows for c in r.cells for pid in c.price_ids}
+    placed = len(placed_ids)
     top = min(t.top for t in tables)
+    # a number in the list's own title (e.g. the year) that was taken for a price: the
+    # template does not show that title, so nothing wrong can appear
+    in_title = sum(1 for pid, box in prices if pid not in placed_ids and box.y1 <= top + 1)
     bottom = max(t.bottom for t in tables)
     lines = _outside_lines(outside)
     above = [t for t, y in lines if y < top]
     below = [t for t, y in lines if y >= bottom - 2]
     tables.sort(key=lambda t: (round(t.top / 20), -t.x0 if rtl else t.x0))
-    return PageRead(tables, above, below, placed, len(prices))
+    return PageRead(tables, above, below, placed, len(prices), in_title)
 
 
 # ============================================================ whole list ==
@@ -786,7 +847,11 @@ def assemble(pages: list[tuple[int, PageRead | Table | Frame | list]]) -> Conten
     seen_notes: set[str] = set()
 
     def note(text: str) -> None:
+        # only notes about how the prices are meant (tax included...) are kept; the
+        # supplier's own terms, dates and contact details are not Arizon's
         k = canon(text)
+        if not is_price_note(text) or is_supplier_note(text) or "\ufffd" in text or "لیست قیمت" in text:
+            return
         if k and k not in seen_notes and len(k) > 3:
             seen_notes.add(k)
             content.notes.append(text)
@@ -797,7 +862,6 @@ def assemble(pages: list[tuple[int, PageRead | Table | Frame | list]]) -> Conten
             seen_titles.add(k)
             content.titles.append(text)
 
-    pending_title = ""
     for page, got in pages:
         items: list = got if isinstance(got, list) else [got]
         for obj in items:
@@ -823,7 +887,6 @@ def assemble(pages: list[tuple[int, PageRead | Table | Frame | list]]) -> Conten
                         note(t)
                     else:
                         title(t)
-                        pending_title = pending_title or t
                 for t in raw.note_rows:
                     note(t)
                 table = _to_table(raw)
@@ -833,14 +896,30 @@ def assemble(pages: list[tuple[int, PageRead | Table | Frame | list]]) -> Conten
                     continue
                 if not any(table.headers) and raw.late_headers:
                     table.headers = list(raw.late_headers)
-                table.title = pending_title if not content.blocks else ""
-                pending_title = ""
+                # the list's own title lines name the supplier: the template has its own title
                 content.blocks.append(table)
     for b in content.blocks:
         if isinstance(b, Table):
             b.roles = column_roles(b)
             _drop_empty_columns(b)
+    content.currency = currency_of(content)
     return content
+
+
+_CURRENCIES = [("ریال", r"ریال|رىال|\bریا\b|rial"), ("تومان", r"تومان|toman"), ("یورو", r"یورو|euro|€"),
+               ("دلار", r"دلار|dollar|usd|\$"), ("درهم", r"درهم|aed|dirham")]
+
+
+def currency_of(content: Content) -> str:
+    """The currency named in the price headers (else the titles and notes)."""
+    def find(texts: list[str]) -> str:
+        joined = " ".join(texts).lower()
+        hits = [(name, len(re.findall(rx, joined))) for name, rx in _CURRENCIES]
+        name, n = max(hits, key=lambda h: h[1])
+        return name if n else ""
+    heads = [h for b in content.blocks if isinstance(b, Table)
+             for h, r in zip(b.headers, b.roles or [""] * len(b.headers)) if r == "price"]
+    return find(heads) or find(content.titles + content.notes)
 
 
 def _drop_empty_columns(t: Table) -> None:

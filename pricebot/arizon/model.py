@@ -10,9 +10,10 @@ class Cell:
     text: str = ""
     price_ids: list[str] = field(default_factory=list)   # prices shown in this cell (drawn with the new value)
     image: bytes | None = None                           # a product photo (PNG/JPEG)
+    snapshot: bytes | None = None    # the cell's text as a picture: its text layer is unreadable
 
     def empty(self) -> bool:
-        return not (self.text.strip() or self.price_ids or self.image)
+        return not (self.text.strip() or self.price_ids or self.image or self.snapshot)
 
 
 @dataclass

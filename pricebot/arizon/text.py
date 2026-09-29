@@ -23,7 +23,7 @@ _LAMS = "ل"
 # Characters an old non-Unicode Persian font turns into (the text layer then reads like "Z^fYÁ").
 _LEGACY = re.compile(r"[\u0080-¿À-ÿƒˆ˜‘-„†-•…‰‹›€™]")
 _MIRROR = str.maketrans("()[]{}<>«»", ")(][}{><»«")
-_SEPS = set(",./:-_+×*%٫٬'()#")
+_SEPS = set(",./:-_+×*%٫٬'#")          # signs that stick to a Latin word or number
 _PERSIAN = str.maketrans({"ي": "ی", "ى": "ی", "ك": "ک", "٠": "۰", "١": "۱", "٢": "۲", "٣": "۳", "٤": "۴",
                           "٥": "۵", "٦": "۶", "٧": "۷", "٨": "۸", "٩": "۹",
                           "‎": "", "‏": "", "‪": "", "‫": "", "‬": "",
@@ -183,6 +183,34 @@ def _is_latin(u: Unit) -> bool:
 
 
 def _line_text(line: list[Unit]) -> str:
+    """The text of one line. Some PDFs name a bracket by the shape drawn (so a
+    bracket in right-to-left text reads mirrored), others by its meaning: both
+    readings are made and the one whose brackets pair up is kept."""
+    plain = _line_text_as(line, False)
+    if not any(c in plain for c in "()[]{}«»"):
+        return plain
+    mirrored = _line_text_as(line, True)
+    return mirrored if _bracket_errors(mirrored) < _bracket_errors(plain) else plain
+
+
+def _bracket_errors(text: str) -> int:
+    errors = 0
+    depth = {"(": 0, "[": 0, "{": 0, "«": 0}
+    close = {")": "(", "]": "[", "}": "{", "»": "«"}
+    for c in text:
+        if c in depth:
+            depth[c] += 1
+        elif c in close:
+            if depth[close[c]]:
+                depth[close[c]] -= 1
+            else:
+                errors += 1
+    errors += sum(depth.values())
+    # «()» and «( word» at the end of a line are signs of a wrong reading too
+    return errors + text.count("()") + text.count("[]")
+
+
+def _line_text_as(line: list[Unit], mirror: bool) -> str:
     """Units of one text line -> reading order, from their positions alone.
 
     The content stream order cannot be trusted (Word writes «1/754/500» as
@@ -193,6 +221,10 @@ def _line_text(line: list[Unit]) -> str:
     if not solid:
         return ""
     size = max(u.g.size for u in solid)
+    # a visible gap is a word break too (titles often have no space glyph)
+    # (with real space glyphs on the line only a clearly wider gap counts: justified text
+    # stretches the gaps inside words too)
+    gap_min = (0.45 if any(u.space for u in line) else 0.22) * size
     vis = sorted(line, key=lambda u: (u.g.xc, u.g.seq))
     # visual string: glyph units plus the spaces seen on the page
     seq: list[Unit | None] = []          # None = a space
@@ -203,7 +235,7 @@ def _line_text(line: list[Unit]) -> str:
             continue
         if seq and seq[-1] is not None:
             p = seq[-1]
-            if u.x0 - p.x1 > 0.28 * size:
+            if u.x0 - p.x1 > gap_min:
                 seq.append(None)
         seq.append(u)
     while seq and seq[-1] is None:
@@ -219,7 +251,8 @@ def _line_text(line: list[Unit]) -> str:
     while i < len(rev):
         u = rev[i]
         if u is None or u.cls != "L":
-            out.append(" " if u is None else u.text)
+            # a bracket outside a left-to-right run is drawn mirrored in right-to-left text
+            out.append(" " if u is None else u.text.translate(_MIRROR) if mirror else u.text)
             i += 1
             continue
         j = i + 1
@@ -260,9 +293,7 @@ def clean(text: str) -> str:
     """Normal Persian letters and digits, tidy spaces and brackets."""
     t = unicodedata.normalize("NFKC", text or "").translate(_PERSIAN)
     t = re.sub(r"[ \t  -​]+", " ", t).strip()
-    # a mirrored pair «)…(» left by the PDF's glyph mapping
-    if re.search(r"\)[^()]*\(", t) and not re.search(r"\([^()]*\)", t):
-        t = t.translate(str.maketrans("()", ")("))
+    t = re.sub(r"([ؠ-ي٠-ۿ])\(", r"\1 (", t)       # Persian word(…) -> word (…)
     t = re.sub(r"\(\s+", "(", t)
     t = re.sub(r"\s+\)", ")", t)
     t = re.sub(r"\s+([،,:؛.])(\s|$)", r"\1\2", t)

@@ -34,8 +34,10 @@ log = logging.getLogger("bot")
 
 WORK_ROOT = config.WORK_DIR
 MAX_DOWNLOAD = 20 * 1024 * 1024   # Telegram bot API download limit
-FORMAT_NAMES = {"pdf": "PDF", "xlsx": "Excel", "image": "عکس"}
-FORMAT_ICONS = {"pdf": "📄", "xlsx": "📊", "image": "🖼"}
+FORMAT_NAMES = {"pdf": "PDF", "xlsx": "Excel", "image": "عکس", "arizon": "قالب آریزون (PDF)",
+                "arizon_image": "قالب آریزون (عکس)"}
+FORMAT_ICONS = {"pdf": "📄", "xlsx": "📊", "image": "🖼", "arizon": "✨", "arizon_image": "✨"}
+ARIZON_FORMATS = ("arizon", "arizon_image")
 
 HELP = (
     "سلام! 👋 من قیمت‌های لیست شما را تغییر می‌دهم و همان لیست را با همان ظاهر، فقط با قیمت‌های جدید تحویل می‌دهم.\n\n"
@@ -159,10 +161,17 @@ def _format_row(session: Session, key: str, exclude: set[str] = frozenset()) -> 
     return row
 
 
+def _arizon_row(key: str, exclude: set[str] = frozenset()) -> list[InlineKeyboardButton]:
+    """«receive it as the Arizon template»: the list rebuilt in Arizon's own design."""
+    labels = {"arizon": "✨ قالب آریزون (PDF)", "arizon_image": "✨ قالب آریزون (عکس)"}
+    return [InlineKeyboardButton(labels[f], callback_data=f"out:{f}:{key}") for f in ARIZON_FORMATS if f not in exclude]
+
+
 def _output_keyboard(session: Session, pending: Pending) -> InlineKeyboardMarkup:
     k = pending.key
     return InlineKeyboardMarkup([
         _format_row(session, k),
+        _arizon_row(k),
         [InlineKeyboardButton("📦 همه فرمت‌ها", callback_data=f"out:all:{k}")],
         [InlineKeyboardButton("رند ۱٬۰۰۰", callback_data=f"round:1000:{k}"),
          InlineKeyboardButton("رند ۱۰٬۰۰۰", callback_data=f"round:10000:{k}"),
@@ -172,8 +181,9 @@ def _output_keyboard(session: Session, pending: Pending) -> InlineKeyboardMarkup
 
 
 def _more_keyboard(session: Session, pending: Pending) -> InlineKeyboardMarkup | None:
-    row = _format_row(session, pending.key, exclude=pending.sent)
-    return InlineKeyboardMarkup([row]) if row else None
+    rows = [r for r in (_format_row(session, pending.key, exclude=pending.sent),
+                        _arizon_row(pending.key, exclude=pending.sent)) if r]
+    return InlineKeyboardMarkup(rows) if rows else None
 
 
 # ----------------------------------------------------------------- commands --
@@ -824,7 +834,9 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             _replace_pending(session, new)
             await _safe_edit(q.message, _summary_text(session, new), reply_markup=_output_keyboard(session, new))
         elif kind == "out":
-            formats = ["pdf", "xlsx", "image"] if parts[1] == "all" else [parts[1]]
+            formats = ["pdf", "xlsx", "image", "arizon"] if parts[1] == "all" else [parts[1]]
+            if any(f not in FORMAT_NAMES for f in formats):
+                return
             await _deliver(update, context, session, pending, formats)
 
 
