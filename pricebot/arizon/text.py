@@ -355,7 +355,9 @@ def lines_of(glyphs: list[Glyph]) -> list[tuple[str, float, float, bool]]:
 def rotated_lines(page: pymupdf.Page) -> list[tuple[pymupdf.Rect, str]]:
     """Vertical text (e.g. a group name written sideways in a merged cell)."""
     out = []
-    for block in page.get_text("dict").get("blocks", []):
+    # not clipped to the page: a name in a cell cut by the page break is still whole
+    flags = pymupdf.TEXT_PRESERVE_WHITESPACE | pymupdf.TEXT_PRESERVE_LIGATURES
+    for block in page.get_text("dict", flags=flags).get("blocks", []):
         for line in block.get("lines", []):
             if abs(line["dir"][1]) < 0.5:
                 continue

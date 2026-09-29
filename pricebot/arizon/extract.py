@@ -595,6 +595,16 @@ def logical_table(grid: Grid, rtl: bool, crop: Callable[[pymupdf.Rect], bytes | 
             if header_rows and any(kinds.get(k) in ("item", "banner") for k in range(header_rows[-1] + 1, r)):
                 header_rows = []
             header_rows.append(r)
+    # a header word wrapped onto a row of its own («تعداد در» / «کارتن»): a narrow single
+    # cell between the header and the first item continues the header, it is no group bar
+    ordered = sorted(kinds)
+    for prev, r in zip(ordered, ordered[1:]):
+        cells = [c for c in starts.get(r, []) if c.text and not in_group_col(c)]
+        if kinds[prev] == "header" and kinds[r] == "banner" and len(cells) == 1 \
+                and cells[0].rect.width < 0.4 * grid.bbox.width:
+            kinds[r] = "header"
+            if header_rows and prev == header_rows[-1]:
+                header_rows.append(r)
     late_rows = [] if header_rows else [r for r in sorted(kinds) if kinds[r] == "header"][:1]
     # above the header there are no items: logo, company name, date… (read as titles)
     above = {k for k in kinds if header_rows and k < header_rows[0] and kinds[k] == "item"}
@@ -645,8 +655,8 @@ def logical_table(grid: Grid, rtl: bool, crop: Callable[[pymupdf.Rect], bytes | 
         cells = [c for c in starts[r] if c.has() and not in_group_col(c)]
         if kind == "banner":
             text = " ".join(c.text for c in cells if c.text)
-            if not text:
-                continue
+            if not text or not (_ARABIC.search(text) or _LATIN.search(text)):
+                continue          # a lone number or dash in an empty row is no title
             if len(text) > 70 or is_note_line(text):
                 notes.append(text)
             elif r < first_item and (is_title_line(text) or r in above):
@@ -1146,6 +1156,7 @@ def assemble(pages: list[tuple[int, PageRead | Table | Frame | list]]) -> Conten
                 table.rows[:0] = [Row([Cell(g)], "group") for g in carry]
                 carry = list(raw.tail)
                 if last is not None and content.blocks[-1] is last and _continues(last, table):
+                    _join_cut_group(last, table)
                     last.rows.extend(table.rows)
                     last.headers = [x or y for x, y in zip(last.headers, table.headers)]
                     continue
@@ -1179,6 +1190,20 @@ def currency_of(content: Content) -> str:
     heads = [h for b in content.blocks if isinstance(b, Table)
              for h, r in zip(b.headers, b.roles or [""] * len(b.headers)) if r == "price"]
     return find(heads) or find(content.titles + content.notes)
+
+
+def _join_cut_group(last: Table, table: Table) -> None:
+    """A group cell cut by the page break shows its name (or part of it) again at
+    the top of the next page: that is the same group, not a new one."""
+    if not table.rows or table.rows[0].kind != "group":
+        return
+    prev = next((r for r in reversed(last.rows) if r.kind == "group"), None)
+    if prev is None:
+        return
+    a, b = canon(prev.cells[0].text), canon(table.rows[0].cells[0].text)
+    if a and b and b.endswith(a):
+        prev.cells[0] = table.rows[0].cells[0]      # the fuller name
+        del table.rows[0]
 
 
 def _order_by_row_number(t: Table) -> None:

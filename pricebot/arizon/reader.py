@@ -14,6 +14,7 @@ from __future__ import annotations
 import concurrent.futures
 import io
 import logging
+import re
 from pathlib import Path
 from typing import Callable
 
@@ -27,7 +28,7 @@ from .model import Cell, Content, Frame, Row
 
 log = logging.getLogger(__name__)
 
-MAX_UNREADABLE = 0.25     # share of gibberish text cells above which a page is not rebuilt from its text
+MAX_UNREADABLE = 0.5      # share of gibberish text cells above which a page is not rebuilt from its text
 FRAME_DPI = 150
 
 
@@ -61,6 +62,8 @@ def _ai_page(analysis: Analysis, page: int) -> list[extract.RawTable] | None:
         for r in t.rows:
             filled = [c for c in r if c.text.strip() or c.price_id]
             if len(filled) == 1 and not filled[0].price_id and n > 2:
+                if not re.search(r"[^\W\d_]", filled[0].text):
+                    continue
                 rows.append(Row([Cell(extract.clean(filled[0].text))], "group"))
                 continue
             cells = [Cell(extract.clean(c.text), [c.price_id] if c.price_id else []) for c in r]
