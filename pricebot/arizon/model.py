@@ -11,6 +11,7 @@ class Cell:
     price_ids: list[str] = field(default_factory=list)   # prices shown in this cell (drawn with the new value)
     image: bytes | None = None                           # a product photo (PNG/JPEG)
     snapshot: bytes | None = None    # the cell's text as a picture: its text layer is unreadable
+    snap_size: float = 0.0           # font size of the text in the snapshot (pt)
 
     def empty(self) -> bool:
         return not (self.text.strip() or self.price_ids or self.image or self.snapshot)

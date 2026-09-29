@@ -32,7 +32,12 @@ FRAME_DPI = 150
 
 
 def _good(r: extract.PageRead | None) -> bool:
-    return r is not None and r.total > 0 and r.placed + r.in_title == r.total and r.unreadable <= MAX_UNREADABLE
+    """The page's own text makes a complete, readable table. With Gemini at hand
+    even a few unreadable cells send the page to it; without, they are shown as
+    pictures of the original text."""
+    if r is None or r.total == 0 or r.placed + r.in_title != r.total:
+        return False
+    return r.unreadable == 0 or (not ai.enabled() and r.unreadable <= MAX_UNREADABLE)
 
 
 def _ai_page(analysis: Analysis, page: int) -> list[extract.RawTable] | None:
@@ -90,6 +95,7 @@ def read(analysis: Analysis) -> Content:
     got: dict[int, object] = {}
     how: dict[int, str] = {}
     need_ai: list[int] = []
+    second: dict[int, extract.PageRead] = {}    # usable (with pictures for unreadable cells) if Gemini fails
     for p in pages:
         info = analysis.pages[p] if p < len(analysis.pages) else None
         if analysis.kind == "pdf" and info is not None and info.mode in ("text", "mixed") \
@@ -102,6 +108,8 @@ def read(analysis: Analysis) -> Content:
             if _good(r):
                 got[p], how[p] = r, "pdf"
                 continue
+            if r is not None and r.total and r.placed + r.in_title == r.total and r.unreadable <= MAX_UNREADABLE:
+                second[p] = r
         need_ai.append(p)
     if need_ai and ai.enabled():
         with concurrent.futures.ThreadPoolExecutor(max_workers=config.AI_PARALLEL_PAGES) as pool:
@@ -109,7 +117,11 @@ def read(analysis: Analysis) -> Content:
                 if raws:
                     got[p], how[p] = raws, "ai"
     for p in pages:
-        if p not in got:
+        if p in got:
+            continue
+        if p in second:
+            got[p], how[p] = second[p], "pdf"
+        else:
             got[p], how[p] = Frame(b"", 0, 0, p), "frame"
     content = extract.assemble([(p, got[p]) for p in pages])
     content.how = how

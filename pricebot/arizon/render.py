@@ -168,6 +168,14 @@ def digits(text: str, role: str, rtl: bool) -> str:
     return _DIGIT_RUN.sub(one, text)
 
 
+_SHEET_ERROR = re.compile(r"#(N/A|REF!?|VALUE!?|DIV/0!?|NAME\??|NULL!?|NUM!?)", re.I)
+
+
+def _no_errors(text: str) -> str:
+    """Spreadsheet error values (#N/A…) left in the list are shown as a dash."""
+    return _SHEET_ERROR.sub("—", text)
+
+
 def money(value: Decimal, decimals: int, rtl: bool) -> str:
     q = value.quantize(Decimal(1).scaleb(-decimals))
     out = f"{q:,.{decimals}f}"
@@ -277,11 +285,17 @@ def _col_widths(t: Table, texts: list[list[str]], images: list[bool], avail: flo
     return [w * s for w in need] if s < 1 else need
 
 
+# a column whose header the list does not show (or shows unreadably)
+DEFAULT_HEADERS = {"row": "ردیف", "code": "کد کالا", "name": "شرح کالا", "price": "قیمت", "qty": "تعداد",
+                   "unit": "واحد", "image": "تصویر"}
+
+
 def prepare(t: Table, items: dict[str, PriceItem], values: dict[str, Decimal], avail: float,
             style: Style, images: dict[str, bytes]) -> Prepared:
     n = t.ncols
     roles = (t.roles + ["text"] * n)[:n]
-    headers = [digits(h, "", t.rtl) for h in (t.headers + [""] * n)[:n]]
+    headers = [digits(h, "", t.rtl) or (DEFAULT_HEADERS.get(r, "") if t.rtl else "")
+               for h, r in zip((t.headers + [""] * n)[:n], roles)]
     texts: list[list[str]] = [[] for _ in range(n)]
     has_img = [False] * n
     shown: list[list[str] | None] = []
@@ -292,7 +306,7 @@ def prepare(t: Table, items: dict[str, PriceItem], values: dict[str, Decimal], a
         vals = []
         for k in range(n):
             c = row.cells[k] if k < len(row.cells) else Cell()
-            v = price_text(c, items, values, t.rtl) if c.price_ids else digits(c.text, roles[k], t.rtl)
+            v = price_text(c, items, values, t.rtl) if c.price_ids else digits(_no_errors(c.text), roles[k], t.rtl)
             vals.append(v)
             texts[k].append(v)
             has_img[k] |= c.image is not None
@@ -348,7 +362,8 @@ def prepare(t: Table, items: dict[str, PriceItem], values: dict[str, Decimal], a
                 # text the PDF names wrongly: shown exactly as printed
                 name = f"im{len(images)}.jpg"
                 images[name] = c.snapshot
-                inner = f'<img src="{name}" style="height:{_snap_h(c.snapshot):.1f}pt"/>'
+                h = _snap_h(c.snapshot) * style.font_size / (c.snap_size or style.font_size)
+                inner = f'<img src="{name}" style="height:{min(h, 40.0):.1f}pt"/>'
             kl = f' class="{klass}"' if klass else ""
             tds.append(f'<td{kl}{d} style="width:{col.width - PAD:.1f}pt">{inner}</td>')
         zc = ' class="z"' if zebra % 2 else ""
@@ -358,10 +373,10 @@ def prepare(t: Table, items: dict[str, PriceItem], values: dict[str, Decimal], a
 
 
 def _snap_h(data: bytes) -> float:
-    """Height (pt) to show a text snapshot at: its printed size, slightly reduced."""
+    """Printed height (pt) of a text snapshot."""
     try:
         pix = pymupdf.Pixmap(data)
-        return min(40.0, pix.height * 72 / SNAP_DPI * 0.9)
+        return pix.height * 72 / SNAP_DPI
     except Exception:  # noqa: BLE001
         return 12.0
 

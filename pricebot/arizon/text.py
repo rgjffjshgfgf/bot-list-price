@@ -190,7 +190,26 @@ def _line_text(line: list[Unit]) -> str:
     if not any(c in plain for c in "()[]{}«»"):
         return plain
     mirrored = _line_text_as(line, True)
-    return mirrored if _bracket_errors(mirrored) < _bracket_errors(plain) else plain
+    best = mirrored if _bracket_errors(mirrored) < _bracket_errors(plain) else plain
+    return _pair_brackets(best) if _bracket_errors(best) else best
+
+
+def _pair_brackets(text: str) -> str:
+    """Brackets that still do not pair up: turn the fewest of them around."""
+    at = [k for k, c in enumerate(text) if c in "()"]
+    if not at or len(at) > 8:
+        return text
+    best, best_key = text, (_bracket_errors(text), 0)
+    for mask in range(1, 1 << len(at)):
+        chars = list(text)
+        for b, k in enumerate(at):
+            if mask >> b & 1:
+                chars[k] = chars[k].translate(_MIRROR)
+        cand = "".join(chars)
+        key = (_bracket_errors(cand), bin(mask).count("1"))
+        if key < best_key:
+            best, best_key = cand, key
+    return best
 
 
 def _bracket_errors(text: str) -> int:
@@ -320,4 +339,17 @@ def lines_of(glyphs: list[Glyph]) -> list[tuple[str, float, float, bool]]:
             size = max(u.g.size for u in solid)
             bold = sum(u.g.bold for u in solid) >= 0.5 * len(solid)
             out.append((t, min(u.g.y0 for u in solid), size, bold))
+    return out
+
+
+def rotated_lines(page: pymupdf.Page) -> list[tuple[pymupdf.Rect, str]]:
+    """Vertical text (e.g. a group name written sideways in a merged cell)."""
+    out = []
+    for block in page.get_text("dict").get("blocks", []):
+        for line in block.get("lines", []):
+            if abs(line["dir"][1]) < 0.5:
+                continue
+            text = clean("".join(s["text"] for s in line["spans"]))
+            if text and not is_legacy(text):
+                out.append((pymupdf.Rect(line["bbox"]), text))
     return out

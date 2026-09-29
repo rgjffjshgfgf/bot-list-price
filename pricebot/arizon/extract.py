@@ -22,7 +22,7 @@ import pymupdf
 
 from ..models import Analysis
 from .model import Cell, Content, Frame, Row, Table
-from .text import Glyph, clean, is_legacy, page_glyphs, text_of
+from .text import Glyph, clean, is_legacy, page_glyphs, rotated_lines, text_of
 
 log = logging.getLogger(__name__)
 if hasattr(pymupdf, "no_recommend_layout"):
@@ -54,11 +54,27 @@ def canon(s: str) -> str:
     return re.sub(r"[\s\W_]+", "", t)
 
 
+_WHOLE = {"فی", "#", "بها", "row", "part", "ref"}     # short words that only count on their own
+_PREFIX = {"کد"}                                    # ... or at the start of a word («کدکالا»)
+
+
 def _has_word(text: str, words: list[str]) -> bool:
     c = canon(text)
-    if not c:
+    if not c and "#" not in text:
         return False
-    return any((canon(w) and canon(w) in c) or (w == "#" and "#" in text) for w in words)
+    tokens = [canon(t) for t in re.split(r"[\s()\[\]/\-_:.,،]+", text) if t.strip()]
+    tokens += ["#"] if text.strip() == "#" else []
+    for w in words:
+        k = canon(w) or w
+        if w in _WHOLE:
+            hit = k in tokens
+        elif w in _PREFIX:
+            hit = any(t.startswith(k) for t in tokens)
+        else:
+            hit = k in c
+        if hit:
+            return True
+    return False
 
 
 # ============================================================ page pieces ==
@@ -114,6 +130,7 @@ def _phrases(glyphs: list[Glyph], edges: Callable[[float], list[float]]) -> list
         xs = edges((solid[0].y0 + solid[0].y1) / 2)
         cur: list[Glyph] = []
         right = -1e9
+        last: Glyph | None = None
         for g in ln:
             if g.c.isspace():
                 if cur:
@@ -123,12 +140,16 @@ def _phrases(glyphs: list[Glyph], edges: Callable[[float], list[float]]) -> list
                 gap = g.x0 - right
                 size = g.size
                 cut = gap > 0.9 * size or (gap > 0.3 * size and any(right - 0.5 <= x <= g.x0 + 0.5 for x in xs))
+                # text running over a column line into the next cell's number («…مشکی15»)
+                if not cut and last is not None and g.c.isdigit() != last.c.isdigit():
+                    cut = any(last.xc <= x <= g.xc for x in xs)
                 if cut:
                     out.append(Phrase(_strip(cur)))
                     cur = []
                     right = -1e9
             cur.append(g)
             right = max(right, g.x1)
+            last = g
         if cur and any(not c.c.isspace() for c in cur):
             out.append(Phrase(_strip(cur)))
     return out
@@ -180,6 +201,7 @@ class Grid:
     xs: list[float]
     ys: list[float]
     cells: list[GCell]
+    hlines: list[tuple[float, float, float]] = field(default_factory=list)   # (y, x0, x1) drawn on the page
 
     @property
     def ncols(self) -> int:
@@ -244,8 +266,16 @@ def _fill(grid: Grid, phrases: list[Phrase], prices: list[tuple[str, pymupdf.Rec
     outside = []
     for ph in phrases:
         r = ph.rect
-        p = pymupdf.Point((r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2)
+        # a phrase belongs to the cell where it starts: text too long for its cell runs
+        # over into the next one (Excel does that) but is still that cell's text
+        size = ph.glyphs[0].size
+        yc = (r.y0 + r.y1) / 2
+        rtl = any(_ARABIC.match(g.c) for g in ph.glyphs)
+        p = pymupdf.Point(r.x1 - 0.3 * size if rtl else r.x0 + 0.3 * size, yc)
         cell = next((c for c in grid.cells if c.rect.contains(p)), None)
+        if cell is None:
+            p = pymupdf.Point((r.x0 + r.x1) / 2, yc)
+            cell = next((c for c in grid.cells if c.rect.contains(p)), None)
         if cell is None:
             best = max(grid.cells, key=lambda c: (c.rect & r).get_area(), default=None)
             if best is not None and (best.rect & r).get_area() >= 0.5 * max(1e-6, r.get_area()):
@@ -369,14 +399,79 @@ class RawTable:
     late_headers: list[str] = field(default_factory=list)   # a header met only further down
     cells: int = 0              # text cells of the items
     suspect: int = 0            # ... of them with an unreadable text layer (headers count too)
+    tail: list[str] = field(default_factory=list)   # group bars under the last row (belong to what follows)
 
 
 def _looks_header(cells: list[GCell]) -> bool:
     texts = [c.text for c in cells if c.text]
     if len(texts) < 2 or any(c.prices for c in cells):
         return False
+    # a header names columns: no product codes, no error values from a spreadsheet
+    if any(re.search(r"[\d۰-۹٠-٩]{4,}|#N/A|#REF|#VALUE", t) for t in texts):
+        return False
     hits = sum(1 for t in texts if any(_has_word(t, w) for w in _ROLE_WORDS.values()))
     return hits >= max(1, len(texts) // 3)
+
+
+def _sparse_group_columns(grid: Grid, item_rows: set[int], known: set[int]) -> dict[int, dict[int, str]]:
+    """Group names in a column the table finder cut into one cell per row: the
+    name sits in one cell of the group, and only the lines drawn across the
+    column show where each group starts. Returns column -> {first row: name}."""
+    out: dict[int, dict[int, str]] = {}
+    if not grid.hlines or not item_rows:
+        return out
+    lo, hi = min(item_rows), max(item_rows)
+    for c in range(grid.ncols):
+        if c in known:
+            continue
+        cells = [x for x in grid.cells if x.c0 == c and x.c1 == c + 1 and lo <= x.r0 <= hi]
+        named = [x for x in cells if x.text]
+        if not named or any(x.prices for x in cells) or len(named) > 0.3 * len(item_rows) \
+                or any(len(x.text) > 30 for x in named):
+            continue
+        x0, x1 = grid.xs[c], grid.xs[c + 1]
+        width = x1 - x0
+
+        def ruled(y: float) -> bool:
+            return any(abs(ly - y) <= 1.5 and min(lx1, x1) - max(lx0, x0) >= 0.8 * width
+                       for ly, lx0, lx1 in grid.hlines)
+        # group boundaries: grid rows whose top line crosses this column
+        bounds = [r for r in range(lo, hi + 1) if ruled(grid.ys[r])]
+        if not bounds or bounds[0] != lo:
+            bounds = [lo] + bounds
+        if len(bounds) >= 0.8 * (hi - lo + 1):
+            continue          # every row ruled: an ordinary column that is mostly empty
+        spans = list(zip(bounds, bounds[1:] + [hi + 1]))
+        starts: dict[int, str] = {}
+        for a, b in spans:
+            names = [x.text for x in sorted(named, key=lambda x: x.r0) if a <= x.r0 < b]
+            if names:
+                starts[a] = " ".join(names)
+        if starts:
+            out[c] = starts
+    return out
+
+
+def _hlines(page: pymupdf.Page) -> list[tuple[float, float, float]]:
+    """Horizontal lines drawn on the page (strokes, hairline rectangles, rectangle edges)."""
+    out = []
+    try:
+        drawings = page.get_drawings()
+    except Exception:  # noqa: BLE001
+        return out
+    for d in drawings:
+        for item in d.get("items", []):
+            if item[0] == "l":
+                a, b = item[1], item[2]
+                if abs(a.y - b.y) < 1:
+                    out.append(((a.y + b.y) / 2, min(a.x, b.x), max(a.x, b.x)))
+            elif item[0] == "re":
+                r = item[1]
+                if r.height < 2.5:
+                    out.append(((r.y0 + r.y1) / 2, r.x0, r.x1))
+                elif d.get("color") is not None:
+                    out += [(r.y0, r.x0, r.x1), (r.y1, r.x0, r.x1)]
+    return out
 
 
 def _group_columns(grid: Grid, item_rows: set[int]) -> set[int]:
@@ -387,7 +482,11 @@ def _group_columns(grid: Grid, item_rows: set[int]) -> set[int]:
         cells = [x for x in grid.cells if x.c0 == c and x.c1 == c + 1]
         tall = [x for x in cells if x.r1 - x.r0 >= 2 and x.text and not x.prices]
         covered = sum(1 for r in item_rows if any(x.r0 <= r < x.r1 for x in tall))
-        if tall and item_rows and covered >= 0.5 * len(item_rows) and not any(x.prices for x in cells):
+        # a group cell stands beside several items; a cell merely drawn over two grid
+        # rows (lines of other columns not aligned) stands beside one
+        per_cell = covered / max(1, len(tall))
+        if tall and item_rows and covered >= 0.5 * len(item_rows) and per_cell >= 1.8 \
+                and not any(x.prices for x in cells):
             out.add(c)
     return out
 
@@ -440,11 +539,16 @@ def logical_table(grid: Grid, rtl: bool, crop: Callable[[pymupdf.Rect], bytes | 
     if not price_rows:
         return None
     group_cols = _group_columns(grid, price_rows)
+    sparse = _sparse_group_columns(grid, price_rows, group_cols)
+    group_cols |= set(sparse)
 
     def in_group_col(c: GCell) -> bool:
         return c.c0 in group_cols and c.c1 == c.c0 + 1
 
-    group_text: dict[int, str] = {c.r0: c.text for c in grid.cells if in_group_col(c) and c.text}
+    group_text: dict[int, str] = {c.r0: c.text for c in grid.cells if in_group_col(c) and c.text
+                                  and c.c0 not in sparse}
+    for starts_of in sparse.values():
+        group_text.update(starts_of)
     kinds: dict[int, str] = {}
     for r in sorted(starts):
         cells = [c for c in starts[r] if c.has() and not in_group_col(c)]
@@ -467,6 +571,10 @@ def logical_table(grid: Grid, rtl: bool, crop: Callable[[pymupdf.Rect], bytes | 
                 header_rows = []
             header_rows.append(r)
     late_rows = [] if header_rows else [r for r in sorted(kinds) if kinds[r] == "header"][:1]
+    # above the header there are no items: logo, company name, date… (read as titles)
+    above = {k for k in kinds if header_rows and k < header_rows[0] and kinds[k] == "item"}
+    for r in above:
+        kinds[r] = "banner"
 
     item_cells = [c for c in grid.cells if kinds.get(c.r0) == "item" and c.has() and not in_group_col(c)]
     cols = sorted({c.c0 for c in item_cells})
@@ -502,7 +610,7 @@ def logical_table(grid: Grid, rtl: bool, crop: Callable[[pymupdf.Rect], bytes | 
     titles: list[str] = []
     notes: list[str] = []
     for r in range(grid.nrows):
-        if r in group_text:
+        if r in group_text and r >= first_item - 1 and kinds.get(r) != "header":
             rows.append(Row([Cell(group_text[r])], "group"))
         kind = kinds.get(r)
         if kind is None or kind == "header":
@@ -514,7 +622,7 @@ def logical_table(grid: Grid, rtl: bool, crop: Callable[[pymupdf.Rect], bytes | 
                 continue
             if len(text) > 70 or is_note_line(text):
                 notes.append(text)
-            elif r < first_item and is_title_line(text):
+            elif r < first_item and (is_title_line(text) or r in above):
                 titles.append(text)
             else:
                 rows.append(Row([Cell(text)], "group"))
@@ -526,23 +634,26 @@ def logical_table(grid: Grid, rtl: bool, crop: Callable[[pymupdf.Rect], bytes | 
                 continue
             k0 = got[0]
             img = crop(cell.image) if cell.image is not None else None
-            snap = None
+            snap, size = None, 0.0
             if cell.suspect and not cell.prices:
                 snap = crop(_ink_box(cell))
+                size = statistics.median(g.size for g in cell.glyphs)
             prev = line[k0]
             line[k0] = Cell((prev.text + " " + cell.text).strip(), prev.price_ids + cell.prices, prev.image or img,
-                            prev.snapshot or snap)
+                            prev.snapshot or snap, prev.snap_size or size)
         if not all(c.empty() for c in line):
             rows.append(Row(line, "item"))
-    # group rows with nothing after them are notes, not groups
+    # group rows with nothing after them head the next table (or were notes)
+    tail: list[str] = []
     while rows and rows[-1].kind == "group":
-        notes.insert(0, rows.pop().cells[0].text)
+        tail.insert(0, rows.pop().cells[0].text)
     headers, rows, late = _merge_split_columns(headers, rows, late)
+    headers, rows, late = _drop_unused_columns(headers, rows, late)
     used = [c for c in grid.cells if c.text and not c.prices and (kinds.get(c.r0) in ("item", "banner")
                                                                   or c.r0 in header_rows)]
     bad = sum(1 for c in used if c.suspect) + sum(3 for r in header_rows for c in starts[r] if c.suspect)
     return RawTable(headers, rows, rtl, titles, notes, grid.bbox.y0, grid.bbox.y1, grid.bbox.x0, late,
-                    len(used), bad)
+                    len(used), bad, tail)
 
 
 def _ink_box(cell: GCell) -> pymupdf.Rect:
@@ -550,6 +661,19 @@ def _ink_box(cell: GCell) -> pymupdf.Rect:
     r = pymupdf.Rect(min(g.x0 for g in solid), min(g.y0 for g in solid),
                      max(g.x1 for g in solid), max(g.y1 for g in solid))
     return (r + (-1.5, -1, 1.5, 1)) & cell.rect
+
+
+def _drop_unused_columns(headers: list[str], rows: list[Row],
+                         late: list[str]) -> tuple[list[str], list[Row], list[str]]:
+    """A column no item uses (a stray line split a header cell in two)."""
+    items = [r for r in rows if r.kind == "item"]
+    keep = [k for k in range(len(headers)) if any(k < len(r.cells) and not r.cells[k].empty() for r in items)]
+    if len(keep) == len(headers) or not keep:
+        return headers, rows, late
+    for r in items:
+        r.cells = [r.cells[k] for k in keep if k < len(r.cells)]
+    late = [late[k] for k in keep if k < len(late)] if late else late
+    return [headers[k] for k in keep], rows, late
 
 
 def _merge_split_columns(headers: list[str], rows: list[Row],
@@ -589,7 +713,11 @@ def split_blocks(t: RawTable) -> RawTable:
             break
     else:
         return t
-    blocks = n // p
+    return _split(t, p)
+
+
+def _split(t: RawTable, p: int) -> RawTable:
+    blocks = len(t.headers) // p
     rows: list[Row] = []
     segment: list[Row] = []
 
@@ -609,7 +737,7 @@ def split_blocks(t: RawTable) -> RawTable:
             segment.append(row)
     flush()
     return RawTable(t.headers[:p], rows, t.rtl, t.title_rows, t.note_rows, t.top, t.bottom, t.x0,
-                    t.late_headers[:p], t.cells, t.suspect)
+                    t.late_headers[:p], t.cells, t.suspect, t.tail)
 
 
 # ================================================================ roles ==
@@ -637,7 +765,7 @@ def column_roles(t: Table) -> list[str]:
     head = t.headers + [""] * (n - len(t.headers))
     for k, s in enumerate(stats):
         h = head[k]
-        if s["n"] and s["price"] >= 0.4 * s["n"]:
+        if s["n"] and (s["price"] >= 0.4 * s["n"] or (s["price"] and _has_word(h, _ROLE_WORDS["price"]))):
             roles[k] = "price"
         elif s["n"] and s["image"] >= 0.5 * s["n"]:
             roles[k] = "image"
@@ -803,8 +931,16 @@ def _read_grids(page: pymupdf.Page, glyphs: list[Glyph], grids: list[Grid], pric
 
     phrases = _phrases(glyphs, edges)
     outside = phrases
+    rotated = rotated_lines(page)
+    hlines = _hlines(page)
     for g in grids:
+        g.hlines = hlines
         outside = _fill(g, outside, prices, images)
+        for box, text in rotated:
+            centre = pymupdf.Point((box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2)
+            cell = next((c for c in g.cells if c.rect.contains(centre) and not c.text and not c.prices), None)
+            if cell is not None:
+                cell.text = text
     tables = []
     for g in grids:
         t = logical_table(g, rtl, crop)
@@ -836,8 +972,8 @@ def _continues(a: Table, b: Table) -> bool:
     """b goes on where a stopped: the same header, or no header and as many columns."""
     if len(a.headers) != len(b.headers):
         return False
-    kb = [canon(h) for h in b.headers]
-    return not any(kb) or [canon(h) for h in a.headers] == kb
+    # (a header cell the page lost does not make a new table)
+    return all(x == y or not x or not y for x, y in zip((canon(h) for h in a.headers), (canon(h) for h in b.headers)))
 
 
 def assemble(pages: list[tuple[int, PageRead | Table | Frame | list]]) -> Content:
@@ -862,6 +998,7 @@ def assemble(pages: list[tuple[int, PageRead | Table | Frame | list]]) -> Conten
             seen_titles.add(k)
             content.titles.append(text)
 
+    carry: list[str] = []
     for page, got in pages:
         items: list = got if isinstance(got, list) else [got]
         for obj in items:
@@ -889,10 +1026,19 @@ def assemble(pages: list[tuple[int, PageRead | Table | Frame | list]]) -> Conten
                         title(t)
                 for t in raw.note_rows:
                     note(t)
-                table = _to_table(raw)
                 last = next((b for b in reversed(content.blocks) if isinstance(b, Table)), None)
+                # a page without header, as wide as two or three tables of the previous page:
+                # the same list printed side by side
+                n = len(raw.headers)
+                if last is not None and not any(canon(h) for h in raw.headers + raw.late_headers) \
+                        and 2 <= len(last.headers) < n and n % len(last.headers) == 0:
+                    raw = _split(raw, len(last.headers))
+                table = _to_table(raw)
+                table.rows[:0] = [Row([Cell(g)], "group") for g in carry]
+                carry = list(raw.tail)
                 if last is not None and content.blocks[-1] is last and _continues(last, table):
                     last.rows.extend(table.rows)
+                    last.headers = [x or y for x, y in zip(last.headers, table.headers)]
                     continue
                 if not any(table.headers) and raw.late_headers:
                     table.headers = list(raw.late_headers)
@@ -902,6 +1048,7 @@ def assemble(pages: list[tuple[int, PageRead | Table | Frame | list]]) -> Conten
         if isinstance(b, Table):
             b.roles = column_roles(b)
             _drop_empty_columns(b)
+            _order_by_row_number(b)
     content.currency = currency_of(content)
     return content
 
@@ -920,6 +1067,34 @@ def currency_of(content: Content) -> str:
     heads = [h for b in content.blocks if isinstance(b, Table)
              for h, r in zip(b.headers, b.roles or [""] * len(b.headers)) if r == "price"]
     return find(heads) or find(content.titles + content.notes)
+
+
+def _order_by_row_number(t: Table) -> None:
+    """Rows numbered 1, 2, 3… but read out of order (blocks side by side, pages
+    split in columns) are put back in the order of their numbers. Group bars
+    move with the row that follows them."""
+    if "row" not in t.roles:
+        return
+    k = t.roles.index("row")
+    units: list[list[Row]] = []
+    pending: list[Row] = []
+    nums = []
+    for r in t.rows:
+        if r.kind != "item":
+            pending.append(r)
+            continue
+        d = re.sub(r"\D", "", unicodedata.normalize("NFKC", r.cells[k].text if k < len(r.cells) else ""))
+        d = d.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
+        if not d or len(d) > 5:
+            return
+        nums.append(int(d))
+        units.append(pending + [r])
+        pending = []
+    # (a few numbers used twice by mistake do not matter: the sort keeps their order)
+    if len(nums) < 3 or len(set(nums)) < 0.95 * len(nums) or nums == sorted(nums):
+        return
+    order = sorted(range(len(units)), key=lambda i: nums[i])
+    t.rows = [r for i in order for r in units[i]] + pending
 
 
 def _drop_empty_columns(t: Table) -> None:
