@@ -11,6 +11,7 @@ rebuilt is kept as a picture, so nothing is ever lost.
 """
 from __future__ import annotations
 
+import bisect
 import io
 import logging
 import re
@@ -30,6 +31,7 @@ if hasattr(pymupdf, "no_recommend_layout"):
     pymupdf.no_recommend_layout()
 
 FrameSource = Callable[[int], Frame | None]
+CROP_DPI = 170          # product photos and text pictures cut out of a page (render.SNAP_DPI matches)
 
 _ARABIC = re.compile("[ؠ-يٮ-ۓۺ-ۿ]")
 _LATIN = re.compile("[A-Za-z]")
@@ -203,6 +205,25 @@ class Grid:
     ys: list[float]
     cells: list[GCell]
     hlines: list[tuple[float, float, float]] = field(default_factory=list)   # (y, x0, x1) drawn on the page
+    _at: dict[tuple[int, int], GCell] | None = None
+
+    def cell_at(self, x: float, y: float) -> GCell | None:
+        """The cell containing a point (grid index lookup, not a scan)."""
+        if not (self.xs[0] - 0.5 <= x <= self.xs[-1] + 0.5 and self.ys[0] - 0.5 <= y <= self.ys[-1] + 0.5):
+            return None
+        if self._at is None:
+            self._at = {}
+            for c in self.cells:
+                for r in range(c.r0, c.r1):
+                    for k in range(c.c0, c.c1):
+                        self._at.setdefault((r, k), c)
+        k = max(0, min(self.ncols - 1, bisect.bisect_right(self.xs, x) - 1))
+        r = max(0, min(self.nrows - 1, bisect.bisect_right(self.ys, y) - 1))
+        cell = self._at.get((r, k))
+        if cell is not None and cell.rect.x0 - 0.5 <= x <= cell.rect.x1 + 0.5 \
+                and cell.rect.y0 - 0.5 <= y <= cell.rect.y1 + 0.5:
+            return cell
+        return next((c for c in self.cells if c.rect.x0 <= x <= c.rect.x1 and c.rect.y0 <= y <= c.rect.y1), None)
 
     @property
     def ncols(self) -> int:
@@ -272,12 +293,10 @@ def _fill(grid: Grid, phrases: list[Phrase], prices: list[tuple[str, pymupdf.Rec
         size = ph.glyphs[0].size
         yc = (r.y0 + r.y1) / 2
         rtl = any(_ARABIC.match(g.c) for g in ph.glyphs)
-        p = pymupdf.Point(r.x1 - 0.3 * size if rtl else r.x0 + 0.3 * size, yc)
-        cell = next((c for c in grid.cells if c.rect.contains(p)), None)
+        cell = grid.cell_at(r.x1 - 0.3 * size if rtl else r.x0 + 0.3 * size, yc)
         if cell is None:
-            p = pymupdf.Point((r.x0 + r.x1) / 2, yc)
-            cell = next((c for c in grid.cells if c.rect.contains(p)), None)
-        if cell is None:
+            cell = grid.cell_at((r.x0 + r.x1) / 2, yc)
+        if cell is None and grid.bbox.intersects(r):
             best = max(grid.cells, key=lambda c: (c.rect & r).get_area(), default=None)
             if best is not None and (best.rect & r).get_area() >= 0.5 * max(1e-6, r.get_area()):
                 cell = best
@@ -286,17 +305,15 @@ def _fill(grid: Grid, phrases: list[Phrase], prices: list[tuple[str, pymupdf.Rec
         else:
             cell.glyphs.extend(ph.glyphs)
     for pid, box in prices:
-        p = pymupdf.Point((box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2)
-        cell = next((c for c in grid.cells if c.rect.contains(p)), None)
+        cell = grid.cell_at((box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2)
         if cell is not None:
             cell.prices.append(pid)
     for im in images:
-        p = pymupdf.Point((im.x0 + im.x1) / 2, (im.y0 + im.y1) / 2)
-        cell = next((c for c in grid.cells if c.rect.contains(p)), None)
+        cell = grid.cell_at((im.x0 + im.x1) / 2, (im.y0 + im.y1) / 2)
         # a picture in a cell without text is a product photo; behind text it is shading
         if cell is not None and not cell.glyphs and im.get_area() <= 1.3 * cell.rect.get_area() \
                 and cell.image is None:
-            cell.image = im & cell.rect
+            cell.image = (im & cell.rect) + (1.5, 1.5, -1.5, -1.5)    # not the cell's border lines
     for c in grid.cells:
         c.text = text_of(c.glyphs)
         solid = [g for g in c.glyphs if not g.c.isspace()]
@@ -905,20 +922,43 @@ def read_pdf_page(analysis: Analysis, page_no: int) -> PageRead | None:
         images = [r for r in images if not r.is_empty and r.get_area() < 0.2 * page.rect.get_area()
                   and r.width > 8 and r.height > 8 and not _flat(page, r)]
 
+        whole: list = []      # the page drawn once, cut up for every picture
+
         def crop(r: pymupdf.Rect, text: bool = False) -> bytes | None:
-            """A picture of part of the page; for text, on a clean white background."""
+            """A picture of part of the page (text: the ink alone, see _ink_only)."""
+            import numpy as np
+            from PIL import Image
+
             try:
-                pix = page.get_pixmap(clip=r, dpi=170, alpha=False)
-                if not text:
-                    return pix.tobytes("jpeg", jpg_quality=88)
-                return _ink_only(pix)
+                if not whole:
+                    pix = page.get_pixmap(dpi=CROP_DPI, alpha=False)
+                    whole.append(np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.height, pix.width, pix.n))
+                img = whole[0]
+                z = CROP_DPI / 72
+                box = pymupdf.Rect(r) * page.rotation_matrix * pymupdf.Matrix(z, z)
+                x0, y0 = max(0, int(box.x0)), max(0, int(box.y0))
+                x1, y1 = min(img.shape[1], int(box.x1 + 1)), min(img.shape[0], int(box.y1 + 1))
+                if x1 - x0 < 2 or y1 - y0 < 2:
+                    return None
+                part = np.ascontiguousarray(img[y0:y1, x0:x1, :3])
+                if text:
+                    return _ink_only(part)
+                buf = io.BytesIO()
+                Image.fromarray(part).save(buf, "JPEG", quality=88)
+                return buf.getvalue()
             except Exception:  # noqa: BLE001
                 return None
 
         best: PageRead | None = None
+        best_grids: list[Grid] = []
+        # a list drawn without any ruling lines on its last pages has none on this one either
+        no_lines = analysis.cache.get("arizon_no_lines", 0)
         for attempt in ("lines", "text"):
             if attempt == "lines":
+                if no_lines >= 2:
+                    continue
                 grids = _find_grids(page)
+                analysis.cache["arizon_no_lines"] = 0 if grids else no_lines + 1
             else:
                 near = max(best_grids, key=lambda g: g.bbox.get_area()).bbox if best_grids else None
                 g = _text_grid(page, glyphs, prices, near)
@@ -935,18 +975,18 @@ def read_pdf_page(analysis: Analysis, page_no: int) -> PageRead | None:
         doc.close()
 
 
-def _ink_only(pix: pymupdf.Pixmap) -> bytes:
+def _ink_only(rgb) -> bytes:
     """Text on a shaded cell -> the text alone, on a transparent background."""
     import numpy as np
     from PIL import Image
 
-    rgb = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.height, pix.width, pix.n)[..., :3]
     lum = rgb.astype(np.float32) @ np.array([0.299, 0.587, 0.114], dtype=np.float32)
     bg = np.percentile(lum, 70)                     # the cell's own background
-    k = np.clip((bg - lum) / max(1.0, bg - 40.0), 0.0, 1.0)
-    out = np.dstack([rgb, (255 * k).astype(np.uint8)])
+    k = np.clip((bg - lum) / max(1.0, bg - 40.0), 0.0, 1.0) ** 0.6     # full strength for the strokes
+    ink = np.minimum(rgb, 40)                                          # the same near-black as the rest
+    out = np.dstack([np.where(lum[..., None] < bg - 60, ink, rgb), (255 * k).astype(np.uint8)])
     buf = io.BytesIO()
-    Image.fromarray(out, "RGBA").save(buf, "PNG", optimize=True)
+    Image.fromarray(out, "RGBA").save(buf, "PNG", compress_level=1)
     return buf.getvalue()
 
 
