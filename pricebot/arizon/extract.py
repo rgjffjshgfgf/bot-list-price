@@ -883,7 +883,7 @@ class PageRead:
     below: list[str]          # text lines under the tables (notes)
     placed: int               # prices that ended up in a table cell
     total: int
-    in_title: int = 0         # "prices" in the title lines above the tables (not shown)
+    in_title: int = 0         # "prices" in the title above the tables or the page footer (not shown)
 
     @property
     def unreadable(self) -> float:
@@ -925,8 +925,6 @@ def read_pdf_page(analysis: Analysis, page_no: int) -> PageRead | None:
         if not glyphs or is_legacy("".join(g.c for g in glyphs)):
             return None
         prices = _prices_on_page(analysis, page_no)
-        if not prices:
-            return None
         rtl = _page_rtl(glyphs)
         images = [pymupdf.Rect(i["bbox"]) & page.rect for i in page.get_image_info()]
         images = [r for r in images if not r.is_empty and r.get_area() < 0.2 * page.rect.get_area()
@@ -967,7 +965,9 @@ def read_pdf_page(analysis: Analysis, page_no: int) -> PageRead | None:
             if attempt == "lines":
                 if no_lines >= 2:
                     continue
-                grids = _find_grids(page)
+                # an Arizon list sent back in: its shaded cells are no lines
+                own = (doc.metadata or {}).get("creator") == "Arizon"
+                grids = _find_grids(page, strategy="lines_strict") if own else _find_grids(page)
                 analysis.cache["arizon_no_lines"] = 0 if grids else no_lines + 1
             else:
                 near = max(best_grids, key=lambda g: g.bbox.get_area()).bbox if best_grids else None
@@ -993,6 +993,10 @@ def _ink_only(rgb) -> bytes:
     lum = rgb.astype(np.float32) @ np.array([0.299, 0.587, 0.114], dtype=np.float32)
     bg = np.percentile(lum, 70)                     # the cell's own background
     k = np.clip((bg - lum) / max(1.0, bg - 40.0), 0.0, 1.0) ** 0.6     # full strength for the strokes
+    # the cell's border lines caught at the edges are not text
+    dark = k > 0.5
+    k[dark.mean(axis=1) > 0.6, :] = 0
+    k[:, dark.mean(axis=0) > 0.6] = 0
     ink = np.minimum(rgb, 40)                                          # the same near-black as the rest
     out = np.dstack([np.where(lum[..., None] < bg - 60, ink, rgb), (255 * k).astype(np.uint8)])
     buf = io.BytesIO()
@@ -1060,7 +1064,9 @@ def _read_grids(page: pymupdf.Page, glyphs: list[Glyph], grids: list[Grid], pric
             tables.append(split_blocks(t))
     priced = [t for t in tables if not t.priceless]
     if not priced:
-        return None
+        # a page without any price: only rows continuing the table of the page before count
+        # (assemble keeps a price-less table only as such a continuation)
+        return PageRead(tables, [], [], 0, 0) if tables and not prices else None
     # a table without prices counts only above the first priced one (a table's last
     # rows carried over to the top of this page)
     first = min(t.top for t in priced)
@@ -1070,8 +1076,11 @@ def _read_grids(page: pymupdf.Page, glyphs: list[Glyph], grids: list[Grid], pric
     top = min(t.top for t in priced)
     # a number in the list's own title (e.g. the year) that was taken for a price: the
     # template does not show that title, so nothing wrong can appear
-    in_title = sum(1 for pid, box in prices if pid not in placed_ids and box.y1 <= top + 1)
     bottom = max(t.bottom for t in priced)
+    # ... or in the page footer (a page number)
+    foot = 0.92 * page.rect.height
+    in_title = sum(1 for pid, box in prices if pid not in placed_ids
+                   and (box.y1 <= top + 1 or (box.y0 >= bottom - 1 and box.y0 >= foot)))
     lines = _outside_lines(outside)
     above = [t for t, y in lines if y < top]
     below = [t for t, y in lines if y >= bottom - 2]

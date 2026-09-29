@@ -9,9 +9,11 @@ pages here, so every page repeats the header and no row is ever cut.
 from __future__ import annotations
 
 import html
+import logging
 import io
 import json
 import re
+import unicodedata
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
@@ -24,6 +26,7 @@ import pymupdf
 from ..models import PriceItem
 from .model import Cell, Content, Frame, Row, Table
 
+log = logging.getLogger(__name__)
 ASSETS = Path(__file__).resolve().parent / "assets"
 TEHRAN = ZoneInfo("Asia/Tehran")
 
@@ -52,7 +55,7 @@ _CSS = """
 @font-face {font-family: vzb; src: url(Vazirmatn-Black.ttf);}
 p, div, table, body {margin: 0; padding: 0;}
 body {font-family: vz; font-size: %(fs)spt; color: #1A1A1A;}
-table {border-collapse: collapse;}
+table {border-collapse: collapse; border: 0.8pt solid #C8C8C8;}
 td {border: 0.5pt solid #D5D5D5; padding: %(pv)spt 3.5pt; text-align: center; vertical-align: middle;}
 td.s {text-align: left;}
 tr.h td {background-color: #0B0B0B; color: #FFF112; font-weight: bold; border: 0.5pt solid #3A3A3A;
@@ -654,6 +657,10 @@ def render(content: Content, items: dict[str, PriceItem], values: dict[str, Deci
     for k, (page, spec) in enumerate(zip(doc, pages)):
         _decorate(page, spec, W, H, pills if k == 0 else [])
     doc.set_metadata({"title": meta.title, "creator": "Arizon", "producer": "Arizon"})
+    try:
+        _fix_text_layer(doc)
+    except Exception:  # noqa: BLE001 - fontTools missing: the pages look the same either way
+        log.warning("arizon: text layer not fixed", exc_info=True)
     doc.save(out_pdf, garbage=3, deflate=True)
     n = doc.page_count
     doc.close()
@@ -706,3 +713,95 @@ def _decorate(page: pymupdf.Page, spec: PageSpec, W: float, H: float, pills: lis
         rect(pymupdf.Rect(b.x1 - 3, b.y0, b.x1, b.y1), red)
     for op in reversed(ops):
         op()
+
+
+# ============================================================= text layer ==
+# MuPDF names the contextual forms of Persian letters (reached through the
+# font's substitution tables, not its character map) with made-up characters,
+# so the PDF looked right but copied / searched as «Уژو» for «پژو». Each
+# embedded Vazirmatn gets a character map rebuilt from the font itself.
+
+_FONT_FILES = {"Vazirmatn Regular": "Vazirmatn-Regular.ttf", "Vazirmatn Medium": "Vazirmatn-Medium.ttf",
+               "Vazirmatn Bold": "Vazirmatn-Bold.ttf", "Vazirmatn Black": "Vazirmatn-Black.ttf"}
+
+
+def _is_presentation(ch: str) -> bool:
+    return "\ufb50" <= ch <= "\ufdff" or "\ufe70" <= ch <= "\ufeff"
+
+
+@lru_cache(maxsize=4)
+def _glyph_text(file: str) -> dict[int, str]:
+    """Glyph id -> the text it stands for, from the font's cmap and GSUB."""
+    from fontTools.ttLib import TTFont
+
+    font = TTFont(str(ASSETS / file))
+    order = font.getGlyphOrder()
+    gid = {name: k for k, name in enumerate(order)}
+    text: dict[str, str] = {}
+    for code, name in sorted(font.getBestCmap().items()):
+        ch = chr(code)
+        old = text.get(name)
+        # a glyph reached from a letter and from its presentation form stands for the letter
+        if old is None or (_is_presentation(old) and not _is_presentation(ch)):
+            text[name] = ch
+    lookups = font["GSUB"].table.LookupList.Lookup if "GSUB" in font else []
+    for _ in range(4):                   # forms of forms (init -> calt alternate...)
+        before = len(text)
+        for lookup in lookups:
+            for sub in lookup.SubTable:
+                kind = lookup.LookupType
+                if kind == 7:
+                    kind, sub = sub.ExtensionLookupType, sub.ExtSubTable
+                if kind == 1:
+                    for a, b in sub.mapping.items():
+                        if a in text and b not in text:
+                            text[b] = text[a]
+                elif kind == 3:
+                    for a, alts in sub.alternates.items():
+                        for b in alts:
+                            if a in text and b not in text:
+                                text[b] = text[a]
+                elif kind == 4:
+                    for first, ligs in sub.ligatures.items():
+                        for lig in ligs:
+                            parts = [first] + list(lig.Component)
+                            if lig.LigGlyph not in text and all(x in text for x in parts):
+                                text[lig.LigGlyph] = "".join(text[x] for x in parts)
+        if len(text) == before:
+            break
+    out = {}
+    for name, t in text.items():
+        if name in gid:
+            out[gid[name]] = unicodedata.normalize("NFKC", t) if any(_is_presentation(c) for c in t) else t
+    return out
+
+
+def _cmap_stream(mapping: dict[int, str]) -> bytes:
+    lines = ["/CIDInit /ProcSet findresource begin", "12 dict begin", "begincmap",
+             "/CIDSystemInfo <</Registry(Adobe)/Ordering(UCS)/Supplement 0>> def",
+             "/CMapName /Adobe-Identity-UCS def", "/CMapType 2 def",
+             "1 begincodespacerange", "<0000> <FFFF>", "endcodespacerange"]
+    items = sorted(mapping.items())
+    for k in range(0, len(items), 100):
+        chunk = items[k:k + 100]
+        lines.append(f"{len(chunk)} beginbfchar")
+        for g, t in chunk:
+            hexes = "".join(f"{b:02X}" for b in t.encode("utf-16-be"))
+            lines.append(f"<{g:04X}> <{hexes}>")
+        lines.append("endbfchar")
+    lines += ["endcmap", "CMapName currentdict /CMap defineresource pop", "end", "end"]
+    return "\n".join(lines).encode("ascii")
+
+
+def _fix_text_layer(doc: pymupdf.Document) -> None:
+    done: set[int] = set()
+    for page in doc:
+        for xref, _ext, kind, base, *_ in page.get_fonts(full=True):
+            file = _FONT_FILES.get(base.split("+")[-1])
+            if xref in done or kind != "Type0" or file is None:
+                continue
+            done.add(xref)
+            new = doc.get_new_xref()
+            doc.update_object(new, "<<>>")
+            doc.update_stream(new, _cmap_stream(_glyph_text(file)))
+            doc.xref_set_key(xref, "ToUnicode", f"{new} 0 R")

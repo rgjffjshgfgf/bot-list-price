@@ -94,20 +94,30 @@ def read(analysis: Analysis) -> Content:
     """Content of the whole list. Pages kept as pictures are placeholders
     (Frame without picture): their picture depends on the new prices and is
     filled in by fill_frames()."""
-    pages = sorted({it.page for it in analysis.items})
+    priced_pages = {it.page for it in analysis.items}
+    # text pages between the first and last page with prices are read too: a page where no
+    # price was found may still carry rows of the list
+    pages = sorted(priced_pages)
+    if analysis.kind == "pdf" and pages:
+        pages = [p for p in range(pages[0], pages[-1] + 1)
+                 if p in priced_pages or (p < len(analysis.pages) and analysis.pages[p].mode in ("text", "empty"))]
     got: dict[int, object] = {}
     how: dict[int, str] = {}
     need_ai: list[int] = []
     second: dict[int, extract.PageRead] = {}    # usable (with pictures for unreadable cells) if Gemini fails
     for p in pages:
         info = analysis.pages[p] if p < len(analysis.pages) else None
-        if analysis.kind == "pdf" and info is not None and info.mode in ("text", "mixed") \
+        if analysis.kind == "pdf" and info is not None and info.mode in ("text", "mixed", "empty") \
                 and all(it.kind == "text" for it in analysis.items if it.page == p):
             try:
                 r = extract.read_pdf_page(analysis, p)
             except Exception:  # noqa: BLE001 - one odd page must not sink the file
                 log.exception("arizon: reading page %d failed", p + 1)
                 r = None
+            if p not in priced_pages:
+                if r is not None:
+                    got[p], how[p] = r, "pdf"
+                continue
             if _good(r):
                 got[p], how[p] = r, "pdf"
                 continue
@@ -120,13 +130,13 @@ def read(analysis: Analysis) -> Content:
                 if raws:
                     got[p], how[p] = raws, "ai"
     for p in pages:
-        if p in got:
+        if p in got or p not in priced_pages:
             continue
         if p in second:
             got[p], how[p] = second[p], "pdf"
         else:
             got[p], how[p] = Frame(b"", 0, 0, p), "frame"
-    content = extract.assemble([(p, got[p]) for p in pages])
+    content = extract.assemble([(p, got[p]) for p in pages if p in got])
     content.how = how
     log.info("arizon: %s", {k: sum(1 for v in how.values() if v == k) for k in ("pdf", "ai", "frame")})
     return content
