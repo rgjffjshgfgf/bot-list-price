@@ -1,5 +1,5 @@
 """Telegram bot: send a price list (PDF or photo), say how prices should change,
-then pick the output format (PDF / Excel / image)."""
+then pick the output format (PDF / Excel / image / the Arizon template)."""
 from __future__ import annotations
 
 import asyncio
@@ -48,7 +48,8 @@ HELP = (
     "• ۱۵ درصد افزایش و رند به هزار\n"
     "• فقط پرایدها ۲۰ درصد، بقیه ۱۰ درصد\n"
     "• ردیف ۱ تا ۱۰ رو ۵۰۰ هزار تومن اضافه کن\n"
-    "۳) فرمت خروجی را انتخاب کن: PDF، Excel یا عکس.\n\n"
+    "۳) فرمت خروجی را انتخاب کن: PDF، Excel یا عکس، یا «✨ قالب آریزون»: لیست با قیمت‌های جدید "
+    "در طراحی اختصاصی آریزون.\n\n"
     "دستور را می‌توانی در کپشن فایل هم بنویسی. چند فایل پشت سر هم هم قبول است؛ دستور روی همه اعمال می‌شود.\n"
     "هر دستور روی فایل اصلی اعمال می‌شود (نه روی خروجی قبلی).\n\n"
     "🧠 ربات هوش مصنوعی خودش را دارد: قالب‌های جدید را با کمک Gemini (طرح رایگان) یاد می‌گیرد و بعد از "
