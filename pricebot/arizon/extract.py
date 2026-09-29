@@ -1,0 +1,858 @@
+"""Reading a price list into clean tables for the Arizon template.
+
+Text PDFs are read from their own text layer (exact words, no AI, a page in
+milliseconds). The table grid comes from the ruling lines, or - when a list
+has no vertical lines - from the columns its words line up in. Merged
+"group" columns, group-title rows, header rows repeated on every page and
+lists printed as two or three tables side by side all become one clean
+table. Photos, scans and PDFs whose text layer is gibberish are transcribed
+by Gemini (or by the OCR of the bot's own AI); a page that still cannot be
+rebuilt is kept as a picture, so nothing is ever lost.
+"""
+from __future__ import annotations
+
+import logging
+import re
+import statistics
+import unicodedata
+from dataclasses import dataclass, field
+from typing import Callable
+
+import pymupdf
+
+from ..models import Analysis
+from .model import Cell, Content, Frame, Row, Table
+from .text import Glyph, clean, is_legacy, page_glyphs, text_of
+
+log = logging.getLogger(__name__)
+if hasattr(pymupdf, "no_recommend_layout"):
+    pymupdf.no_recommend_layout()
+
+FrameSource = Callable[[int], Frame | None]
+
+_ARABIC = re.compile("[ؠ-يٮ-ۓۺ-ۿ]")
+_LATIN = re.compile("[A-Za-z]")
+_CANON = str.maketrans({"ي": "ی", "ى": "ی", "ك": "ک", "ة": "ه", "أ": "ا", "إ": "ا", "آ": "ا", "‌": ""})
+
+# header words, matched inside a normalised header text
+_ROLE_WORDS = {
+    "row": ["ردیف", "ردبف", "row", "#"],
+    "code": ["کد", "شماره", "فنی", "بارکد", "پارت", "code", "part", "sku", "ref", "barcode"],
+    "price": ["قیمت", "مبلغ", "فی", "بها", "price", "ریال", "تومان", "جدید", "لیست", "فروش", "همکار", "مصرف",
+              "نماینده", "عمده", "amount", "cost"],
+    "qty": ["تعداد", "کارتن", "بسته", "qty", "quantity", "موجودی", "بندی", "تیراژ"],
+    "unit": ["واحد", "unit", "سنجش"],
+    "image": ["عکس", "تصویر", "image", "photo", "picture"],
+    "name": ["شرح", "نام", "کالا", "محصول", "عنوان", "توضیح", "description", "name", "item", "product", "مدل"],
+}
+_UNITS = {"عدد", "دست", "ست", "جفت", "بسته", "کارتن", "متر", "لیتر", "کیلو", "گالن", "حلقه", "رول", "شاخه", "pcs", "set"}
+_JUNK_LINE = re.compile(r"^(page\s*\d+\s*(of\s*\d+)?|صفحه\s*[\d۰-۹]+(\s*از\s*[\d۰-۹]+)?|[\d۰-۹\s/\-.]+)$", re.I)
+
+
+def canon(s: str) -> str:
+    t = unicodedata.normalize("NFKC", s or "").translate(_CANON).lower()
+    return re.sub(r"[\s\W_]+", "", t)
+
+
+def _has_word(text: str, words: list[str]) -> bool:
+    c = canon(text)
+    if not c:
+        return False
+    return any((canon(w) and canon(w) in c) or (w == "#" and "#" in text) for w in words)
+
+
+# ============================================================ page pieces ==
+
+@dataclass
+class Phrase:
+    glyphs: list[Glyph]
+
+    @property
+    def rect(self) -> pymupdf.Rect:
+        return pymupdf.Rect(min(g.x0 for g in self.glyphs), min(g.y0 for g in self.glyphs),
+                            max(g.x1 for g in self.glyphs), max(g.y1 for g in self.glyphs))
+
+
+def _text_lines(glyphs: list[Glyph]) -> list[list[Glyph]]:
+    """Glyphs grouped by baseline, each line sorted left to right. Zero-width
+    ligature parts (often on a raised baseline) stay with their glyph."""
+    lines: list[list[Glyph]] = []
+    line_of: dict[int, list[Glyph]] = {}
+    zero = [g for g in glyphs if g.w < 0.08 * g.size and not g.c.isspace()]
+    zero_ids = {id(g) for g in zero}
+    for g in sorted((g for g in glyphs if id(g) not in zero_ids), key=lambda g: (g.base, g.x0)):
+        for ln in reversed(lines[-8:]):
+            ref = ln[0]
+            if abs(ref.base - g.base) <= 0.45 * max(ref.size, g.size) and 0.6 <= g.size / ref.size <= 1.7:
+                ln.append(g)
+                break
+        else:
+            lines.append([g])
+        line_of[g.seq] = lines[-1] if lines[-1][-1] is g else next(ln for ln in lines if ln[-1] is g)
+    for z in zero:
+        host = line_of.get(z.seq - 1) or line_of.get(z.seq + 1)
+        if host is None:
+            host = min(lines, key=lambda ln: abs(ln[0].base - z.base), default=None)
+        if host is None:
+            lines.append([z])
+        else:
+            host.append(z)
+    for ln in lines:
+        ln.sort(key=lambda g: (g.x0, g.seq))
+    lines.sort(key=lambda ln: min(g.base for g in ln))
+    return lines
+
+
+def _phrases(glyphs: list[Glyph], edges: Callable[[float], list[float]]) -> list[Phrase]:
+    """Runs of text that belong together: split at wide gaps and at column
+    edges that fall in a visible gap (never inside a word)."""
+    out: list[Phrase] = []
+    for ln in _text_lines(glyphs):
+        solid = [g for g in ln if not g.c.isspace()]
+        if not solid:
+            continue
+        xs = edges((solid[0].y0 + solid[0].y1) / 2)
+        cur: list[Glyph] = []
+        right = -1e9
+        for g in ln:
+            if g.c.isspace():
+                if cur:
+                    cur.append(g)
+                continue
+            if cur:
+                gap = g.x0 - right
+                size = g.size
+                cut = gap > 0.9 * size or (gap > 0.3 * size and any(right - 0.5 <= x <= g.x0 + 0.5 for x in xs))
+                if cut:
+                    out.append(Phrase(_strip(cur)))
+                    cur = []
+                    right = -1e9
+            cur.append(g)
+            right = max(right, g.x1)
+        if cur and any(not c.c.isspace() for c in cur):
+            out.append(Phrase(_strip(cur)))
+    return out
+
+
+def _strip(glyphs: list[Glyph]) -> list[Glyph]:
+    """A phrase keeps the spaces between its words, not around it."""
+    solid = [k for k, g in enumerate(glyphs) if not g.c.isspace()]
+    return glyphs[solid[0]:solid[-1] + 1]
+
+
+def _prices_on_page(analysis: Analysis, page: int) -> list[tuple[str, pymupdf.Rect]]:
+    """(item id, box in PDF points) of every price found on a page."""
+    out = []
+    info = analysis.pages[page] if page < len(analysis.pages) else None
+    for it in analysis.items:
+        if it.page != page:
+            continue
+        r = pymupdf.Rect(it.bbox)
+        if it.kind == "raster" and info is not None and info.zoom:
+            r = r / info.zoom
+        out.append((it.id, r))
+    return out
+
+
+# ================================================================== grid ==
+
+@dataclass
+class GCell:
+    rect: pymupdf.Rect
+    r0: int
+    r1: int
+    c0: int
+    c1: int
+    glyphs: list[Glyph] = field(default_factory=list)
+    prices: list[str] = field(default_factory=list)
+    image: pymupdf.Rect | None = None
+    text: str = ""
+    bold: bool = False
+
+    def has(self) -> bool:
+        return bool(self.text or self.prices or self.image)
+
+
+@dataclass
+class Grid:
+    bbox: pymupdf.Rect
+    xs: list[float]
+    ys: list[float]
+    cells: list[GCell]
+
+    @property
+    def ncols(self) -> int:
+        return len(self.xs) - 1
+
+    @property
+    def nrows(self) -> int:
+        return len(self.ys) - 1
+
+
+def _cluster(values: list[float], tol: float) -> list[float]:
+    out: list[list[float]] = []
+    for v in sorted(values):
+        if out and v - out[-1][-1] <= tol:
+            out[-1].append(v)
+        else:
+            out.append([v])
+    return [sum(g) / len(g) for g in out]
+
+
+def _index(edges: list[float], v: float) -> int:
+    return min(range(len(edges)), key=lambda k: abs(edges[k] - v))
+
+
+def _grid(rects: list[pymupdf.Rect]) -> Grid | None:
+    uniq: dict[tuple, pymupdf.Rect] = {}
+    for r in rects:
+        if r.width > 1 and r.height > 1:
+            uniq.setdefault(tuple(round(v, 1) for v in r), r)
+    rects = list(uniq.values())
+    if len(rects) < 2:
+        return None
+    xs = _cluster([r.x0 for r in rects] + [r.x1 for r in rects], 1.5)
+    ys = _cluster([r.y0 for r in rects] + [r.y1 for r in rects], 1.5)
+    cells = []
+    for r in rects:
+        c0, c1, r0, r1 = _index(xs, r.x0), _index(xs, r.x1), _index(ys, r.y0), _index(ys, r.y1)
+        if c1 > c0 and r1 > r0:
+            cells.append(GCell(r, r0, r1, c0, c1))
+    bbox = pymupdf.Rect(xs[0], ys[0], xs[-1], ys[-1])
+    return Grid(bbox, xs, ys, cells)
+
+
+def _find_grids(page: pymupdf.Page, **kw) -> list[Grid]:
+    try:
+        tabs = page.find_tables(**kw).tables
+    except Exception as exc:  # noqa: BLE001 - table finder is best effort
+        log.debug("find_tables failed: %s", exc)
+        return []
+    out = []
+    for t in tabs:
+        g = _grid([pymupdf.Rect(c) for row in t.rows for c in row.cells if c])
+        if g is not None:
+            out.append(g)
+    return out
+
+
+def _fill(grid: Grid, phrases: list[Phrase], prices: list[tuple[str, pymupdf.Rect]],
+          images: list[pymupdf.Rect]) -> list[Phrase]:
+    """Put phrases, prices and pictures into the cells; returns the phrases
+    that are outside the grid."""
+    outside = []
+    for ph in phrases:
+        r = ph.rect
+        p = pymupdf.Point((r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2)
+        cell = next((c for c in grid.cells if c.rect.contains(p)), None)
+        if cell is None:
+            best = max(grid.cells, key=lambda c: (c.rect & r).get_area(), default=None)
+            if best is not None and (best.rect & r).get_area() >= 0.5 * max(1e-6, r.get_area()):
+                cell = best
+        if cell is None:
+            outside.append(ph)
+        else:
+            cell.glyphs.extend(ph.glyphs)
+    for pid, box in prices:
+        p = pymupdf.Point((box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2)
+        cell = next((c for c in grid.cells if c.rect.contains(p)), None)
+        if cell is not None:
+            cell.prices.append(pid)
+    for im in images:
+        p = pymupdf.Point((im.x0 + im.x1) / 2, (im.y0 + im.y1) / 2)
+        cell = next((c for c in grid.cells if c.rect.contains(p)), None)
+        # a picture in a cell without text is a product photo; behind text it is shading
+        if cell is not None and not cell.glyphs and im.get_area() <= 1.3 * cell.rect.get_area() \
+                and cell.image is None:
+            cell.image = im & cell.rect
+    for c in grid.cells:
+        c.text = text_of(c.glyphs)
+        solid = [g for g in c.glyphs if not g.c.isspace()]
+        c.bold = bool(solid) and sum(g.bold for g in solid) >= 0.6 * len(solid)
+    return outside
+
+
+# ============================================= columns of a list without lines ==
+
+def _word_boxes(line: list[Glyph]) -> list[tuple[float, float]]:
+    out: list[list[float]] = []
+    for g in line:
+        if g.c.isspace():
+            continue
+        if out and g.x0 - out[-1][1] <= 0.22 * g.size:
+            out[-1][1] = max(out[-1][1], g.x1)
+        else:
+            out.append([g.x0, g.x1])
+    return [(a, b) for a, b in out]
+
+
+def _text_columns(glyphs: list[Glyph], prices: list[tuple[str, pymupdf.Rect]],
+                  region: pymupdf.Rect) -> list[float]:
+    """x positions separating the columns of a list, from where its words line up."""
+    lines = [ln for ln in _text_lines([g for g in glyphs if region.contains(pymupdf.Point(g.xc, g.yc))])]
+    rows = []
+    for ln in lines:
+        y0, y1 = min(g.y0 for g in ln), max(g.y1 for g in ln)
+        if any(b.y0 < y1 and y0 < b.y1 for _, b in prices):
+            rows.append(ln)
+    if len(rows) < 3:
+        return []
+    x0 = min(g.x0 for ln in rows for g in ln)
+    x1 = max(g.x1 for ln in rows for g in ln)
+    width = int(x1 - x0) + 2
+    cover = [0] * width
+    for ln in rows:
+        for a, b in _word_boxes(ln):
+            for x in range(max(0, int(a - x0)), min(width, int(b - x0) + 1)):
+                cover[x] += 1
+    size = statistics.median(g.size for ln in rows for g in ln)
+    seps: list[float] = []
+    run = 0
+    for x in range(width):
+        if cover[x] == 0:
+            run += 1
+        else:
+            if run >= max(2.0, 0.3 * size) and x - run > 0:
+                seps.append(x0 + x - run / 2)
+            run = 0
+    return [region.x0] + seps + [region.x1]
+
+
+def _text_grid(page: pymupdf.Page, glyphs: list[Glyph], prices: list[tuple[str, pymupdf.Rect]],
+               near: pymupdf.Rect | None) -> Grid | None:
+    if len(prices) < 3:
+        return None
+    pr = pymupdf.Rect(prices[0][1])
+    for _, b in prices[1:]:
+        pr |= b
+    region = pymupdf.Rect(near) if near is not None else pymupdf.Rect(0, pr.y0, page.rect.width, pr.y1)
+    region.x0, region.x1 = 0, page.rect.width
+    region.y0 = max(0.0, region.y0 - 60)
+    xs = _text_columns(glyphs, prices, region)
+    if len(xs) < 4:
+        return None
+    # rows from the ruling lines if there are any, else from the text lines
+    for strategy in ("lines", "text"):
+        grids = _find_grids(page, vertical_strategy="explicit", vertical_lines=xs,
+                            horizontal_strategy=strategy, clip=region)
+        grids = [g for g in grids if g.nrows >= 3]
+        if grids:
+            return max(grids, key=lambda g: g.bbox.get_area())
+    return None
+
+
+# =========================================================== logical table ==
+
+@dataclass
+class RawTable:
+    """A table as found on one page, before the pages are joined."""
+    headers: list[str]
+    rows: list[Row]
+    rtl: bool
+    title_rows: list[str] = field(default_factory=list)
+    note_rows: list[str] = field(default_factory=list)
+    top: float = 0.0
+    bottom: float = 0.0
+    x0: float = 0.0
+    late_headers: list[str] = field(default_factory=list)   # a header met only further down
+
+
+def _looks_header(cells: list[GCell]) -> bool:
+    texts = [c.text for c in cells if c.text]
+    if len(texts) < 2 or any(c.prices for c in cells):
+        return False
+    hits = sum(1 for t in texts if any(_has_word(t, w) for w in _ROLE_WORDS.values()))
+    return hits >= max(1, len(texts) // 3)
+
+
+def _group_columns(grid: Grid, item_rows: set[int]) -> set[int]:
+    """Columns whose cells are merged down over many rows and hold a group name
+    (e.g. «پیکان» written once beside all Peykan rows)."""
+    out = set()
+    for c in range(grid.ncols):
+        cells = [x for x in grid.cells if x.c0 == c and x.c1 == c + 1]
+        tall = [x for x in cells if x.r1 - x.r0 >= 2 and x.text and not x.prices]
+        covered = sum(1 for r in item_rows if any(x.r0 <= r < x.r1 for x in tall))
+        if tall and item_rows and covered >= 0.5 * len(item_rows) and not any(x.prices for x in cells):
+            out.add(c)
+    return out
+
+
+_TITLE_WORDS = re.compile(r"لیست|فهرست|قیمت|تاریخ|شرکت|بازرگانی|گروه صنعتی|فروشگاه|نمایندگی|price|list|"
+                          r"فروردین|اردیبهشت|خرداد|تیر|مرداد|شهریور|مهر|آبان|آذر|دی ماه|بهمن|اسفند|"
+                          r"[\d۰-۹]{2,4}\s*[/\-.]\s*[\d۰-۹]{1,2}\s*[/\-.]\s*[\d۰-۹]{1,4}", re.I)
+
+
+_NOTE_WORDS = re.compile(r"می\s*باشد|میباشد|\bاست\b|هستند|باشد|نمایید|فرمایید|گردد|می\s*شود|میشود|"
+                         r"شده|توجه|نکته|لطفا|\*|مالیات|ارزش افزوده|گارانتی|ضمانت|اعتبار|معتبر|موقت|نقدی|چکی", re.I)
+
+
+def is_note_line(text: str) -> bool:
+    return bool(_NOTE_WORDS.search(unicodedata.normalize("NFKC", text).translate(_CANON).replace("\u200c", "")))
+
+
+def is_title_line(text: str) -> bool:
+    t = unicodedata.normalize("NFKC", text).translate(_CANON)
+    return bool(_TITLE_WORDS.search(t)) and not is_note_line(text)
+
+
+def logical_table(grid: Grid, rtl: bool, crop: Callable[[pymupdf.Rect], bytes | None]) -> RawTable | None:
+    """A detected grid -> header, group rows and item rows in reading order."""
+    starts: dict[int, list[GCell]] = {}
+    for c in grid.cells:
+        starts.setdefault(c.r0, []).append(c)
+    price_rows = {r for r, cs in starts.items() if any(c.prices for c in cs)}
+    if not price_rows:
+        return None
+    group_cols = _group_columns(grid, price_rows)
+
+    def in_group_col(c: GCell) -> bool:
+        return c.c0 in group_cols and c.c1 == c.c0 + 1
+
+    group_text: dict[int, str] = {c.r0: c.text for c in grid.cells if in_group_col(c) and c.text}
+    kinds: dict[int, str] = {}
+    for r in sorted(starts):
+        cells = [c for c in starts[r] if c.has() and not in_group_col(c)]
+        if not cells:
+            continue
+        if any(c.prices for c in cells):
+            kinds[r] = "item"
+        elif len(cells) == 1 and not cells[0].image:
+            kinds[r] = "banner"
+        elif _looks_header(cells):
+            kinds[r] = "header"
+        else:
+            kinds[r] = "item"
+    first_item = min(price_rows)
+    # the table's header: the header rows right above the first item
+    header_rows: list[int] = []
+    for r in sorted(k for k in kinds if k < first_item):
+        if kinds[r] == "header":
+            if header_rows and any(kinds.get(k) in ("item", "banner") for k in range(header_rows[-1] + 1, r)):
+                header_rows = []
+            header_rows.append(r)
+    late_rows = [] if header_rows else [r for r in sorted(kinds) if kinds[r] == "header"][:1]
+
+    item_cells = [c for c in grid.cells if kinds.get(c.r0) == "item" and c.has() and not in_group_col(c)]
+    cols = sorted({c.c0 for c in item_cells})
+    if len(cols) < 2:
+        return None
+    order = cols[::-1] if rtl else cols
+    pos = {c: k for k, c in enumerate(order)}
+
+    def place(cell: GCell) -> tuple[int, int] | None:
+        inside = [c for c in cols if cell.c0 <= c < cell.c1]
+        if not inside:
+            return None
+        ks = [pos[c] for c in inside]
+        return min(ks), max(ks) - min(ks) + 1
+
+    def header_of(hrows: list[int]) -> list[str]:
+        out = [""] * len(cols)
+        for r in hrows:
+            for cell in starts[r]:
+                got = place(cell) if cell.text else None
+                if got is None:
+                    continue
+                k0, span = got
+                for k in range(k0, k0 + span):
+                    if cell.text not in out[k]:
+                        out[k] = (out[k] + " " + cell.text).strip()
+        return out
+
+    headers = header_of(header_rows)
+    late = header_of(late_rows) if late_rows else []
+
+    rows: list[Row] = []
+    titles: list[str] = []
+    notes: list[str] = []
+    for r in range(grid.nrows):
+        if r in group_text:
+            rows.append(Row([Cell(group_text[r])], "group"))
+        kind = kinds.get(r)
+        if kind is None or kind == "header":
+            continue
+        cells = [c for c in starts[r] if c.has() and not in_group_col(c)]
+        if kind == "banner":
+            text = " ".join(c.text for c in cells if c.text)
+            if not text:
+                continue
+            if len(text) > 70 or is_note_line(text):
+                notes.append(text)
+            elif r < first_item and is_title_line(text):
+                titles.append(text)
+            else:
+                rows.append(Row([Cell(text)], "group"))
+            continue
+        line = [Cell() for _ in cols]
+        for cell in cells:
+            got = place(cell)
+            if got is None:
+                continue
+            k0 = got[0]
+            img = crop(cell.image) if cell.image is not None else None
+            prev = line[k0]
+            line[k0] = Cell((prev.text + " " + cell.text).strip(), prev.price_ids + cell.prices, prev.image or img)
+        if not all(c.empty() for c in line):
+            rows.append(Row(line, "item"))
+    # group rows with nothing after them are notes, not groups
+    while rows and rows[-1].kind == "group":
+        notes.insert(0, rows.pop().cells[0].text)
+    headers, rows, late = _merge_split_columns(headers, rows, late)
+    return RawTable(headers, rows, rtl, titles, notes, grid.bbox.y0, grid.bbox.y1, grid.bbox.x0, late)
+
+
+def _merge_split_columns(headers: list[str], rows: list[Row],
+                         late: list[str]) -> tuple[list[str], list[Row], list[str]]:
+    """Neighbouring columns that are never filled in the same row are one
+    column whose cell edges moved (rows drawn with different grids)."""
+    items = [r for r in rows if r.kind == "item"]
+    k = 0
+    while k + 1 < len(headers):
+        both = any(not r.cells[k].empty() and not r.cells[k + 1].empty() for r in items)
+        used = [any(not r.cells[j].empty() for r in items) for j in (k, k + 1)]
+        ha, hb = canon(headers[k]), canon(headers[k + 1])
+        if not both and all(used) and (not ha or not hb or ha == hb):
+            headers[k] = headers[k] or headers[k + 1]
+            del headers[k + 1]
+            if len(late) > k + 1:
+                late[k] = late[k] or late[k + 1]
+                del late[k + 1]
+            for r in items:
+                a, b = r.cells[k], r.cells[k + 1]
+                r.cells[k] = a if not a.empty() else b
+                del r.cells[k + 1]
+            continue
+        k += 1
+    return headers, rows, late
+
+
+def split_blocks(t: RawTable) -> RawTable:
+    """«ردیف | نام | قیمت | ردیف | نام | قیمت | …»: a list printed as several
+    tables side by side becomes one long table (right block first)."""
+    n = len(t.headers)
+    keys = [canon(h) for h in (t.headers if any(t.headers) else t.late_headers or t.headers)]
+    for p in range(2, n // 2 + 1):
+        if n % p or not any(keys[:p]):
+            continue
+        if all(keys[k] == keys[k % p] for k in range(n)):
+            break
+    else:
+        return t
+    blocks = n // p
+    rows: list[Row] = []
+    segment: list[Row] = []
+
+    def flush() -> None:
+        for b in range(blocks):
+            for row in segment:
+                part = row.cells[b * p:(b + 1) * p]
+                if not all(c.empty() for c in part):
+                    rows.append(Row(part, "item"))
+        segment.clear()
+
+    for row in t.rows:
+        if row.kind == "group":
+            flush()
+            rows.append(row)
+        else:
+            segment.append(row)
+    flush()
+    return RawTable(t.headers[:p], rows, t.rtl, t.title_rows, t.note_rows, t.top, t.bottom, t.x0,
+                    t.late_headers[:p])
+
+
+# ================================================================ roles ==
+
+def column_roles(t: Table) -> list[str]:
+    n = t.ncols
+    roles = ["text"] * n
+    items = [r for r in t.rows if r.kind == "item"]
+    stats = []
+    for k in range(n):
+        cells = [r.cells[k] for r in items if k < len(r.cells)]
+        full = [c for c in cells if not c.empty()]
+        texts = [c.text for c in full if c.text]
+        stats.append({
+            "n": len(full),
+            "price": sum(1 for c in full if c.price_ids),
+            "image": sum(1 for c in full if c.image is not None and not c.text),
+            "len": statistics.mean([len(x) for x in texts]) if texts else 0.0,
+            "int": sum(1 for x in texts if re.fullmatch(r"[\d۰-۹٠-٩]{1,4}", x.strip())),
+            "code": sum(1 for x in texts if re.fullmatch(r"[A-Za-z0-9۰-۹٠-٩\-_/.]{4,}", x.strip().replace(" ", ""))
+                        and len(x.split()) <= 3),
+            "unit": sum(1 for x in texts if x.strip() in _UNITS),
+            "fa": sum(1 for x in texts if _ARABIC.search(x)),
+        })
+    head = t.headers + [""] * (n - len(t.headers))
+    for k, s in enumerate(stats):
+        h = head[k]
+        if s["n"] and s["price"] >= 0.4 * s["n"]:
+            roles[k] = "price"
+        elif s["n"] and s["image"] >= 0.5 * s["n"]:
+            roles[k] = "image"
+        elif _has_word(h, _ROLE_WORDS["image"]) and s["len"] == 0:
+            roles[k] = "image"
+        elif _has_word(h, _ROLE_WORDS["row"]) or (s["n"] and s["int"] >= 0.8 * s["n"] and _increasing(t, k)):
+            roles[k] = "row"
+        elif _has_word(h, _ROLE_WORDS["code"]) and s["fa"] <= 0.5 * max(1, s["n"]):
+            roles[k] = "code"
+        elif _has_word(h, _ROLE_WORDS["unit"]) or (s["n"] and s["unit"] >= 0.7 * s["n"]):
+            roles[k] = "unit"
+        elif _has_word(h, _ROLE_WORDS["qty"]) or (s["n"] and s["int"] >= 0.8 * s["n"]):
+            roles[k] = "qty"
+        elif s["n"] and s["code"] >= 0.7 * s["n"] and s["fa"] <= 0.2 * s["n"]:
+            roles[k] = "code"
+    free = [k for k in range(n) if roles[k] == "text"]
+    if free:
+        name = max(free, key=lambda k: (stats[k]["len"] * (1.5 if _has_word(head[k], _ROLE_WORDS["name"]) else 1)))
+        if stats[name]["len"] >= 3:
+            roles[name] = "name"
+    return roles
+
+
+def _increasing(t: Table, k: int) -> bool:
+    vals = []
+    for r in t.rows:
+        if r.kind == "item" and k < len(r.cells):
+            d = re.sub(r"\D", "", unicodedata.normalize("NFKC", r.cells[k].text))
+            d = d.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
+            if d:
+                vals.append(int(d))
+    if len(vals) < 3:
+        return False
+    ups = sum(1 for a, b in zip(vals, vals[1:]) if b > a)
+    return ups >= 0.7 * (len(vals) - 1)
+
+
+# ============================================================ PDF pages ==
+
+@dataclass
+class PageRead:
+    tables: list[RawTable]
+    above: list[str]          # text lines above the first table (titles)
+    below: list[str]          # text lines under the tables (notes)
+    placed: int               # prices that ended up in a table cell
+    total: int
+
+
+def _page_rtl(glyphs: list[Glyph]) -> bool:
+    text = "".join(g.c for g in glyphs)
+    return len(_ARABIC.findall(text)) >= len(_LATIN.findall(text))
+
+
+def _outside_lines(phrases: list[Phrase]) -> list[tuple[str, float]]:
+    """Phrases outside every table -> text lines (top to bottom) with their y."""
+    glyphs = [g for ph in phrases for g in ph.glyphs]
+    out = []
+    for ln in _text_lines(glyphs):
+        # a line can hold several separate phrases (e.g. title left, date right)
+        chunks: list[list[Glyph]] = [[]]
+        for g in ln:
+            if chunks[-1] and g.x0 - max(x.x1 for x in chunks[-1]) > 3 * g.size:
+                chunks.append([])
+            chunks[-1].append(g)
+        for ch in chunks:
+            t = text_of(ch)
+            if t and not _JUNK_LINE.match(t):
+                out.append((t, min(g.y0 for g in ch)))
+    return out
+
+
+def read_pdf_page(analysis: Analysis, page_no: int) -> PageRead | None:
+    """The tables of one text-layer PDF page, or None when its text cannot be
+    trusted (gibberish font) or no table holding its prices is found."""
+    doc = pymupdf.open(analysis.source)
+    try:
+        page = doc[page_no]
+        glyphs = page_glyphs(page)
+        if not glyphs or is_legacy("".join(g.c for g in glyphs)):
+            return None
+        prices = _prices_on_page(analysis, page_no)
+        if not prices:
+            return None
+        rtl = _page_rtl(glyphs)
+        images = [pymupdf.Rect(i["bbox"]) & page.rect for i in page.get_image_info()]
+        images = [r for r in images if not r.is_empty and r.get_area() < 0.2 * page.rect.get_area()
+                  and r.width > 8 and r.height > 8 and not _flat(page, r)]
+
+        def crop(r: pymupdf.Rect) -> bytes | None:
+            try:
+                pix = page.get_pixmap(clip=r, dpi=170, alpha=False)
+                return pix.tobytes("jpeg", jpg_quality=88)
+            except Exception:  # noqa: BLE001
+                return None
+
+        best: PageRead | None = None
+        for attempt in ("lines", "text"):
+            if attempt == "lines":
+                grids = _find_grids(page)
+            else:
+                near = max(best_grids, key=lambda g: g.bbox.get_area()).bbox if best_grids else None
+                g = _text_grid(page, glyphs, prices, near)
+                grids = [g] if g is not None else []
+            if attempt == "lines":
+                best_grids = grids
+            read = _read_grids(page, glyphs, grids, prices, images, rtl, crop)
+            if read is not None and (best is None or _score(read) > _score(best)):
+                best = read
+            if best is not None and _good(best):
+                break
+        return best
+    finally:
+        doc.close()
+
+
+def _flat(page: pymupdf.Page, r: pymupdf.Rect) -> bool:
+    """A single-colour picture (cell shading, a coloured bar) is not a photo."""
+    try:
+        pix = page.get_pixmap(clip=r, dpi=24, alpha=False, colorspace=pymupdf.csGRAY)
+    except Exception:  # noqa: BLE001
+        return True
+    data = pix.samples
+    if not data:
+        return True
+    mean = sum(data) / len(data)
+    var = sum((v - mean) ** 2 for v in data) / len(data)
+    return var < 60
+
+
+def _score(r: PageRead) -> float:
+    cols = [len(t.headers) for t in r.tables] or [0]
+    return r.placed / max(1, r.total) + 0.01 * min(max(cols), 6)
+
+
+def _good(r: PageRead) -> bool:
+    if r.placed < 0.9 * r.total or not r.tables:
+        return False
+    for t in r.tables:
+        if len(t.headers) < 2:
+            return False
+        # a price squeezed into the same cell as a long description = columns not found
+        for row in t.rows:
+            for c in row.cells:
+                if c.price_ids and len(_ARABIC.findall(c.text)) > 6:
+                    return False
+    return True
+
+
+def _read_grids(page: pymupdf.Page, glyphs: list[Glyph], grids: list[Grid], prices, images, rtl: bool,
+                crop) -> PageRead | None:
+    if not grids:
+        return None
+
+    def edges(y: float) -> list[float]:
+        return [x for g in grids if g.bbox.y0 - 2 <= y <= g.bbox.y1 + 2 for x in g.xs]
+
+    phrases = _phrases(glyphs, edges)
+    outside = phrases
+    for g in grids:
+        outside = _fill(g, outside, prices, images)
+    tables = []
+    for g in grids:
+        t = logical_table(g, rtl, crop)
+        if t is not None:
+            tables.append(split_blocks(t))
+    if not tables:
+        return None
+    placed = sum(len(c.price_ids) for t in tables for r in t.rows for c in r.cells)
+    top = min(t.top for t in tables)
+    bottom = max(t.bottom for t in tables)
+    lines = _outside_lines(outside)
+    above = [t for t, y in lines if y < top]
+    below = [t for t, y in lines if y >= bottom - 2]
+    tables.sort(key=lambda t: (round(t.top / 20), -t.x0 if rtl else t.x0))
+    return PageRead(tables, above, below, placed, len(prices))
+
+
+# ============================================================ whole list ==
+
+def _to_table(raw: RawTable) -> Table:
+    return Table(list(raw.headers), list(raw.rows), "", raw.rtl)
+
+
+def _continues(a: Table, b: Table) -> bool:
+    """b goes on where a stopped: the same header, or no header and as many columns."""
+    if len(a.headers) != len(b.headers):
+        return False
+    kb = [canon(h) for h in b.headers]
+    return not any(kb) or [canon(h) for h in a.headers] == kb
+
+
+def assemble(pages: list[tuple[int, PageRead | Table | Frame | list]]) -> Content:
+    """Join what was read page by page into one document."""
+    content = Content()
+    seen_titles: set[str] = set()
+    seen_notes: set[str] = set()
+
+    def note(text: str) -> None:
+        k = canon(text)
+        if k and k not in seen_notes and len(k) > 3:
+            seen_notes.add(k)
+            content.notes.append(text)
+
+    def title(text: str) -> None:
+        k = canon(text)
+        if k and k not in seen_titles:
+            seen_titles.add(k)
+            content.titles.append(text)
+
+    pending_title = ""
+    for page, got in pages:
+        items: list = got if isinstance(got, list) else [got]
+        for obj in items:
+            if isinstance(obj, Frame):
+                content.blocks.append(obj)
+                continue
+            if isinstance(obj, PageRead):
+                for t in obj.above:
+                    if is_note_line(t) or len(t) > 70:
+                        note(t)
+                    else:
+                        title(t)
+                raws = obj.tables
+                for t in obj.below:
+                    note(t)
+            elif isinstance(obj, RawTable):
+                raws = [obj]
+            else:
+                raws = []
+            for raw in raws:
+                for t in raw.title_rows:
+                    if len(t) > 60:
+                        note(t)
+                    else:
+                        title(t)
+                        pending_title = pending_title or t
+                for t in raw.note_rows:
+                    note(t)
+                table = _to_table(raw)
+                last = next((b for b in reversed(content.blocks) if isinstance(b, Table)), None)
+                if last is not None and content.blocks[-1] is last and _continues(last, table):
+                    last.rows.extend(table.rows)
+                    continue
+                if not any(table.headers) and raw.late_headers:
+                    table.headers = list(raw.late_headers)
+                table.title = pending_title if not content.blocks else ""
+                pending_title = ""
+                content.blocks.append(table)
+    for b in content.blocks:
+        if isinstance(b, Table):
+            b.roles = column_roles(b)
+            _drop_empty_columns(b)
+    return content
+
+
+def _drop_empty_columns(t: Table) -> None:
+    n = t.ncols
+    keep = []
+    for k in range(n):
+        if any(k < len(r.cells) and not r.cells[k].empty() for r in t.rows if r.kind == "item"):
+            keep.append(k)
+    if len(keep) == n:
+        return
+    t.headers = [t.headers[k] if k < len(t.headers) else "" for k in keep]
+    t.roles = [t.roles[k] for k in keep] if t.roles else []
+    for r in t.rows:
+        if r.kind == "item":
+            r.cells = [r.cells[k] if k < len(r.cells) else Cell() for k in keep]
