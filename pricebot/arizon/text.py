@@ -91,7 +91,17 @@ def page_glyphs(page: pymupdf.Page) -> list[Glyph]:
     """Every visible, horizontal glyph of the page in content-stream order,
     without the duplicates drawn for fake bold."""
     out: list[Glyph] = []
-    for k, ch in enumerate(page_chars(page)):
+    chars = page_chars(page)
+    named: dict[tuple[float, float], str] = {}
+    if any(ch.c == "\ufffd" or "\ue000" <= ch.c <= "\uf8ff" for ch in chars):
+        try:
+            from .glyphs import unnamed_glyphs   # fontTools only when a page needs it
+            named = unnamed_glyphs(page)
+        except ImportError:
+            named = {}
+    for k, ch in enumerate(chars):
+        if named and (ch.c == "\ufffd" or "\ue000" <= ch.c <= "\uf8ff"):
+            ch.c = named.get((round(ch.origin[0], 1), round(ch.origin[1], 1)), ch.c)
         b = ch.bbox
         bold = bool(re.search(r"bold|black|heavy|semibold|demi", ch.font, re.I))
         g = Glyph(ch.c, b.x0, b.y0, b.x1, b.y1, ch.origin[1], ch.size, bold, ch.color, k)

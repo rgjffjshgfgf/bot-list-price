@@ -11,6 +11,7 @@ rebuilt is kept as a picture, so nothing is ever lost.
 """
 from __future__ import annotations
 
+import io
 import logging
 import re
 import statistics
@@ -400,6 +401,7 @@ class RawTable:
     cells: int = 0              # text cells of the items
     suspect: int = 0            # ... of them with an unreadable text layer (headers count too)
     tail: list[str] = field(default_factory=list)   # group bars under the last row (belong to what follows)
+    priceless: bool = False     # no price in it: only kept as the continuation of a table
 
 
 def _looks_header(cells: list[GCell]) -> bool:
@@ -536,8 +538,14 @@ def logical_table(grid: Grid, rtl: bool, crop: Callable[[pymupdf.Rect], bytes | 
     for c in grid.cells:
         starts.setdefault(c.r0, []).append(c)
     price_rows = {r for r, cs in starts.items() if any(c.prices for c in cs)}
-    if not price_rows:
-        return None
+    priceless = not price_rows
+    if priceless:
+        # rows without any price (e.g. the last rows of a table, alone at the top of the
+        # next page): kept only if they turn out to continue a table (see assemble)
+        price_rows = {r for r, cs in starts.items() if sum(1 for c in cs if c.text) >= 3
+                      and not _looks_header([c for c in cs if c.text])}
+        if not price_rows:
+            return None
     group_cols = _group_columns(grid, price_rows)
     sparse = _sparse_group_columns(grid, price_rows, group_cols)
     group_cols |= set(sparse)
@@ -554,7 +562,7 @@ def logical_table(grid: Grid, rtl: bool, crop: Callable[[pymupdf.Rect], bytes | 
         cells = [c for c in starts[r] if c.has() and not in_group_col(c)]
         if not cells:
             continue
-        if any(c.prices for c in cells):
+        if any(c.prices for c in cells) or (priceless and r in price_rows):
             kinds[r] = "item"
         elif len(cells) == 1 and not cells[0].image:
             kinds[r] = "banner"
@@ -578,6 +586,8 @@ def logical_table(grid: Grid, rtl: bool, crop: Callable[[pymupdf.Rect], bytes | 
 
     item_cells = [c for c in grid.cells if kinds.get(c.r0) == "item" and c.has() and not in_group_col(c)]
     cols = sorted({c.c0 for c in item_cells})
+    if priceless:     # its empty price column must stay, to line up with the table it continues
+        cols = [c for c in range(grid.ncols) if c not in group_cols]
     if len(cols) < 2:
         return None
     order = cols[::-1] if rtl else cols
@@ -624,6 +634,10 @@ def logical_table(grid: Grid, rtl: bool, crop: Callable[[pymupdf.Rect], bytes | 
                 notes.append(text)
             elif r < first_item and (is_title_line(text) or r in above):
                 titles.append(text)
+            elif any(c.suspect for c in cells):
+                bad = [c for c in cells if c.suspect][0]
+                rows.append(Row([Cell(text, snapshot=crop(_ink_box(bad), True),
+                                      snap_size=statistics.median(g.size for g in bad.glyphs))], "group"))
             else:
                 rows.append(Row([Cell(text)], "group"))
             continue
@@ -636,7 +650,7 @@ def logical_table(grid: Grid, rtl: bool, crop: Callable[[pymupdf.Rect], bytes | 
             img = crop(cell.image) if cell.image is not None else None
             snap, size = None, 0.0
             if cell.suspect and not cell.prices:
-                snap = crop(_ink_box(cell))
+                snap = crop(_ink_box(cell), True)
                 size = statistics.median(g.size for g in cell.glyphs)
             prev = line[k0]
             line[k0] = Cell((prev.text + " " + cell.text).strip(), prev.price_ids + cell.prices, prev.image or img,
@@ -648,12 +662,14 @@ def logical_table(grid: Grid, rtl: bool, crop: Callable[[pymupdf.Rect], bytes | 
     while rows and rows[-1].kind == "group":
         tail.insert(0, rows.pop().cells[0].text)
     headers, rows, late = _merge_split_columns(headers, rows, late)
-    headers, rows, late = _drop_unused_columns(headers, rows, late)
+    headers, rows, late = _collapse_spanned(headers, rows, late)
+    if not priceless:
+        headers, rows, late = _drop_unused_columns(headers, rows, late)
     used = [c for c in grid.cells if c.text and not c.prices and (kinds.get(c.r0) in ("item", "banner")
                                                                   or c.r0 in header_rows)]
     bad = sum(1 for c in used if c.suspect) + sum(3 for r in header_rows for c in starts[r] if c.suspect)
     return RawTable(headers, rows, rtl, titles, notes, grid.bbox.y0, grid.bbox.y1, grid.bbox.x0, late,
-                    len(used), bad, tail)
+                    len(used), bad, tail, priceless)
 
 
 def _ink_box(cell: GCell) -> pymupdf.Rect:
@@ -663,11 +679,39 @@ def _ink_box(cell: GCell) -> pymupdf.Rect:
     return (r + (-1.5, -1, 1.5, 1)) & cell.rect
 
 
+def _collapse_spanned(headers: list[str], rows: list[Row],
+                      late: list[str]) -> tuple[list[str], list[Row], list[str]]:
+    """Columns under one header cell (e.g. «کد مشترک» over a ★ column and a code
+    column) are one column: their texts are joined. Two price columns are
+    never joined."""
+    items = [r for r in rows if r.kind == "item"]
+    k = 0
+    while k + 1 < len(headers):
+        h = canon(headers[k])
+        if not h or canon(headers[k + 1]) != h or any(
+                k + 1 < len(r.cells) and r.cells[k].price_ids and r.cells[k + 1].price_ids for r in items):
+            k += 1
+            continue
+        for r in items:
+            if k + 1 >= len(r.cells):
+                continue
+            a, b = r.cells[k], r.cells[k + 1]
+            r.cells[k] = Cell(" ".join(x for x in (a.text, b.text) if x), a.price_ids + b.price_ids,
+                              a.image or b.image, a.snapshot or b.snapshot, a.snap_size or b.snap_size)
+            del r.cells[k + 1]
+        del headers[k + 1]
+        if len(late) > k + 1:
+            del late[k + 1]
+    return headers, rows, late
+
+
 def _drop_unused_columns(headers: list[str], rows: list[Row],
                          late: list[str]) -> tuple[list[str], list[Row], list[str]]:
-    """A column no item uses (a stray line split a header cell in two)."""
+    """A column without header that no item uses (a stray line split a cell in two).
+    A named column may just be empty on this page: the whole table decides later."""
     items = [r for r in rows if r.kind == "item"]
-    keep = [k for k in range(len(headers)) if any(k < len(r.cells) and not r.cells[k].empty() for r in items)]
+    keep = [k for k in range(len(headers))
+            if canon(headers[k]) or any(k < len(r.cells) and not r.cells[k].empty() for r in items)]
     if len(keep) == len(headers) or not keep:
         return headers, rows, late
     for r in items:
@@ -737,7 +781,7 @@ def _split(t: RawTable, p: int) -> RawTable:
             segment.append(row)
     flush()
     return RawTable(t.headers[:p], rows, t.rtl, t.title_rows, t.note_rows, t.top, t.bottom, t.x0,
-                    t.late_headers[:p], t.cells, t.suspect, t.tail)
+                    t.late_headers[:p], t.cells, t.suspect, t.tail, t.priceless)
 
 
 # ================================================================ roles ==
@@ -861,10 +905,13 @@ def read_pdf_page(analysis: Analysis, page_no: int) -> PageRead | None:
         images = [r for r in images if not r.is_empty and r.get_area() < 0.2 * page.rect.get_area()
                   and r.width > 8 and r.height > 8 and not _flat(page, r)]
 
-        def crop(r: pymupdf.Rect) -> bytes | None:
+        def crop(r: pymupdf.Rect, text: bool = False) -> bytes | None:
+            """A picture of part of the page; for text, on a clean white background."""
             try:
                 pix = page.get_pixmap(clip=r, dpi=170, alpha=False)
-                return pix.tobytes("jpeg", jpg_quality=88)
+                if not text:
+                    return pix.tobytes("jpeg", jpg_quality=88)
+                return _ink_only(pix)
             except Exception:  # noqa: BLE001
                 return None
 
@@ -886,6 +933,21 @@ def read_pdf_page(analysis: Analysis, page_no: int) -> PageRead | None:
         return best
     finally:
         doc.close()
+
+
+def _ink_only(pix: pymupdf.Pixmap) -> bytes:
+    """Text on a shaded cell -> the text alone, on a transparent background."""
+    import numpy as np
+    from PIL import Image
+
+    rgb = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.height, pix.width, pix.n)[..., :3]
+    lum = rgb.astype(np.float32) @ np.array([0.299, 0.587, 0.114], dtype=np.float32)
+    bg = np.percentile(lum, 70)                     # the cell's own background
+    k = np.clip((bg - lum) / max(1.0, bg - 40.0), 0.0, 1.0)
+    out = np.dstack([rgb, (255 * k).astype(np.uint8)])
+    buf = io.BytesIO()
+    Image.fromarray(out, "RGBA").save(buf, "PNG", optimize=True)
+    return buf.getvalue()
 
 
 def _flat(page: pymupdf.Page, r: pymupdf.Rect) -> bool:
@@ -911,7 +973,7 @@ def _good(r: PageRead) -> bool:
     if r.placed < 0.9 * r.total or not r.tables:
         return False
     for t in r.tables:
-        if len(t.headers) < 2:
+        if len(t.headers) < 2 and not t.priceless:
             return False
         # a price squeezed into the same cell as a long description = columns not found
         for row in t.rows:
@@ -946,15 +1008,20 @@ def _read_grids(page: pymupdf.Page, glyphs: list[Glyph], grids: list[Grid], pric
         t = logical_table(g, rtl, crop)
         if t is not None:
             tables.append(split_blocks(t))
-    if not tables:
+    priced = [t for t in tables if not t.priceless]
+    if not priced:
         return None
+    # a table without prices counts only above the first priced one (a table's last
+    # rows carried over to the top of this page)
+    first = min(t.top for t in priced)
+    tables = [t for t in tables if not t.priceless or t.bottom <= first + 2]
     placed_ids = {pid for t in tables for r in t.rows for c in r.cells for pid in c.price_ids}
     placed = len(placed_ids)
-    top = min(t.top for t in tables)
+    top = min(t.top for t in priced)
     # a number in the list's own title (e.g. the year) that was taken for a price: the
     # template does not show that title, so nothing wrong can appear
     in_title = sum(1 for pid, box in prices if pid not in placed_ids and box.y1 <= top + 1)
-    bottom = max(t.bottom for t in tables)
+    bottom = max(t.bottom for t in priced)
     lines = _outside_lines(outside)
     above = [t for t, y in lines if y < top]
     below = [t for t, y in lines if y >= bottom - 2]
@@ -972,8 +1039,10 @@ def _continues(a: Table, b: Table) -> bool:
     """b goes on where a stopped: the same header, or no header and as many columns."""
     if len(a.headers) != len(b.headers):
         return False
-    # (a header cell the page lost does not make a new table)
-    return all(x == y or not x or not y for x, y in zip((canon(h) for h in a.headers), (canon(h) for h in b.headers)))
+    # (a header cell the page lost, or one cell misread, does not make a new table)
+    same = sum(1 for x, y in zip((canon(h) for h in a.headers), (canon(h) for h in b.headers))
+               if x == y or not x or not y)
+    return same == len(a.headers) or (len(a.headers) >= 4 and same >= len(a.headers) - 1)
 
 
 def assemble(pages: list[tuple[int, PageRead | Table | Frame | list]]) -> Content:
@@ -1040,12 +1109,15 @@ def assemble(pages: list[tuple[int, PageRead | Table | Frame | list]]) -> Conten
                     last.rows.extend(table.rows)
                     last.headers = [x or y for x, y in zip(last.headers, table.headers)]
                     continue
+                if raw.priceless:
+                    continue
                 if not any(table.headers) and raw.late_headers:
                     table.headers = list(raw.late_headers)
                 # the list's own title lines name the supplier: the template has its own title
                 content.blocks.append(table)
     for b in content.blocks:
         if isinstance(b, Table):
+            b.headers, b.rows, _ = _collapse_spanned(b.headers, b.rows, [])
             b.roles = column_roles(b)
             _drop_empty_columns(b)
             _order_by_row_number(b)

@@ -7,3 +7,4 @@ opencv-python-headless>=4.10
 openpyxl==3.1.5
 tzdata>=2024.1
 pytesseract==0.3.13
+fonttools>=4.50

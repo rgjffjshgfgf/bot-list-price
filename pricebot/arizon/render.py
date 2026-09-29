@@ -294,7 +294,8 @@ def prepare(t: Table, items: dict[str, PriceItem], values: dict[str, Decimal], a
             style: Style, images: dict[str, bytes]) -> Prepared:
     n = t.ncols
     roles = (t.roles + ["text"] * n)[:n]
-    headers = [digits(h, "", t.rtl) or (DEFAULT_HEADERS.get(r, "") if t.rtl else "")
+    # a header the list does not show, or shows with unreadable letters, gets a plain name
+    headers = [digits(h, "", t.rtl) if h and "\ufffd" not in h else (DEFAULT_HEADERS.get(r, "") if t.rtl else "")
                for h, r in zip((t.headers + [""] * n)[:n], roles)]
     texts: list[list[str]] = [[] for _ in range(n)]
     has_img = [False] * n
@@ -344,8 +345,14 @@ def prepare(t: Table, items: dict[str, PriceItem], values: dict[str, Decimal], a
     d = ' dir="rtl"' if t.rtl else ""
     for r, (row, vals) in enumerate(zip(t.rows, shown)):
         if vals is None:
-            text = digits(row.cells[0].text if row.cells else "", "", t.rtl)
-            rows_html.append(f'<tr class="g" id="r{r}"><td colspan="{n}" class="s"{d}>{_esc(text)}</td></tr>')
+            c = row.cells[0] if row.cells else Cell()
+            inner = _esc(digits(c.text, "", t.rtl))
+            if c.snapshot is not None:
+                name = f"im{len(images)}.png"
+                images[name] = c.snapshot
+                h = _snap_h(c.snapshot) * (style.font_size + 0.8) / (c.snap_size or style.font_size)
+                inner = f'<img src="{name}" style="height:{min(h, 30.0):.1f}pt"/>'
+            rows_html.append(f'<tr class="g" id="r{r}"><td colspan="{n}" class="s"{d}>{inner}</td></tr>')
             zebra = 0
             continue
         tds = []
@@ -360,7 +367,7 @@ def prepare(t: Table, items: dict[str, PriceItem], values: dict[str, Decimal], a
                 inner = f'<img src="{name}" style="height:34pt"/>' + (f"<br/>{inner}" if inner else "")
             elif c.snapshot is not None and not c.price_ids:
                 # text the PDF names wrongly: shown exactly as printed
-                name = f"im{len(images)}.jpg"
+                name = f"im{len(images)}.png"
                 images[name] = c.snapshot
                 h = _snap_h(c.snapshot) * style.font_size / (c.snap_size or style.font_size)
                 inner = f'<img src="{name}" style="height:{min(h, 40.0):.1f}pt"/>'
@@ -687,7 +694,7 @@ def _decorate(page: pymupdf.Page, spec: PageSpec, W: float, H: float, pills: lis
     draw_logo(page, pymupdf.Rect(W - MARGIN - 64, H - FOOT_H + 10, W - MARGIN, H - 7), parts=("word",))
     if spec.frame is not None:
         f = spec.frame
-        area = pymupdf.Rect(MARGIN, BAND_H + 18, W - MARGIN, H - FOOT_H - 12)
+        area = pymupdf.Rect(MARGIN, BAND_H + 18 + (26 if pills else 0), W - MARGIN, H - FOOT_H - 12)
         s = min(area.width / f.width, area.height / f.height)
         w, h = f.width * s, f.height * s
         r = pymupdf.Rect(area.x0 + (area.width - w) / 2, area.y0, area.x0 + (area.width + w) / 2, area.y0 + h)
