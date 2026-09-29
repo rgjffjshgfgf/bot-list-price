@@ -256,6 +256,7 @@ class Decision:
 class Brain:
     SAMPLE_CAP = 40000
     TEMPLATE_CAP = 3000
+    SAME_FORMAT = 0.9               # similarity above which a disagreeing page updates the format itself
     HISTORY = 60
 
     def __init__(self, directory: Path, trust_after: int = 2, general_after: int = 20):
@@ -523,8 +524,9 @@ class Brain:
                 common = len(hdr & th)
                 if common >= 2:
                     s = max(s, need + 0.4 * (common / min(len(hdr), len(th)) - 0.75))
-                if s > best_s:
-                    best, best_s = tpl, s
+                if s > best_s or (best is not None and s == best_s
+                                  and tpl.get("updated", 0) > best.get("updated", 0)):
+                    best, best_s = tpl, s       # on a tie, the most recently confirmed format
         return (best, best_s) if best is not None and best_s >= need else (None, best_s)
 
     def _hist(self, source: str) -> list[int]:
@@ -555,6 +557,11 @@ class Brain:
                               or per_col[doc.col_of[i]] >= 0.4 * len(doc.columns[doc.col_of[i]]))}
         confident = bool(probs) and all(p <= 0.15 or p >= 0.85 for p in probs)
         tpl, sim = self.match(doc)
+        if tpl is not None and sim < self.SAME_FORMAT and confident and model_sel \
+                and template_predict(tpl, doc) != model_sel:
+            # only looks like a known list (same column names) and the sure model reads
+            # this page differently: judge it as a new format, not by the other list's answer
+            tpl = None
         if tpl is not None:
             sel = template_predict(tpl, doc)
             trusted = tpl.get("streak", 0) >= self.trust_after
@@ -604,8 +611,12 @@ class Brain:
             if decision is not None:
                 tot["tokens_ok"] += sum(1 for i in range(len(doc.nums)) if (i in decision.model_selected) == (i in truth))
 
-            tpl, _ = self.match(doc)
+            tpl, sim = self.match(doc)
             outcome = {"teacher": teacher, "model_ok": model_ok}
+            if tpl is not None and sim < self.SAME_FORMAT and template_predict(tpl, doc) != truth:
+                # another list that only looks like a known one (same column names,
+                # different columns / numbers): keep both, never overwrite the other's answer
+                tpl = None
             if tpl is None:
                 # pages without prices (covers, pictures) are remembered too, so the
                 # same pages next time need no question
