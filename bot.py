@@ -5,7 +5,9 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import io
+import json
 import logging
+import re
 import shutil
 import time
 import uuid
@@ -38,6 +40,10 @@ FORMAT_NAMES = {"pdf": "PDF", "xlsx": "Excel", "image": "عکس", "arizon": "ق�
                 "arizon_image": "قالب آریزون (عکس)"}
 FORMAT_ICONS = {"pdf": "📄", "xlsx": "📊", "image": "🖼", "arizon": "✨", "arizon_image": "✨"}
 ARIZON_FORMATS = ("arizon", "arizon_image")
+SUBTITLES_FILE = config.DATA_DIR / "arizon_subtitles.json"   # each chat's last lines under the Arizon title
+RECENT_SUBTITLES = 3
+# a typed line that may be a price command rather than a line for the Arizon header
+_COMMANDISH = re.compile(r"افزایش|کاهش|درصد|٪|%|(?<!\S)رند(?!\S)|اضافه\s*کن|کم\s*کن|بکن|ردیف\s*[\d۰-۹]")
 
 HELP = (
     "سلام! 👋 من قیمت‌های لیست شما را تغییر می‌دهم و همان لیست را با همان ظاهر، فقط با قیمت‌های جدید تحویل می‌دهم.\n\n"
@@ -50,7 +56,8 @@ HELP = (
     "• گروه پژو ۱۵ درصد افزایش، بقیه ۵ درصد (اگر لیست گروه‌بندی دارد)\n"
     "• ردیف ۱ تا ۱۰ رو ۵۰۰ هزار تومن اضافه کن\n"
     "۳) فرمت خروجی را انتخاب کن: PDF، Excel یا عکس، یا «✨ قالب آریزون»: لیست با قیمت‌های جدید "
-    "در طراحی اختصاصی آریزون.\n\n"
+    "در طراحی اختصاصی آریزون. برای قالب آریزون می‌پرسم زیر «لیست قیمت محصولات» چه نوشته شود "
+    "(مثلاً اسم فروشگاه)، یا بدون متن اضافه.\n\n"
     "دستور را می‌توانی در کپشن فایل هم بنویسی. چند فایل پشت سر هم هم قبول است؛ دستور روی همه اعمال می‌شود.\n"
     "هر دستور روی فایل اصلی اعمال می‌شود (نه روی خروجی قبلی).\n\n"
     "🧠 ربات هوش مصنوعی خودش را دارد: قالب‌های جدید را با کمک Gemini (طرح رایگان) یاد می‌گیرد و بعد از "
@@ -73,11 +80,23 @@ class Pending:
 
 
 @dataclass
+class SubtitleWait:
+    """Arizon formats waiting for the line under the template's title."""
+    key: str                          # the price change (Pending) they belong to
+    formats: list[str]
+    offered: list[str]                # the chat's recent lines, shown as buttons
+    question: Message | None = None
+    typed: str = ""                   # a typed line that may also be a price command: which one?
+    raw: str = ""
+
+
+@dataclass
 class Session:
     workdir: Path
     analyses: list[Analysis] = field(default_factory=list)
     created: float = field(default_factory=time.time)
     pending: Pending | None = None
+    sub_wait: SubtitleWait | None = None
 
     def expired(self) -> bool:
         return time.time() - self.created > config.SESSION_TTL_MINUTES * 60
@@ -185,6 +204,9 @@ def _output_keyboard(session: Session, pending: Pending) -> InlineKeyboardMarkup
 def _more_keyboard(session: Session, pending: Pending) -> InlineKeyboardMarkup | None:
     rows = [r for r in (_format_row(session, pending.key, exclude=pending.sent),
                         _arizon_row(pending.key, exclude=pending.sent)) if r]
+    if any(f in pending.sent for f in ARIZON_FORMATS):
+        rows.append([InlineKeyboardButton("✏️ قالب آریزون با متن دیگری زیر عنوان",
+                                          callback_data=f"sub:ask:{pending.key}")])
     return InlineKeyboardMarkup(rows) if rows else None
 
 
@@ -654,6 +676,9 @@ async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.effective_message.reply_text(
                 "اول فایل لیست قیمت (PDF یا عکس) را بفرست، بعد بگو چه تغییری بدهم.\n/help")
             return
+        wait = session.sub_wait
+        if wait is not None and session.pending is not None and wait.key == session.pending.key:
+            return await _on_subtitle_text(update, context, session, update.effective_message.text or "")
         await _handle_command_text(update, context, session, update.effective_message.text or "")
 
 
@@ -800,17 +825,19 @@ def _replace_pending(session: Session, pending: Pending) -> None:
     if old is not None and old.exporter.out_dir != pending.exporter.out_dir:
         shutil.rmtree(old.exporter.out_dir, ignore_errors=True)
     session.pending = pending
+    session.sub_wait = None           # a question about the old change's Arizon header is over
 
 
 async def _deliver(update: Update, context: ContextTypes.DEFAULT_TYPE, session: Session, pending: Pending,
-                   formats: list[str]) -> None:
+                   formats: list[str], subtitle: str = "") -> None:
+    """subtitle: the line under the Arizon template's title (other formats ignore it)."""
     chat_id = update.effective_chat.id
     msg = update.effective_message
     for fmt in formats:
         status = await msg.reply_text(f"⏳ در حال ساخت خروجی {FORMAT_NAMES[fmt]}…")
         await context.bot.send_chat_action(chat_id, ChatAction.UPLOAD_DOCUMENT)
         try:
-            paths = await asyncio.to_thread(pending.exporter.build, fmt)
+            paths = await asyncio.to_thread(pending.exporter.build, fmt, subtitle)
         except ai.AIError as exc:
             log.warning("export %s failed: %s", fmt, exc)
             await _safe_edit(status, "❌ " + _ai_error_text(exc))
@@ -884,7 +911,136 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             formats = ["pdf", "xlsx", "image", "arizon"] if parts[1] == "all" else [parts[1]]
             if any(f not in FORMAT_NAMES for f in formats):
                 return
+            if any(f in ARIZON_FORMATS for f in formats):
+                # the Arizon template first asks what goes under its title
+                return await _ask_subtitle(update, session, pending, formats)
             await _deliver(update, context, session, pending, formats)
+        elif kind == "sub":
+            await _on_subtitle_button(update, context, session, pending, parts[1])
+
+
+# ----------------------------------------------------- Arizon header line ---
+
+def _recent_subtitles(chat_id: int) -> list[str]:
+    try:
+        data = json.loads(SUBTITLES_FILE.read_text(encoding="utf-8"))
+        recent = data.get(str(chat_id), []) if isinstance(data, dict) else []
+        return [t for t in recent if isinstance(t, str) and t][:RECENT_SUBTITLES]
+    except (OSError, ValueError):
+        return []
+
+
+def _remember_subtitle(chat_id: int, text: str) -> None:
+    """The chat's recent lines, newest first (kept on the data volume, offered as buttons next time)."""
+    try:
+        data = json.loads(SUBTITLES_FILE.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            data = {}
+    except (OSError, ValueError):
+        data = {}
+    old = data.get(str(chat_id), [])
+    data[str(chat_id)] = ([text] + [t for t in (old if isinstance(old, list) else []) if t != text])[:RECENT_SUBTITLES]
+    try:
+        SUBTITLES_FILE.parent.mkdir(parents=True, exist_ok=True)
+        tmp = SUBTITLES_FILE.with_suffix(".tmp")
+        tmp.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(SUBTITLES_FILE)
+    except OSError as exc:
+        log.warning("could not save the Arizon header line: %s", exc)
+
+
+def _clip(text: str, n: int = 40) -> str:
+    return text if len(text) <= n else text[:n - 1].rstrip() + "…"
+
+
+async def _ask_subtitle(update: Update, session: Session, pending: Pending, formats: list[str]) -> None:
+    """Ask what goes under «لیست قیمت محصولات» in the Arizon template."""
+    wait = SubtitleWait(pending.key, formats, _recent_subtitles(update.effective_chat.id))
+    session.sub_wait = wait
+    lines = ["✏️ زیر عنوان «لیست قیمت محصولات» در قالب آریزون چه نوشته شود؟", "",
+             "متن را همین‌جا بنویس و بفرست؛ مثلاً: باباپارت"]
+    if wait.offered:
+        lines.append("یا یکی از متن‌های قبلی را بزن.")
+    lines.append("اگر متنی لازم نیست، «بدون متن» را بزن.")
+    if any(f not in ARIZON_FORMATS for f in formats):
+        lines.append("\n(بعد از جواب، همه فرمت‌ها با هم ساخته می‌شوند.)")
+    rows = [[InlineKeyboardButton(f"✅ {_clip(t)}", callback_data=f"sub:r{j}:{wait.key}")]
+            for j, t in enumerate(wait.offered)]
+    rows.append([InlineKeyboardButton("➖ بدون متن (فقط «لیست قیمت محصولات»)", callback_data=f"sub:none:{wait.key}")])
+    wait.question = await update.effective_message.reply_text("\n".join(lines),
+                                                              reply_markup=InlineKeyboardMarkup(rows))
+
+
+def _looks_like_command(session: Session, text: str) -> bool:
+    local = commands.parse_local(text)
+    return (local.plan is not None or local.ask_direction is not None or _COMMANDISH.search(text) is not None
+            or _group_plan(session, text) is not None)
+
+
+async def _on_subtitle_text(update: Update, context: ContextTypes.DEFAULT_TYPE, session: Session, raw: str) -> None:
+    """A typed line for the Arizon header: checked, then the waiting formats are made with it."""
+    from pricebot.arizon.render import SUBTITLE_MAX, clean_subtitle
+
+    msg = update.effective_message
+    wait = session.sub_wait
+    text = clean_subtitle(raw)
+    if not text:
+        await msg.reply_text("این متن را نمی‌شود در سربرگ نوشت (فقط شکلک یا علامت بود). متن را با حروف بنویس، "
+                             "یا «بدون متن» را بزن.")
+        return
+    if len(text) > SUBTITLE_MAX:
+        await msg.reply_text(f"متن طولانی است ({_fa(len(text))} حرف). حداکثر {_fa(SUBTITLE_MAX)} حرف بنویس "
+                             "تا در سربرگ جا شود.")
+        return
+    if _looks_like_command(session, raw):
+        wait.typed, wait.raw = text, raw
+        kb = InlineKeyboardMarkup([[
+            InlineKeyboardButton("✏️ زیر عنوان بنویس", callback_data=f"sub:use:{wait.key}"),
+            InlineKeyboardButton("🔁 دستور جدید قیمت است", callback_data=f"sub:cmd:{wait.key}"),
+        ]])
+        await msg.reply_text(f"«{text}» را زیر عنوان قالب آریزون بنویسم، یا دستور جدید تغییر قیمت است؟",
+                             reply_markup=kb)
+        return
+    await _use_subtitle(update, context, session, wait, text)
+
+
+async def _on_subtitle_button(update: Update, context: ContextTypes.DEFAULT_TYPE, session: Session,
+                              pending: Pending, choice: str) -> None:
+    q = update.callback_query
+    if choice == "ask":
+        # the Arizon output again, with another line under the title
+        formats = [f for f in ARIZON_FORMATS if f in pending.sent] or ["arizon"]
+        return await _ask_subtitle(update, session, pending, formats)
+    wait = session.sub_wait
+    if wait is None or wait.key != pending.key:
+        await q.message.reply_text("این دکمه مربوط به سؤال قبلی است؛ دوباره «✨ قالب آریزون» را انتخاب کن.")
+        return
+    with contextlib.suppress(BadRequest):
+        await q.message.edit_reply_markup(None)       # each question is answered once
+    if choice == "cmd":
+        session.sub_wait = None
+        return await _handle_command_text(update, context, session, wait.raw)
+    if choice == "none":
+        text = ""
+    elif choice == "use" and wait.typed:
+        text = wait.typed
+    elif choice.startswith("r") and choice[1:].isdigit() and int(choice[1:]) < len(wait.offered):
+        text = wait.offered[int(choice[1:])]
+    else:
+        return
+    await _use_subtitle(update, context, session, wait, text)
+
+
+async def _use_subtitle(update: Update, context: ContextTypes.DEFAULT_TYPE, session: Session, wait: SubtitleWait,
+                        text: str) -> None:
+    session.sub_wait = None
+    if wait.question is not None:
+        chosen = f"زیر عنوان: «{text}»" if text else "بدون متن زیر عنوان"
+        with contextlib.suppress(BadRequest):
+            await wait.question.edit_text(f"✏️ قالب آریزون — {chosen}")
+    if text:
+        _remember_subtitle(update.effective_chat.id, text)
+    await _deliver(update, context, session, session.pending, wait.formats, subtitle=text)
 
 
 def _learn_from_user(analysis: Analysis, good: bool) -> None:
