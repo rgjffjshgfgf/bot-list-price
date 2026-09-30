@@ -20,6 +20,7 @@ class PriceItem:
     label: str = ""              # row / product description
     column: str = ""             # column header
     payload: Any = None          # TextToken or raster.Target
+    group: str = ""              # the list's group (section) the row belongs to, e.g. «گروه پژو 405»
 
 
 @dataclass
@@ -50,3 +51,11 @@ class Analysis:
 
     def item(self, item_id: str) -> PriceItem | None:
         return next((it for it in self.items if it.id == item_id), None)
+
+    def groups(self) -> list[tuple[str, int]]:
+        """The list's groups in order, with how many prices each holds."""
+        out: dict[str, int] = {}
+        for it in self.items:
+            if it.group:
+                out[it.group] = out.get(it.group, 0) + 1
+        return list(out.items())

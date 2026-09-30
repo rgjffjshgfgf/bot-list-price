@@ -1,0 +1,946 @@
+{"f": ["bias", "pos:above", "ntok:1", "chunks:1", "align:center", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:hdr", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "outside", "ntok:1", "chunks:1", "align:end", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:1", "chunks:1", "align:center", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:hdr", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "outside", "ntok:1", "chunks:1", "align:end", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:1", "chunks:1", "align:center", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:hdr", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "outside", "ntok:1", "chunks:1", "align:end", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:1", "chunks:1", "align:center", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:hdr", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "outside", "ntok:1", "chunks:1", "align:end", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:company", "kw:hdr2", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:company", "kw:hdr2", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:foot", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:company", "kw:hdr2", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:start", "in_col:text", "len:short", "code"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:start", "in_col:text", "len:short", "code"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:company", "kw:hdr2", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:company", "kw:hdr2", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:foot", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:company", "kw:hdr2", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr", "kw:unit", "fill"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr", "kw:unit", "fill"], "y": 0}
+{"f": ["bias", "pos:inside", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:start", "in_col:text", "len:short", "code"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:start", "in_col:text", "len:short", "code"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:company", "kw:hdr2", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:company", "kw:hdr2", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:foot", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:company", "kw:hdr2", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:start", "in_col:text", "len:short", "code"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:start", "in_col:text", "len:short", "code"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:company", "kw:hdr2", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:company", "kw:hdr2", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:foot", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:company", "kw:hdr2", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr", "kw:unit", "fill"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr", "kw:unit", "fill"], "y": 0}
+{"f": ["bias", "pos:inside", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:start", "in_col:text", "len:short", "code"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:start", "in_col:text", "len:short", "code"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:company", "kw:hdr2", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:company", "kw:hdr2", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:foot", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:company", "kw:hdr2", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr", "kw:unit", "fill"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr", "kw:unit", "fill"], "y": 0}
+{"f": ["bias", "pos:inside", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:start", "in_col:text", "len:short", "code"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:start", "in_col:text", "len:short", "code"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:1", "chunks:1", "align:start", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "rowno", "ntok:1", "chunks:1", "align:start", "noletters", "kw:date", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "in_col:text", "kw:note", "len:long"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:top", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:title", "kw:hdr2"], "y": 0}
+{"f": ["bias", "pos:top", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "hdr_prev", "ntok:1", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:title", "kw:hdr2"], "y": 0}
+{"f": ["bias", "pos:top", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr", "kw:unit", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr", "kw:unit", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "code", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "len:short", "code", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "code", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:company", "kw:hdr2", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:company", "kw:hdr2", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:foot", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:company", "kw:hdr2", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr", "kw:unit", "fill"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr", "kw:unit", "fill"], "y": 0}
+{"f": ["bias", "pos:inside", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:start", "in_col:text", "len:short", "code"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:start", "in_col:text", "len:short", "code"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "near_price", "ntok:7+", "chunks:1", "align:center", "len:long", "fill"], "y": 0}
+{"f": ["bias", "pos:inside", "near_price", "ntok:1", "chunks:1", "align:center", "in_col:num", "len:short", "fill"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr2", "kw:unit", "len:long", "code", "num_cell", "fill"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:1", "chunks:1", "align:start", "kw:note", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:1", "align:start", "span_cols", "kw:group", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:1", "align:start", "span_cols", "kw:group", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:1", "align:start", "span_cols", "kw:group", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "near_price", "ntok:7+", "chunks:1", "align:center", "in_col:num", "len:long"], "y": 0}
+{"f": ["bias", "pos:inside", "near_price", "ntok:1", "chunks:1", "align:center", "in_col:num", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:1", "align:start", "wide", "span_cols", "kw:group", "len:long", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:7+", "chunks:1", "align:start", "wide", "span_cols", "kw:group", "len:long", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr2", "kw:unit", "len:long", "code", "num_cell", "fill"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:7+", "chunks:1", "align:start", "wide", "span_cols", "kw:group", "len:long", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:7+", "chunks:1", "align:start", "wide", "span_cols", "kw:group", "len:long", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:1", "align:start", "span_cols", "kw:group", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr2", "kw:unit", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "kw:title", "kw:note", "kw:hdr2", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "near_price", "ntok:7+", "chunks:1", "align:center", "len:long"], "y": 0}
+{"f": ["bias", "pos:inside", "near_price", "ntok:2-3", "chunks:1", "align:center", "in_col:num", "len:short"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "kw:group", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "near_price", "ntok:7+", "chunks:1", "align:center", "len:long"], "y": 0}
+{"f": ["bias", "pos:inside", "near_price", "ntok:1", "chunks:1", "align:center", "in_col:num", "noletters", "len:short"], "y": 0}
+{"f": ["bias", "pos:inside", "near_price", "ntok:7+", "chunks:1", "align:center", "len:long", "fill"], "y": 0}
+{"f": ["bias", "pos:inside", "near_price", "ntok:1", "chunks:1", "align:center", "in_col:num", "noletters", "len:short", "fill"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "big", "kw:title", "kw:hdr", "kw:date", "fill", "fill:own"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:below", "rowno", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "big", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:below", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:below", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "rowno", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "big", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "rowno", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "big", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:below", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "span_cols", "kw:title", "kw:hdr2", "kw:date"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:date", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:1", "chunks:1", "align:center", "in_col:text", "len:short", "fill"], "y": 1}
+{"f": ["bias", "pos:inside", "near_price", "ntok:7+", "chunks:2", "align:start", "wide", "span_cols", "len:long"], "y": 0}
+{"f": ["bias", "pos:inside", "restart", "near_price", "ntok:2-3", "chunks:2", "align:start", "span_cols", "len:short"], "y": 0}
+{"f": ["bias", "pos:inside", "hdr_next", "restart", "ntok:1", "chunks:1", "align:center", "in_col:text", "len:short", "fill"], "y": 1}
+{"f": ["bias", "pos:inside", "hdr_next", "restart", "ntok:1", "chunks:1", "align:center", "in_col:text", "len:short", "fill"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:4-6", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "code", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:4-6", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "code", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "rowno", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code"], "y": 0}
+{"f": ["bias", "pos:below", "rowno", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "len:short"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:company", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "big", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:2-3", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "big", "kw:title", "kw:company", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "in_col:text", "big", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:company", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "big", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:4-6", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:company", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "big", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:2-3", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:company", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "big", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:4-6", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:1", "align:center", "big", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:company", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "big", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:center", "big", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:company", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "big", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:4-6", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:company", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "big", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:4-6", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:company", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "big", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:1", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:company", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "big", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:company", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "big", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:1", "align:center", "big", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:company", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "big", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:1", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:company", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "big", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:company", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "big", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:company", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "big", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:2-3", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:company", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "big", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:company", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "big", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:company", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "big", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:7+", "chunks:1", "align:center", "span_cols", "big", "kw:title"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "restart", "near_price", "ntok:7+", "chunks:1", "align:end"], "y": 0}
+{"f": ["bias", "pos:inside", "near_price", "ntok:1", "chunks:1", "align:end", "in_col:text", "len:short"], "y": 0}
+{"f": ["bias", "pos:inside", "near_price", "ntok:1", "chunks:1", "align:start", "len:short"], "y": 0}
+{"f": ["bias", "pos:inside", "near_price", "ntok:1", "chunks:1", "align:end", "len:short"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:3+", "align:start", "span_cols"], "y": 0}
+{"f": ["bias", "pos:inside", "hdr_next", "ntok:1", "chunks:1", "align:end", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "near_price", "ntok:1", "chunks:1", "align:start", "len:short"], "y": 0}
+{"f": ["bias", "pos:inside", "hdr_next", "ntok:1", "chunks:1", "align:center", "big", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:4-6", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:below", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "restart", "ntok:2-3", "chunks:1", "align:end", "span_cols", "big", "kw:group", "len:short", "code", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:top", "ntok:1", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:title", "kw:note", "kw:hdr2", "len:long"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:2-3", "chunks:1", "align:center", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:1", "chunks:1", "align:center", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:center", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:center", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:center", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:center", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:1", "chunks:1", "align:center", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:inside", "ntok:1", "chunks:1", "align:center", "len:short", "fill", "fill:own"], "y": 1}
+{"f": ["bias", "pos:top", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:hdr", "kw:date"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:2-3", "chunks:1", "align:start", "kw:hdr", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:1", "chunks:1", "align:start", "kw:title", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:2", "align:center", "wide", "in_col:text", "kw:note", "kw:hdr", "len:long"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:1", "chunks:1", "align:center", "in_col:text", "len:short", "fill"], "y": 1}
+{"f": ["bias", "pos:inside", "hdr_next", "restart", "ntok:1", "chunks:1", "align:center", "in_col:text", "len:short", "fill"], "y": 1}
+{"f": ["bias", "pos:inside", "hdr_next", "restart", "ntok:1", "chunks:1", "align:center", "in_col:text", "len:short", "fill"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:2", "align:center", "wide", "span_cols", "len:short", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:2", "align:center", "wide", "span_cols", "len:short", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:start", "span_cols", "kw:hdr", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:start", "span_cols", "len:short", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:start", "span_cols", "len:short", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:start", "span_cols", "len:short", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:start", "span_cols", "len:short", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:start", "span_cols", "len:short", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "len:short", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "len:short", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:start", "span_cols", "len:short", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:start", "span_cols", "len:short", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:start", "span_cols", "len:short", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:2-3", "chunks:1", "align:start", "span_cols", "len:short", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:1", "align:start", "span_cols", "len:short", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "span_cols", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:group", "kw:title", "kw:company", "kw:hdr", "fill", "fill:own", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:7+", "chunks:1", "align:center", "big", "kw:title", "kw:hdr", "kw:date", "fill", "fill:own"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "big", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "big", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "big", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "big", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "rowno", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:2-3", "chunks:1", "align:end", "in_col:num", "kw:title", "kw:hdr2", "len:short", "fill", "fill:own"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:4-6", "chunks:2", "align:start", "span_cols", "kw:hdr2", "len:short", "fill", "fill:own"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:1", "chunks:1", "align:end", "in_col:num", "kw:hdr", "len:short", "fill", "fill:own"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_prev", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "len:short", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:foot", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:2-3", "chunks:1", "align:end", "in_col:num", "kw:title", "kw:hdr2", "len:short", "fill", "fill:own"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:4-6", "chunks:2", "align:start", "span_cols", "kw:hdr2", "len:short", "fill", "fill:own"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:1", "chunks:1", "align:end", "in_col:num", "kw:hdr", "len:short", "fill", "fill:own"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:top", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "len:short", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "kw:hdr", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "len:short", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "len:short", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:4-6", "chunks:3+", "align:center", "wide", "span_cols", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:inside", "ntok:7+", "chunks:3+", "align:center", "wide", "span_cols", "len:long", "code", "num_cell"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:1", "chunks:1", "align:center", "in_col:text", "len:short", "fill"], "y": 1}
+{"f": ["bias", "pos:inside", "near_price", "ntok:7+", "chunks:2", "align:start", "wide", "span_cols", "len:long"], "y": 0}
+{"f": ["bias", "pos:inside", "restart", "near_price", "ntok:4-6", "chunks:2", "align:start", "span_cols", "len:short"], "y": 0}
+{"f": ["bias", "pos:inside", "hdr_next", "restart", "ntok:1", "chunks:1", "align:center", "in_col:text", "len:short", "fill"], "y": 1}
+{"f": ["bias", "pos:inside", "hdr_next", "restart", "ntok:1", "chunks:1", "align:center", "in_col:text", "len:short", "fill"], "y": 1}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "kw:date", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:note", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "big", "kw:title", "kw:note", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:note", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:note", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:note", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:note", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:note", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:note", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:note", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:note", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:note", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:note", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:note", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:note", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:note", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "big", "kw:title", "kw:note", "kw:date", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:4-6", "chunks:1", "align:center", "kw:title", "kw:note", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "in_col:text", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "in_col:text", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:below", "ntok:4-6", "chunks:1", "align:center", "small", "len:short"], "y": 0}
+{"f": ["bias", "pos:above", "ntok:7+", "chunks:1", "align:center", "wide", "span_cols", "big", "kw:company", "len:long", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:center", "kw:date", "len:short", "repeat"], "y": 0}
+{"f": ["bias", "pos:above", "hdr_next", "ntok:2-3", "chunks:1", "align:start", "len:short", "repeat"], "y": 0}

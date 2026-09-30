@@ -117,6 +117,61 @@ def page_words(rgb: np.ndarray, psm: int = 11) -> list[tuple[str, Box, float]]:
     return out
 
 
+def read_line(rgb: np.ndarray, box: Box, pad: bool = True) -> str:
+    """One line of text read on its own (a group title on a shaded bar, often
+    light letters on a dark colour): cut out, turned into dark text on white,
+    read as a single line. pad=False: the box is a whole bar, read inside it only
+    (the room around a bar holds the rows above and below)."""
+    if not available():
+        return ""
+    H, W = rgb.shape[:2]
+    bx0, by0, bx1, by1 = box
+    h = max(4.0, by1 - by0)
+    if pad:
+        x0, x1 = max(0, int(bx0 - 0.6 * h)), min(W, int(bx1 + 0.6 * h))
+        y0, y1 = max(0, int(by0 - 0.35 * h)), min(H, int(by1 + 0.35 * h))
+    else:
+        x0, x1 = max(0, int(bx0) + 2), min(W, int(round(bx1)) - 2)
+        y0, y1 = max(0, int(by0) + 2), min(H, int(round(by1)) - 2)
+    if x1 - x0 < 8 or y1 - y0 < 6:
+        return ""
+    gray = cv2.cvtColor(np.ascontiguousarray(rgb[y0:y1, x0:x1]), cv2.COLOR_RGB2GRAY)
+    _, bw = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    # the letters are the smaller part of the box itself (the room around it may be the
+    # white page around a dark bar): make them black on white
+    ix0, iy0 = max(0, int(bx0) - x0), max(0, int(by0) - y0)
+    ix1, iy1 = min(x1 - x0, int(round(bx1)) - x0), min(y1 - y0, int(round(by1)) - y0)
+    inner = bw[iy0:iy1, ix0:ix1]
+    if ((inner if inner.size else bw) == 0).mean() > 0.5:
+        bw = 255 - bw
+        # light letters on a dark colour: what lies around the box is background
+        keep = np.zeros(bw.shape, dtype=bool)
+        keep[iy0:iy1, ix0:ix1] = True
+        bw[~keep] = 255
+    # the table's rules above, below and beside a bar are no letters: long straight
+    # strokes (no word is 6 lines wide, no letter as tall as the whole cut-out) go
+    ink = np.where(bw == 0, 255, 0).astype(np.uint8)
+    wide = max(12, min(int(0.9 * (x1 - x0)), int(6 * h)))
+    rules = cv2.morphologyEx(ink, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (wide, 1)))
+    tall = int(0.9 * (y1 - y0)) if pad else y1 - y0 - 1
+    rules |= cv2.morphologyEx(ink, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (1, max(6, tall))))
+    bw[rules > 0] = 255
+    ys, xs = np.nonzero(bw == 0)
+    if not len(xs):
+        return ""
+    m = max(2, int(0.3 * h))
+    bw = bw[max(0, ys.min() - m):ys.max() + m + 1, max(0, xs.min() - m):xs.max() + m + 1]
+    s = min(4.0, max(1.0, 48.0 / max(1, y1 - y0)))
+    big = cv2.resize(bw, None, fx=s, fy=s, interpolation=cv2.INTER_CUBIC)
+    big = cv2.copyMakeBorder(big, 12, 12, 12, 12, cv2.BORDER_CONSTANT, value=255)
+    try:
+        with _SLOTS:
+            text = pytesseract.image_to_string(big, lang=_page_lang(), config="--psm 7", timeout=30)
+    except Exception:  # noqa: BLE001 - a title that cannot be read is just not read
+        return ""
+    return " ".join(text.split())
+
+
 # ========================================================= local reading ==
 
 _SEPS = ",./٬،٫"

@@ -588,9 +588,9 @@ _BOX = {"type": "array", "items": _INT,
 PAGE_SCHEMA = _obj({
     "currency": {"type": "string", "description": "ریال / تومان / دلار ... as stated on the page, or empty"},
     "columns": {"type": "array", "items": _obj({"column_id": _INT, "header": _STR})},
-    "text_prices": {"type": "array", "items": _obj({"id": _INT, "column_id": _INT, "label": _STR})},
+    "text_prices": {"type": "array", "items": _obj({"id": _INT, "column_id": _INT, "label": _STR, "group": _STR})},
     "image_prices": {"type": "array", "items": _obj({"text": _STR, "box_2d": _BOX, "column_id": _INT,
-                                                     "label": _STR})},
+                                                     "label": _STR, "group": _STR})},
 })
 
 PAGE_SYSTEM = """You read price lists (mostly Persian, sometimes English) for a bot that rewrites the prices in place, keeping the document otherwise identical. You get an image of one page or photo and, for PDFs, the number tokens found in the file's text layer.
@@ -600,6 +600,8 @@ Decide exactly which numbers are PRICES: monetary amounts of items that must cha
 Prices: values in columns such as قیمت، فی، مبلغ، قیمت فروش، قیمت مصرف کننده، قیمت همکار، قیمت عمده، قیمت نماینده، price, and money amounts written next to items (e.g. «۲۵۰,۰۰۰ تومان»). When there are several price columns (e.g. wholesale and retail), all of them are prices. Money totals are prices too.
 
 Never prices: row numbers (ردیف), product/part/technical codes (کد کالا، شماره فنی، کد)، barcodes, quantities and pack sizes (تعداد، تعداد در کارتن، عدد)، dates and years (1405/06/23، 1405)، phone numbers, page numbers, percentages and discount rates, model numbers or specs inside product names (405، 206، L90، EF7، ۷۵ درجه، 76/5)، weights, dimensions.
+
+Groups: many lists are split into groups (sections) - a title row or bar across the table («گروه پژو 405»، «ترموستات ها»، «ایران خودرو») or a group name written once beside its rows (a merged cell, sometimes sideways). For every price give "group": that title exactly as written on this page, the one the row falls under. Leave it empty when the page shows no such title above the row (a list without groups, or a group that began on an earlier page). Never use the list's own title, the company name, a column header or a product name as a group.
 
 Boxes use box_2d = [ymin, xmin, ymax, xmax] normalised to 0-1000 over the whole image.
 
@@ -631,7 +633,7 @@ Rules are applied in order; each price takes the LAST rule whose scope contains 
 - op "multiply": value is the factor.
 rounding.step: 0 = no rounding; otherwise round every NEW price to a multiple of step ("رند به هزار" = 1000). mode nearest/up/down.
 
-Selecting items: match row labels semantically (e.g. "پرایدها" = rows whose label mentions پراید; "ردیف ۱ تا ۱۰" = rows 1..10 by their row number in the label, or by order if there is none; "صفحه ۲" = page 2). Use the ids exactly as given.
+Selecting items: match row labels semantically (e.g. "پرایدها" = rows whose label mentions پراید; "ردیف ۱ تا ۱۰" = rows 1..10 by their row number in the label, or by order if there is none; "صفحه ۲" = page 2). The list's groups (sections) are given per price ("-" = none): "گروه پژو" / "پژوها" when the list has such a group means every price of that group (all groups whose name matches, e.g. پژو 405 and پژو 206), whatever the row labels say; "بقیه" = every price not already chosen. Row numbers often start again at 1 in every group: "ردیف ۱ تا ۱۰" inside a named group means those rows of that group; without a group named, and with rows numbered per group, ask which group (status clarify). Use the ids exactly as given.
 
 status "clarify" only when the instruction is genuinely ambiguous (e.g. the direction of the change is unclear); then ask a short question in Persian in "question". status "not_a_price_command" if the text is not about changing prices. "summary" is a short Persian description of what will be done."""
 
@@ -652,6 +654,7 @@ TABLE_SYSTEM = """You transcribe price-list tables from an image into a spreadsh
 - direction "rtl" for Persian tables: the FIRST cell of every row is the RIGHTMOST column. "ltr" for left-to-right tables.
 - headers: the header row (join a multi-line header with a space). Every row must have exactly as many cells as there are headers; use empty text for empty cells and for cells that only hold a picture.
 - A cell that shows one of the listed prices: price_id = its id and text = the price as shown. Every other cell: price_id = "".
+- A row that only names a group of the list (a title bar across the table such as «گروه پژو 405»): one row whose first cell holds that title and all other cells empty, where it stands between the rows.
 - Copy product names, codes and numbers exactly; do not translate or reorder words."""
 
 
@@ -748,9 +751,10 @@ def verify_reads(sheet: Image.Image, indexes: list[int], provider: GeminiModel) 
 
 
 def interpret_command(command: str, items: list[dict], currency: str) -> dict:
-    lines = "\n".join(f"{it['id']} | p{it['page']} | c{it['column']} | {it['label']} | {it['value']}" for it in items)
+    lines = "\n".join(f"{it['id']} | p{it['page']} | c{it['column']} | g{it.get('group', '-')} | {it['label']} | "
+                      f"{it['value']}" for it in items)
     text = (f"Currency of the list: {currency or 'unknown'}\n"
-            f"Prices (id | page | column | row label | current value):\n{lines}\n\n"
+            f"Prices (id | page | column | group | row label | current value):\n{lines}\n\n"
             f"Instruction: «{command}»")
     return with_failover(lambda p: p.call(COMMAND_SYSTEM, text, [], COMMAND_SCHEMA, "price_plan",
                                           config.AI_EFFORT_COMMAND, 32768), "command")

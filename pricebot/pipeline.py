@@ -21,6 +21,7 @@ import pymupdf
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from . import ai, brain, config, fonts, raster
+from .brain import groups as bgroups
 from .brain import layout as blayout
 from .brain import ocr as bocr
 from .models import Analysis, PageInfo, PriceItem
@@ -110,6 +111,7 @@ def _analyze_pdf(analysis: Analysis, progress: Progress | None) -> list[str]:
         analysis.items.extend(items)
         analysis.warnings.extend(warns)
         currencies.append(currency)
+    assign_groups(analysis)
     return currencies
 
 
@@ -174,14 +176,15 @@ def _analyze_pdf_page(analysis: Analysis, index: int) -> tuple[PageInfo, list[Pr
                 warnings.append(f"صفحه {index + 1} عکس/اسکن است و برای خواندن آن کلید Gemini یا OCR لازم است.")
             return info, [], warnings, ""
 
-        selected: list[tuple[TextToken, str, int]] = []   # token, label, column
+        selected: list[tuple[TextToken, str, int, str]] = []   # token, label, column, group (Gemini's)
         image_prices: list[dict] = []
         currency = ""
         columns: dict[int, str] = {}
         mode = _brain_mode(analysis)
         bdoc = dec = None
         if brain.enabled():
-            bdoc = blayout.from_pdf(page, cands)
+            small = [t for t in tokens if not t.attached and len(_digits(t.text)) == 1]
+            bdoc = blayout.from_pdf(page, cands, small)
             dec = brain.BRAIN.decide(bdoc, mode)
             # prices drawn inside pictures are only seen by the teacher
             if dec.trusted and mode != "local" and coverage > 0.15 and (dec.template or {}).get("img", True):
@@ -212,7 +215,8 @@ def _analyze_pdf_page(analysis: Analysis, index: int) -> tuple[PageInfo, list[Pr
                 for p in data.get("text_prices", []):
                     k = p.get("id")
                     if isinstance(k, int) and 0 <= k < len(cands):
-                        selected.append((cands[k], p.get("label", ""), int(p.get("column_id", 0))))
+                        selected.append((cands[k], p.get("label", ""), int(p.get("column_id", 0)),
+                                         bgroups.clean_name(str(p.get("group") or ""))))
                 for p in data.get("image_prices", []):
                     image_prices.append({**p, "bbox": [v / zoom_ai for v in p["bbox"]]})  # -> points
                 if bdoc is not None:
@@ -226,7 +230,7 @@ def _analyze_pdf_page(analysis: Analysis, index: int) -> tuple[PageInfo, list[Pr
         if data is None:
             if dec is not None:
                 for i in sorted(dec.selected):
-                    selected.append((cands[i], bdoc.label(i), bdoc.col_of[i] + 1))
+                    selected.append((cands[i], bdoc.label(i), bdoc.col_of[i] + 1, ""))
                 columns = brain.column_names(bdoc)
                 currency = bdoc.currency()
                 how = "local" if dec.trusted else "fallback"
@@ -235,17 +239,21 @@ def _analyze_pdf_page(analysis: Analysis, index: int) -> tuple[PageInfo, list[Pr
                 analysis.brain[index] = {"how": how, "doc": bdoc, "decision": dec, "taught": False,
                                          "selected": set(dec.selected), "format": dec.template, "by": dec.how}
             else:
-                selected = [(t, "", 0) for t in _heuristic_select(cands)]
+                selected = [(t, "", 0, "") for t in _heuristic_select(cands)]
 
         seen: set[int] = set()
         selected = [s for s in selected if not (id(s[0]) in seen or seen.add(id(s[0])))]
         compute_layout(page, [s[0] for s in selected], chars)
         items: list[PriceItem] = []
-        for tok, label, col in sorted(selected, key=lambda s: (s[0].bbox.y0, -s[0].bbox.x1)):
+        num_of = {id(t): k for k, t in enumerate(cands)}
+        for tok, label, col, grp in sorted(selected, key=lambda s: (s[0].bbox.y0, -s[0].bbox.x1)):
             items.append(PriceItem(
                 id=f"p{index + 1}-{len(items) + 1}", page=index, kind="text", value=tok.parsed.value,
                 text=tok.text, fmt=tok.parsed.fmt, bbox=tuple(tok.bbox), label=label,
-                column=columns.get(col, str(col) if col else ""), payload=tok))
+                column=columns.get(col, str(col) if col else ""), payload=tok, group=grp))
+            if bdoc is not None and id(tok) in num_of:
+                # where the price sits in the brain's view of the page (for the group pass)
+                analysis.cache.setdefault("num_of", {})[items[-1].id] = (num_of[id(tok)], col)
         if items:
             info.mode = "text"
 
@@ -489,7 +497,8 @@ def _raster_items(rgb: np.ndarray, prices: list[dict], page: int, start: int, co
         items.append(PriceItem(
             id=f"p{page + 1}-{start + len(items)}", page=page, kind="raster", value=parsed.value, text=t.text,
             fmt=parsed.fmt, bbox=tuple(float(v) for v in t.box), label=p.get("label", ""),
-            column=columns.get(col, str(col) if col else ""), payload=t))
+            column=columns.get(col, str(col) if col else ""), payload=t,
+            group=bgroups.clean_name(str(p.get("group") or ""))))
     return items, warnings, stat, unresolved
 
 
@@ -625,6 +634,7 @@ def _analyze_image(analysis: Analysis, progress: Progress | None) -> list[str]:
     items, warns, currency = _raster_page(analysis, rgb, 0, 1)
     analysis.items = items
     analysis.warnings.extend(warns)
+    assign_groups(analysis)
     if progress:
         progress(1, 1)
     return [currency]
@@ -674,6 +684,9 @@ def _raster_page(analysis: Analysis, rgb: np.ndarray, index: int, start: int) ->
                                      "format": dec.template, "by": dec.how}
             return items, warns, bdoc.currency()
         log.info("page %d: %d local reads unsure, asking the teacher", index + 1, unresolved)
+    if not ai.enabled():
+        # no teacher to ask: the brain's reading (a picture page without prices has none)
+        return local("fallback") if dec is not None and dec.selected else ([], [], "")
 
     small, s = ai.fit_for_ai(Image.fromarray(rgb))
     _stage(analysis, "🎓 قالب ناآشناست؛ پرسیدن از Gemini")
@@ -698,6 +711,189 @@ def _raster_page(analysis: Analysis, rgb: np.ndarray, index: int, start: int) ->
                                  "new_format": outcome.get("new_format", False),
                                  "guess_ok": outcome.get("model_ok")}
     return items, warns, data.get("currency", "")
+
+
+# ================================================================== groups ==
+
+def _pdf_namer(page: pymupdf.Page) -> Callable[[tuple], str]:
+    """The PDF's own text inside a box (glyphs named even where the file does not)."""
+    from .arizon.text import page_glyphs, text_of   # the page is read only when a line is asked for
+
+    rows: dict[int, list] = {}          # the page's glyphs by height (4 pt bands), read once
+
+    def namer(box: tuple, side: float = 0.3) -> str:
+        if not rows:
+            for g in page_glyphs(page):
+                rows.setdefault(int((g.y0 + g.y1) / 8), []).append(g)
+            rows.setdefault(-1, [])
+        x0, y0, x1, y1 = box
+        pad = side * (y1 - y0)
+        top, bottom = y0 - 0.03 * (y1 - y0), y1 + 0.03 * (y1 - y0)
+        # a little room sideways; none up and down, where the next line starts
+        return text_of([g for k in range(int(top / 4), int(bottom / 4) + 1) for g in rows.get(k, ())
+                        if x0 - pad <= g.xc <= x1 + pad and top <= (g.y0 + g.y1) / 2 <= bottom])
+    return namer
+
+
+def _photo_namer(rgb: np.ndarray) -> Callable[[tuple], str]:
+    """Photos: a line on a shaded bar is read again on its own (the page OCR often
+    misses light letters on a dark colour); other lines keep the page OCR's words."""
+    bg = bgroups.image_graphics(rgb).bg
+
+    def namer(box: tuple, side: float = 0.3) -> str:
+        c = bg(box)
+        if c is None or bgroups._whiteish(c):
+            return ""
+        return bocr.read_line(rgb, box, pad=side > 0)
+    return namer
+
+
+def assign_groups(analysis: Analysis) -> None:
+    """Which group (section) of the list every price belongs to («گروه پژو 405»...).
+    Found by the bot's own AI on every page; Gemini's groups (pages it was asked
+    about) are its lessons, used where the page itself shows them."""
+    if not analysis.items or not brain.enabled():
+        return
+    try:
+        _assign_groups(analysis)
+    except Exception:  # noqa: BLE001 - groups are extra information, the prices stand as found
+        log.exception("finding the groups of %s failed", analysis.filename)
+
+
+def group_pages(analysis: Analysis, model: bgroups.GroupModel | None = None
+                ) -> tuple[list[bgroups.PageIn], list[bgroups.PageOut]]:
+    """Every page as the group finder sees it, and what it found there."""
+    pdf = pymupdf.open(analysis.source) if analysis.kind == "pdf" else None
+    try:
+        ins: list[bgroups.PageIn] = []
+        for p in range(analysis.page_count):
+            info = analysis.brain.get(p) or {}
+            doc = info.get("doc")
+            selected = set(info.get("selected", ()))
+            if doc is not None and selected:
+                # only numbers that became prices: a scrap the price check turned down
+                # (an OCR «4» read inside a title bar) makes no line a row of the table
+                boxes = [it.bbox for it in analysis.items
+                         if it.page == p and not (it.kind == "raster" and doc.source == "pdf")]
+                selected = {i for i in selected if i < len(doc.nums) and any(
+                    blayout.center_in(doc.nums[i].box, b, 0.5 * max(1.0, b[3] - b[1])) for b in boxes)}
+            if doc is None:
+                ins.append(bgroups.PageIn(None, set()))
+            elif doc.source == "pdf":
+                page = pdf[p]
+                ins.append(bgroups.PageIn(doc, selected, bgroups.pdf_graphics(page), _pdf_namer(page)))
+            else:
+                pinfo = analysis.pages[p] if p < len(analysis.pages) else None
+                g = namer = None
+                if pinfo is not None and pinfo.raster_path is not None and pinfo.raster_path.exists():
+                    rgb = np.asarray(Image.open(pinfo.raster_path).convert("RGB"))
+                    g, namer = bgroups.image_graphics(rgb), _photo_namer(rgb)
+                ins.append(bgroups.PageIn(doc, selected, g, namer))
+        outs = bgroups.find(ins, model or brain.BRAIN.gmodel)
+    finally:
+        if pdf is not None:
+            pdf.close()
+    return ins, outs
+
+
+def _assign_groups(analysis: Analysis) -> None:
+    ins, outs = group_pages(analysis)
+    taught: dict[int, list[tuple[PriceItem, str]]] = {}
+    last = ""                               # the group the page before ended in
+    for page in range(analysis.page_count):
+        items = sorted((it for it in analysis.items if it.page == page), key=lambda it: (it.bbox[1], -it.bbox[2]))
+        o = outs[page] if page < len(outs) else None
+        if not items or o is None or o.ctx is None:
+            for it in items:                # no view of the page: the teacher's group, else the one going on
+                it.group = it.group or last
+            last = items[-1].group if items else last
+            continue
+        told = [it for it in items if it.group]
+        if told:
+            taught[page] = [(it, it.group) for it in items]
+        if told and ins[page].doc.source == "ocr":
+            # a photo: the teacher reads its titles far better than the OCR does - its groups,
+            # with the rows above its first title going on in the group of the page before
+            cur = last
+            for it in items:
+                cur = it.group or cur
+                it.group = cur
+        else:
+            pinfo = analysis.pages[page] if page < len(analysis.pages) else None
+            for it in items:
+                box = it.bbox
+                if it.kind == "raster" and ins[page].doc.source == "pdf" and pinfo is not None and pinfo.zoom:
+                    box = tuple(v / pinfo.zoom for v in box)       # a price inside a picture of a text page
+                it.group = _settle_group(o.group_of(box), it.group, outs, page)
+        last = items[-1].group
+    _learn_groups(analysis, outs, taught)
+    _tidy_columns(analysis, ins, outs)
+    log.info("%s: groups %s", analysis.filename, [g for g, _ in analysis.groups()][:12])
+
+
+def _settle_group(mine: str, taught: str, outs: list[bgroups.PageOut], page: int) -> str:
+    """The brain's group, unless the teacher names another one that the page
+    itself shows (a title line on this page or before it)."""
+    if not taught or (mine and bgroups.same_name(mine, taught)):
+        return mine
+    for o in reversed(outs[:page + 1]):
+        for c in o.cands:
+            if bgroups.same_name(c.name, taught):
+                return c.name
+        for t in o.titles:
+            if bgroups.same_name(t.name, taught):
+                return t.name
+    return mine
+
+
+def _learn_groups(analysis: Analysis, outs: list[bgroups.PageOut],
+                  taught: dict[int, list[tuple[PriceItem, str]]]) -> None:
+    """Pages Gemini answered with groups are lessons: its group titles, found as
+    lines of the page, teach the brain which lines are titles. Only text pages
+    teach: lessons from photos (lines as the OCR garbles them) were measured to
+    make the brain worse on PDFs of formats it has not seen, for little gain on
+    photos - there the teacher's own groups are used."""
+    samples = []
+    for page, pairs in taught.items():
+        o = outs[page]
+        if o.ctx is None or o.ctx.doc.source != "pdf" or not any(g for _, g in pairs):
+            continue
+        order = sorted(((it.bbox[1] + it.bbox[3]) / 2, g) for it, g in pairs)
+
+        def names_below(line, order=order):
+            return next((g for y, g in order if y > line.y1), None)
+        samples += bgroups.labels(o, names_below)
+    if samples and any(y for _, y in samples):
+        brain.BRAIN.learn_groups(samples)
+
+
+def _tidy_columns(analysis: Analysis, ins: list[bgroups.PageIn], outs: list[bgroups.PageOut]) -> None:
+    """A group title written right above the header is no part of a column's name
+    («گروه پژو قیمت» -> «قیمت»), nor of a row's label; and words whose letters
+    the PDF leaves unnamed are written with the letters the glyph memory knows."""
+    num_of = analysis.cache.get("num_of", {})
+    for p, o in enumerate(outs):
+        doc, namer = ins[p].doc, ins[p].namer
+        info = analysis.brain.get(p) or {}
+        if doc is None or info.get("how") not in ("local", "fallback"):
+            continue
+        items = [it for it in analysis.items if it.page == p and it.id in num_of]
+        garbled = namer is not None and (bool(doc.hidden) or any(bgroups._UNREADABLE.search(it.label + it.column)
+                                                                  for it in items))
+        if not o.titles and not garbled:
+            continue
+        boxes = [t.box for t in o.titles]
+
+        def word_text(w, namer=namer) -> str:
+            if namer is None or not (bgroups._UNREADABLE.search(w.text) or not w.text.strip()):
+                return w.text
+            exact = bgroups.clean_name(namer(w.box, 0.05))
+            return exact or bgroups.clean_name(w.text)
+        names = brain.column_names(doc, boxes, word_text if garbled else None)
+        for it in items:
+            k, col = num_of[it.id]
+            it.column = names.get(col, it.column)
+            it.label = doc.label(k, boxes, word_text if garbled else None)
 
 
 # ============================================== page images (preview/excel) ==

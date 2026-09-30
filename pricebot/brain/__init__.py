@@ -12,7 +12,7 @@ import time
 from pathlib import Path
 
 from .. import config
-from . import layout, ocr
+from . import groups, layout, ocr
 from .layout import PageDoc
 from .learner import Brain, Decision
 
@@ -22,7 +22,7 @@ SEED_DIR = Path(__file__).resolve().parent / "seed"
 if config.BRAIN_MODE != "off":
     BRAIN.merge_seed(SEED_DIR)
 
-__all__ = ["BRAIN", "Decision", "PageDoc", "enabled", "mode", "layout", "ocr", "column_names",
+__all__ = ["BRAIN", "Decision", "PageDoc", "enabled", "mode", "groups", "layout", "ocr", "column_names",
            "report", "page_note", "truth_from_boxes"]
 
 
@@ -34,15 +34,38 @@ def mode() -> str:
     return config.BRAIN_MODE if config.BRAIN_MODE in ("auto", "teacher", "local") else "auto"
 
 
-def header_text(doc: PageDoc, c: int) -> str:
+def _inside(t, boxes) -> bool:
+    return any(layout.center_in(t.box, b, 0.2 * max(1.0, t.box[3] - t.box[1])) for b in boxes)
+
+
+def _hidden_header(doc: PageDoc, c: int) -> list:
+    """The header of column c among all words, those the file does not name included:
+    the nearest line of words right above the column's first number."""
+    x0, x1 = doc.col_span(c)
+    top = min(doc.nums[i].box[1] for i in doc.columns[c])
+    pad = 0.4 * doc.line_h
+    above = [w for w in doc.words + doc.hidden
+             if w.box[2] >= x0 - pad and w.box[0] <= x1 + pad and w.box[3] <= top + 0.3 * doc.line_h
+             and top - w.box[1] <= 4 * doc.line_h]
+    if not above:
+        return []
+    first = max(w.box[3] for w in above)
+    return [w for w in above if first - w.box[3] <= 1.6 * doc.line_h][:8]
+
+
+def header_text(doc: PageDoc, c: int, skip: list = (), word_text=None) -> str:
+    """The name of column c; `skip`: boxes of group titles (not part of any header)."""
     words = doc.header(c)
+    if word_text is not None and doc.hidden:
+        words = _hidden_header(doc, c) or words
+    words = [w for w in words if not _inside(w, skip)]
     rtl = doc.rtl()
     words = sorted(words, key=lambda w: (round(w.box[1] / max(1.0, doc.line_h)), -w.xc if rtl else w.xc))
-    return " ".join(w.text for w in words)
+    return " ".join((word_text(w) if word_text else w.text) for w in words)
 
 
-def column_names(doc: PageDoc) -> dict[int, str]:
-    return {c + 1: header_text(doc, c) for c in range(len(doc.columns))}
+def column_names(doc: PageDoc, skip: list = (), word_text=None) -> dict[int, str]:
+    return {c + 1: header_text(doc, c, skip, word_text) for c in range(len(doc.columns))}
 
 
 def truth_from_boxes(doc: PageDoc, boxes: list[tuple[float, float, float, float]],
@@ -127,6 +150,12 @@ def report() -> str:
         lines.append(f"• دقت روی {_fa(chk['tokens'])} عدد بررسی‌شده: "
                      f"{_fa(round(100 * chk.get('tokens_ok', 0) / chk['tokens'], 1))}٪")
     lines.append(f"• نمونه‌های آموزشی: {_fa(n_samples)}")
+    with b.lock:
+        n_group = len(b.gsamples)
+    if n_group:
+        taught = stats.get("groups_learned", 0)
+        lines.append(f"🗂 تشخیص گروه‌های لیست: {_fa(n_group)} درس"
+                     + (f" — {_fa(taught)} بار یادگیری از Gemini" if taught else ""))
     r = stats.get("reads", {})
     if ocr.available():
         if r.get("n"):

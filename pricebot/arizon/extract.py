@@ -1104,8 +1104,10 @@ def _continues(a: Table, b: Table) -> bool:
     return same == len(a.headers) or (len(a.headers) >= 4 and same >= len(a.headers) - 1)
 
 
-def assemble(pages: list[tuple[int, PageRead | Table | Frame | list]]) -> Content:
-    """Join what was read page by page into one document."""
+def assemble(pages: list[tuple[int, PageRead | Table | Frame | list]],
+             group_of: dict[str, str] | None = None) -> Content:
+    """Join what was read page by page into one document. `group_of`: the group
+    of every price (price id -> group name), as the bot's own AI found it."""
     content = Content()
     seen_titles: set[str] = set()
     seen_notes: set[str] = set()
@@ -1180,6 +1182,8 @@ def assemble(pages: list[tuple[int, PageRead | Table | Frame | list]]) -> Conten
             b.headers, b.rows, _ = _collapse_spanned(b.headers, b.rows, [])
             b.roles = column_roles(b)
             _drop_empty_columns(b)
+            if group_of is not None:
+                apply_groups(b, group_of)
             _order_by_row_number(b)
     content.currency = currency_of(content)
     return content
@@ -1201,6 +1205,50 @@ def currency_of(content: Content) -> str:
     return find(heads) or find(content.titles + content.notes)
 
 
+def apply_groups(t: Table, group_of: dict[str, str]) -> None:
+    """Group rows exactly where the list's groups change, as the bot's own AI
+    found them for every price: a group title of the page is kept where it
+    stands, a missing one is added before the first row of its group, and a bar
+    that heads no group of its own (a banner, a repeated title) is dropped. Rows
+    without a price stay in the group around them."""
+    from ..brain.groups import same_group, same_name
+
+    out: list[Row] = []
+    buffer: list[Row] = []            # rows since the last row with a price
+    cur: str | None = None
+    for r in t.rows:
+        ids = [pid for c in r.cells for pid in c.price_ids] if r.kind == "item" else []
+        g = next((group_of[pid] for pid in ids if pid in group_of), None)
+        if r.kind == "group" or g is None:
+            buffer.append(r)
+            continue
+        if cur is not None and (g == cur or (g and cur and same_group(g, cur))):
+            out += [b for b in buffer if b.kind != "group"]     # the same group goes on
+        else:
+            titles = [(k, b) for k, b in enumerate(buffer) if b.kind == "group" and g]
+            mark = next((k for k, b in titles if same_group(b.cells[0].text, g)),
+                        next((k for k, b in titles if same_name(b.cells[0].text, g)), None))
+            if mark is not None:
+                # the page's own title of this group, where it stands (named like the prices'
+                # group when the page's text of it has letters the file does not name, or
+                # differs only in spacing: \u00ab\u067e\u0698\u0648405\u00bb is shown as \u00ab\u067e\u0698\u0648 405\u00bb, as everywhere else)
+                title = buffer[mark]
+                c = title.cells[0]
+                if re.search("[\ufffd\ue000-\uf8ff]", c.text) or (c.text != g and same_group(c.text, g)):
+                    title = Row([Cell(g, snapshot=c.snapshot, snap_size=c.snap_size)], "group")
+                out += [b for b in buffer[:mark] if b.kind != "group"] + [title]
+                out += [b for b in buffer[mark + 1:] if b.kind != "group"]
+            else:
+                out += [b for b in buffer if b.kind != "group"]
+                if g:
+                    out.append(Row([Cell(g)], "group"))
+            cur = g
+        buffer = []
+        out.append(r)
+    out += [b for b in buffer if b.kind != "group"]
+    t.rows = out
+
+
 def _join_cut_group(last: Table, table: Table) -> None:
     """A group cell cut by the page break shows its name (or part of it) again at
     the top of the next page: that is the same group, not a new one."""
@@ -1217,30 +1265,37 @@ def _join_cut_group(last: Table, table: Table) -> None:
 
 def _order_by_row_number(t: Table) -> None:
     """Rows numbered 1, 2, 3… but read out of order (blocks side by side, pages
-    split in columns) are put back in the order of their numbers. Group bars
-    move with the row that follows them."""
+    split in columns) are put back in the order of their numbers - inside each
+    group only: rows of different groups (often each numbered from 1) are never
+    mixed."""
     if "row" not in t.roles:
         return
-    k = t.roles.index("row")
-    units: list[list[Row]] = []
-    pending: list[Row] = []
-    nums = []
+    segments: list[list[Row]] = [[]]
     for r in t.rows:
+        if r.kind == "group" and segments[-1]:
+            segments.append([])
+        segments[-1].append(r)
+    t.rows = [r for seg in segments for r in _ordered(seg, t.roles.index("row"))]
+
+
+def _ordered(rows: list[Row], k: int) -> list[Row]:
+    head = []
+    while rows and rows[0].kind == "group":
+        head.append(rows[0])
+        rows = rows[1:]
+    nums = []
+    for r in rows:
         if r.kind != "item":
-            pending.append(r)
-            continue
+            return head + rows
         d = re.sub(r"\D", "", unicodedata.normalize("NFKC", r.cells[k].text if k < len(r.cells) else ""))
         d = d.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
         if not d or len(d) > 5:
-            return
+            return head + rows
         nums.append(int(d))
-        units.append(pending + [r])
-        pending = []
     # (a few numbers used twice by mistake do not matter: the sort keeps their order)
     if len(nums) < 3 or len(set(nums)) < 0.95 * len(nums) or nums == sorted(nums):
-        return
-    order = sorted(range(len(units)), key=lambda i: nums[i])
-    t.rows = [r for i in order for r in units[i]] + pending
+        return head + rows
+    return head + [rows[i] for i in sorted(range(len(rows)), key=lambda i: nums[i])]
 
 
 def _drop_empty_columns(t: Table) -> None:

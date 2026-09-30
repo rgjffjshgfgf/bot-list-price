@@ -32,12 +32,14 @@ HEAD_FILL = PatternFill("solid", fgColor="1F4E78")
 TITLE_FILL = PatternFill("solid", fgColor="DDEBF7")
 PRICE_FILL = PatternFill("solid", fgColor="FFF2CC")
 ZEBRA_FILL = PatternFill("solid", fgColor="F7F9FC")
+GROUP_FILL = PatternFill("solid", fgColor="FFE699")
 
 
 @dataclass
 class Cell:
     text: str
     price_id: str = ""
+    group: bool = False          # a group title row (one cell spanning the table)
 
 
 @dataclass
@@ -52,9 +54,15 @@ class Table:
 
 def extract_tables(analysis: Analysis) -> tuple[list[Table], str]:
     """Tables of the pages that hold prices. Returns (tables, source) with
-    source "ai", "pdf" (PyMuPDF table finder) or "list" (just the prices).
-    Every price appears somewhere: prices outside any table are listed last."""
-    tables, source = _extract(analysis)
+    source "reading" (the reading of the Arizon template), "ai", "pdf"
+    (PyMuPDF table finder), "brain" or "list" (just the prices).
+    Every price appears somewhere: prices outside any table are listed last.
+    Group titles («گروه پژو 405») stand as their own rows where each group starts."""
+    tables = _from_reading(analysis)
+    source = "reading"
+    if tables is None:
+        tables, source = _extract(analysis)
+        _group_rows(tables, analysis)
     for t in tables:
         t.title = _clean_text(t.title)
         t.headers = [_clean_text(h) for h in t.headers]
@@ -68,6 +76,65 @@ def extract_tables(analysis: Analysis) -> tuple[list[Table], str]:
         extra[0].title = "سایر قیمت‌ها"
         tables += extra
     return tables, source
+
+
+def _from_reading(analysis: Analysis) -> list[Table] | None:
+    """The list as the Arizon template reads it from the file itself (clean text,
+    joined pages, group rows; no Gemini request - the template's own reading is
+    reused when it was already made). A page it could only keep as a picture is
+    extracted here page by page."""
+    if analysis.kind != "pdf":
+        return None
+    try:
+        from .arizon import reader
+        from .arizon.model import Frame, Table as ATable
+        content = analysis.cache.get("arizon") or analysis.cache.get("arizon_local")
+        if content is None:
+            content = analysis.cache["arizon_local"] = reader.read(analysis, use_ai=False)
+    except Exception:  # noqa: BLE001 - the page-by-page extraction still works
+        log.exception("reading %s for Excel failed", analysis.filename)
+        return None
+    if not any(isinstance(b, ATable) for b in content.blocks):
+        return None
+    out: list[Table] = []
+    title = " — ".join(content.titles[:2])
+    for b in content.blocks:
+        if isinstance(b, Frame):
+            pages = [b.page]
+            found = _ocr_table(analysis, b.page) if analysis.pages[b.page].mode == "raster" else []
+            found = found or _pdf_tables(analysis, pages) or _list_table(analysis, pages)
+            _group_rows(found, analysis)
+            out += found
+            continue
+        rows: list[list[Cell]] = []
+        for r in b.rows:
+            if r.kind == "group":
+                rows.append([Cell(r.cells[0].text, "", True)])
+            else:
+                rows.append([Cell(c.text, c.price_ids[0] if c.price_ids else "") for c in r.cells])
+        out.append(Table(title if not out else "", "rtl" if b.rtl else "ltr", list(b.headers), rows))
+    return _merge_tables(out)
+
+
+def _group_rows(tables: list[Table], analysis: Analysis) -> None:
+    """Group title rows put in by the group of each price (for tables read page by page)."""
+    group_of = {it.id: it.group for it in analysis.items}
+    if not any(group_of.values()):
+        return
+    from .brain.groups import same_group
+    cur: str | None = None
+    for t in tables:
+        rows: list[list[Cell]] = []
+        for r in t.rows:
+            if len(r) == 1 and r[0].group:
+                continue
+            g = next((group_of[c.price_id] for c in r if c.price_id in group_of), None)
+            if g is not None and g != cur and not (g and cur and same_group(g, cur)):
+                if g:
+                    rows.append([Cell(g, "", True)])
+                cur = g
+            rows.append(r)
+        t.rows = rows
 
 
 def _local_pages(analysis: Analysis, pages: list[int]) -> set[int]:
@@ -312,7 +379,7 @@ def write_workbook(entries: list[tuple[Analysis, dict[str, Decimal], list[Table]
         r = 1
         first_header_row = None
         for t in tables:
-            ncol = max([len(t.headers)] + [len(row) for row in t.rows] + [1])
+            ncol = max([len(t.headers)] + [len(row) for row in t.rows if not (len(row) == 1 and row[0].group)] + [1])
             if t.title:
                 ws.cell(r, 1, t.title).font = Font(name=FONT, bold=True, size=13)
                 ws.cell(r, 1).fill = TITLE_FILL
@@ -333,6 +400,17 @@ def write_workbook(entries: list[tuple[Analysis, dict[str, Decimal], list[Table]
                 first_header_row = first_header_row or r
                 r += 1
             for k, row in enumerate(t.rows):
+                if len(row) == 1 and row[0].group:
+                    cell = ws.cell(r, 1, row[0].text)
+                    cell.font = Font(name=FONT, bold=True, size=12)
+                    cell.fill = GROUP_FILL
+                    cell.border = BORDER
+                    cell.alignment = Alignment(horizontal="center", vertical="center")
+                    if ncol > 1:
+                        ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=ncol)
+                    ws.row_dimensions[r].height = 22
+                    r += 1
+                    continue
                 for c, cell_data in enumerate(row, 1):
                     item = items.get(cell_data.price_id) if cell_data.price_id else None
                     if item is not None:
@@ -370,6 +448,8 @@ def _row_labels(tables: list[Table]) -> dict[str, str]:
     out: dict[str, str] = {}
     for t in tables:
         for row in t.rows:
+            if len(row) == 1 and row[0].group:
+                continue
             ids = [c.price_id for c in row if c.price_id]
             if not ids:
                 continue
@@ -386,10 +466,12 @@ def _changes_sheet(wb: Workbook, entries, summary: str) -> None:
     ws = wb.create_sheet("تغییرات")
     ws.sheet_view.rightToLeft = True
     ws.cell(1, 1, f"خلاصه تغییرات — {summary}").font = Font(name=FONT, bold=True, size=13)
-    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=7)
+    ws.merge_cells(start_row=1, start_column=1, end_row=1,
+                   end_column=8 if any(it.group for a, _, _ in entries for it in a.items) else 7)
     ws.cell(1, 1).alignment = Alignment(horizontal="center")
     ws.cell(1, 1).fill = TITLE_FILL
-    headers = ["فایل", "صفحه", "شرح", "ستون", "قیمت قبلی", "قیمت جدید", "تغییر"]
+    grouped = any(it.group for analysis, _, _ in entries for it in analysis.items)
+    headers = ["فایل", "صفحه"] + (["گروه"] if grouped else []) + ["شرح", "ستون", "قیمت قبلی", "قیمت جدید", "تغییر"]
     for c, h in enumerate(headers, 1):
         cell = ws.cell(2, c, h)
         cell.font = Font(name=FONT, bold=True, color="FFFFFF")
@@ -403,17 +485,20 @@ def _changes_sheet(wb: Workbook, entries, summary: str) -> None:
             if it.id not in values:
                 continue
             new = values[it.id]
-            row = [analysis.filename, it.page + 1, it.label or row_text.get(it.id, "-"), it.column or "-",
-                   _number(it.value), _number(new), float((new - it.value) / it.value) if it.value else 0.0]
+            row = [analysis.filename, it.page + 1] + ([it.group or "-"] if grouped else []) + [
+                it.label or row_text.get(it.id, "-"), it.column or "-",
+                _number(it.value), _number(new), float((new - it.value) / it.value) if it.value else 0.0]
             for c, v in enumerate(row, 1):
                 cell = ws.cell(r, c, v)
                 cell.font = Font(name=FONT)
                 cell.border = BORDER
                 cell.alignment = Alignment(horizontal="center", vertical="center")
-            ws.cell(r, 5).number_format = _num_format(it)
-            ws.cell(r, 6).number_format = _num_format(it)
-            ws.cell(r, 7).number_format = "0.00%"
+            first = 6 if grouped else 5
+            ws.cell(r, first).number_format = _num_format(it)
+            ws.cell(r, first + 1).number_format = _num_format(it)
+            ws.cell(r, first + 2).number_format = "0.00%"
             r += 1
-    for c, w in zip(range(1, 8), (22, 7, 40, 18, 16, 16, 10)):
+    widths = (22, 7) + ((24,) if grouped else ()) + (40, 18, 16, 16, 10)
+    for c, w in zip(range(1, len(widths) + 1), widths):
         ws.column_dimensions[get_column_letter(c)].width = w
     ws.freeze_panes = "A3"

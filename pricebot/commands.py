@@ -173,6 +173,140 @@ def parse_local(command: str) -> LocalParse:
     return LocalParse(plan=plan)
 
 
+# ------------------------------------------------- commands by list group --
+
+_REST = re.compile(r"(?<!\S)(بقیه|باقی|سایر|مابقی|الباقی|دیگر)\S*")
+_GROUP_STOP = {"گروه", "خودرو", "محصولات", "قطعات", "لوازم", "و", "یا", "ها", "های", "سری", "مدل", "انواع", "کلیه"}
+_OTHER = re.compile(r"ردیف|صفحه|ستون|تومان|تومن|ریال|هزار(?!\s*تایی)|میلیون|ملیون|اگر|بیشتر\s*از|کمتر\s*از|به\s*جز|بجز|"
+                    r"غیر\s*از|بالای|زیر|only|except|row|page")
+
+
+def _words(text: str) -> list[tuple[str, int]]:
+    """(word, position) with plural endings dropped («پرایدها» -> «پراید»)."""
+    out = []
+    for m in re.finditer(r"[^\s،,؛;:.!?()«»\-/]+", text):
+        w = re.sub(r"(های|ها|هایی)$", "", m.group(0)) if len(m.group(0)) > 4 else m.group(0)
+        out.append((w, m.start()))
+    return out
+
+
+_FA_NUM = re.compile(r"(?<=[\u0621-\u064a\u066e-\u06d3])(?=\d)|(?<=\d)(?=[\u0621-\u064a\u066e-\u06d3])")
+
+
+def parse_groups(command: str, groups: list[str]) -> list[tuple[list[str] | None, Rule]] | None:
+    """A price change by the list's own groups, understood without Gemini:
+    «گروه پژو ۱۰ درصد افزایش، پراید ۵ درصد، بقیه ۳ درصد». Returns rules as
+    (group names, rule) - None names = every other price - or None when the
+    command is not (only) that."""
+    if not groups:
+        return None
+    text = normalize(command)
+    _, _, core = _parse_rounding(text)
+    if _OTHER.search(core):
+        return None
+    # «پژو405» is the group «پژو 405»: a Persian word and a number apart, as in the names
+    core = _FA_NUM.sub(" ", core)
+    keys = {g: [w for w in _FA_NUM.sub(" ", normalize(g)).split() if w not in _GROUP_STOP] for g in groups}
+    events: list[tuple[int, int, str, object]] = []          # (start, end, kind, value)
+    for m in _PERCENT.finditer(core):
+        events.append((m.start(), m.end(), "pct", (m.group(1) or m.group(2)).replace(" ", "")))
+    for m in _REST.finditer(core):
+        events.append((m.start(), m.end(), "rest", None))
+    # a group by its whole name («پژو 405»), else by a word of it («پژو» = every Peugeot group)
+    taken: set[int] = set()
+    for g, ks in sorted(keys.items(), key=lambda kv: -len(" ".join(kv[1]))):
+        full = " ".join(ks)
+        if len(full) < 2:
+            continue
+        for m in re.finditer(r"(?<!\S)" + re.escape(full) + r"(?:ها|های)?(?!\S)", core):
+            if not taken & set(range(m.start(), m.end())):
+                events.append((m.start(), m.end(), "group", {g}))
+                taken.update(range(m.start(), m.end()))
+    for w, pos in _words(core):
+        if pos in taken or w in _GROUP_STOP or len(w) < 2 or w.isdigit():
+            continue
+        hit = {g for g, ks in keys.items() if w in ks}
+        if hit:
+            events.append((pos, pos + len(w), "group", hit))
+    events.sort()
+    if not any(e[2] == "pct" for e in events) or not any(e[2] == "group" for e in events):
+        return None
+
+    parts: list[tuple[set[str] | None, str, Rule | None]] = []
+    names: set[str] = set()
+    rest = False
+    used: set[int] = set()
+    clause_start = 0
+    for k, (start, stop, kind, val) in enumerate(events):
+        if k in used:
+            continue
+        if kind == "group":
+            names |= val
+            continue
+        if kind == "rest":
+            rest = True
+            continue
+        if not names and not rest:
+            # «۱۰ درصد افزایش برای پژو»: the groups named right after it
+            j = k + 1
+            while j < len(events) and events[j][2] == "group":
+                names |= events[j][3]
+                used.add(j)
+                j += 1
+            if not names:
+                return None
+        nxt = next((e[0] for j, e in enumerate(events) if j > k and j not in used), len(core))
+        parts.append((set(names) if names else None, val, _direction(core[clause_start:nxt], val)))
+        clause_start = nxt
+        names, rest = set(), False
+    if names:                          # groups named with no percentage of their own
+        return None
+    if any(r is None for _, _, r in parts):
+        # a direction said once for all («پژو ۱۰ درصد و پراید ۵ درصد افزایش»)
+        up = _sign(core)
+        if up is None:
+            return None
+        parts = [(g, v, r or Rule("percent", abs(Decimal(v.replace(",", ".").replace("/", "."))) * (1 if up else -1)))
+                 for g, v, r in parts]
+    if all(g is None for g, _, _ in parts):
+        return None
+    rules = [(sorted(g) if g is not None else None, r) for g, _, r in parts]
+    # the general rule first: a group's own rule wins over «بقیه»
+    rules.sort(key=lambda gr: gr[0] is not None)
+    return rules
+
+
+def _sign(text: str) -> bool | None:
+    up, down = bool(_UP.search(text)), bool(_DOWN.search(text))
+    return None if up == down else up
+
+
+def _direction(clause: str, raw: str) -> Rule | None:
+    value = Decimal(raw.replace(",", ".").replace("/", "."))
+    if raw.startswith("-") or raw.startswith("+"):
+        return Rule("percent", value)
+    s = _sign(_PERCENT.sub(" ", clause))
+    if s is None:
+        return None
+    return Rule("percent", abs(value) if s else -abs(value))
+
+
+def plan_for_groups(command: str, rules: list[tuple[list[str] | None, Rule]],
+                    ids_by_group: dict[str, set[str]]) -> Plan:
+    """The plan of parse_groups() with the price ids of each group."""
+    step, mode, _ = _parse_rounding(normalize(command))
+    out: list[tuple[set[str] | None, Rule]] = []
+    parts = []
+    for groups, rule in rules:
+        if groups is None:
+            out.append((None, rule))
+            parts.append(f"بقیه {rule.describe()}")
+        else:
+            out.append(({i for g in groups for i in ids_by_group.get(g, set())}, rule))
+            parts.append(f"{'، '.join(groups)}: {rule.describe()}")
+    return Plan(out, step, mode, " — ".join(parts), command)
+
+
 def plan_from_ai(data: dict, command: str, valid_ids: set[str]) -> Plan:
     rules: list[tuple[set[str] | None, Rule]] = []
     for r in data.get("rules", []):

@@ -26,6 +26,7 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .groups import GroupModel
 from .ocr import GlyphBank
 from .layout import (CURRENCIES, UNITS, PageDoc, _is_sequence, canon, digits_of, keyword_groups,
                      magnitude)
@@ -130,6 +131,28 @@ def _is_unit(w: str) -> bool:
         if len(u) == len(w) and sum(1 for a, b in zip(u, w) if a != b) == 1:
             return True
     return False
+
+
+def _read_samples(path: Path) -> list[tuple[list[str], int]]:
+    out: list[tuple[list[str], int]] = []
+    try:
+        with path.open(encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    s = json.loads(line)
+                    out.append((list(s["f"]), int(s["y"])))
+                except (ValueError, KeyError, TypeError):
+                    continue
+    except OSError:
+        pass
+    return out
+
+
+def _write_samples(path: Path, samples: list[tuple[list[str], int]]) -> None:
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text("".join(json.dumps({"f": f, "y": y}, ensure_ascii=False) + "\n" for f, y in samples),
+                   encoding="utf-8")
+    tmp.replace(path)
 
 
 def _sigmoid(z: float) -> float:
@@ -255,6 +278,7 @@ class Decision:
 
 class Brain:
     SAMPLE_CAP = 40000
+    GROUP_SAMPLE_CAP = 20000
     TEMPLATE_CAP = 3000
     SAME_FORMAT = 0.9               # similarity above which a disagreeing page updates the format itself
     HISTORY = 60
@@ -269,6 +293,8 @@ class Brain:
         self.stats: dict = {}
         self.samples: list[tuple[list[str], int]] = []
         self.glyphs = GlyphBank()          # digit shapes learned from checked lists
+        self.gmodel = GroupModel()         # which lines of a list are group titles
+        self.gsamples: list[tuple[list[str], int]] = []
         self._load()
 
     # ---- persistence ------------------------------------------------------
@@ -283,6 +309,10 @@ class Brain:
     @property
     def _glyphs_path(self) -> Path:
         return self.dir / "glyphs.npz"
+
+    @property
+    def _gsamples_path(self) -> Path:
+        return self.dir / "group_samples.jsonl"
 
     def glyph_trusted(self) -> bool:
         """Shape-only reads were checked often enough and were (almost) never wrong."""
@@ -309,8 +339,11 @@ class Brain:
             self.model = PriceModel(data.get("weights"), data.get("g2"))
             self.templates = data.get("templates", [])
             self.stats = data.get("stats", {})
+            g = data.get("groups") or {}
+            self.gmodel = GroupModel(g.get("w"), g.get("g2"))
         except (OSError, ValueError):
             pass
+        self.gsamples = _read_samples(self._gsamples_path)[-self.GROUP_SAMPLE_CAP:]
         try:
             with self._samples_path.open(encoding="utf-8") as fh:
                 for line in fh:
@@ -338,6 +371,8 @@ class Brain:
             have = {t["id"] for t in self.templates}
             new = [t for t in data.get("templates", []) if t["id"] not in have and t["id"] not in done]
             if not new and done:
+                if self._merge_seed_groups(seed_dir, data):
+                    self.save()
                 return 0
             self.templates.extend(new)
             self.stats["seed_formats"] = sorted(done | {t["id"] for t in data.get("templates", [])})
@@ -365,8 +400,28 @@ class Brain:
                 sg = data.get("stats", {}).get("glyph_reads")
                 if sg and not self.stats.get("glyph_reads"):
                     self.stats["glyph_reads"] = dict(sg)
+            self._merge_seed_groups(seed_dir, data)
             self.save()
             return len(new)
+
+    def _merge_seed_groups(self, seed_dir: Path, data: dict) -> bool:
+        """Group lessons shipped with the code, taken once per edition: a brain that
+        has not learned groups yet takes the shipped model; one that has learned
+        (from Gemini) is taught the shipped examples on top of what it knows."""
+        g = data.get("groups") or {}
+        edition = g.get("edition")
+        if not edition or self.stats.get("seed_groups") == edition:
+            return False
+        seed = _read_samples(seed_dir / "group_samples.jsonl")
+        if not self.gsamples or not self.stats.get("groups_learned"):
+            self.gmodel = GroupModel(g.get("w"), g.get("g2"))
+        elif seed:
+            replay = random.sample(self.gsamples, min(len(self.gsamples), 3000))
+            self.gmodel.train(seed + replay, epochs=6)
+        known = {(tuple(f), y) for f, y in self.gsamples}
+        self._append_gsamples([(f, y) for f, y in seed if (tuple(f), y) not in known])
+        self.stats["seed_groups"] = edition
+        return True
 
     # ---- backup / restore -------------------------------------------------
     BACKUP_KIND = "pricebot-brain-backup"
@@ -386,10 +441,13 @@ class Brain:
             with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as zf:
                 zf.writestr("manifest.json", json.dumps(info, ensure_ascii=False))
                 zf.writestr("brain.json", json.dumps({"version": 1, "weights": self.model.w, "g2": self.model.g2,
-                                                      "templates": self.templates, "stats": self.stats},
+                                                      "templates": self.templates, "stats": self.stats,
+                                                      "groups": {"w": self.gmodel.w, "g2": self.gmodel.g2}},
                                                      ensure_ascii=False))
                 zf.writestr("samples.jsonl", "".join(json.dumps({"f": f, "y": y}, ensure_ascii=False) + "\n"
                                                      for f, y in self.samples))
+                zf.writestr("group_samples.jsonl", "".join(json.dumps({"f": f, "y": y}, ensure_ascii=False) + "\n"
+                                                           for f, y in self.gsamples))
                 if len(self.glyphs):
                     self.save_glyphs()
                     zf.write(self._glyphs_path, "glyphs.npz")
@@ -423,6 +481,13 @@ class Brain:
                         if line.strip():
                             s = json.loads(line)
                             samples.append((list(s["f"]), int(s["y"])))
+                gsamples = []
+                if "group_samples.jsonl" in names:
+                    for line in zf.read("group_samples.jsonl").decode("utf-8").splitlines():
+                        if line.strip():
+                            s = json.loads(line)
+                            gsamples.append((list(s["f"]), int(s["y"])))
+                data["_gsamples"] = gsamples
         except (zipfile.BadZipFile, KeyError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise ValueError(str(exc)) from exc
         if info.get("kind") != cls.BACKUP_KIND or not isinstance(data.get("templates"), list):
@@ -433,10 +498,20 @@ class Brain:
         """Replace everything with a backup, or add what the backup knows (merge).
         Returns the number of formats added (merge) or restored (replace)."""
         with self.lock:
+            gdata = data.get("groups") or {}
+            gsamples = list(data.get("_gsamples", []))
             if not merge:
                 self.model = PriceModel(data.get("weights"), data.get("g2"))
                 self.templates = list(data.get("templates", []))
                 self.stats = data.get("stats", {})
+                if gdata:
+                    self.gmodel = GroupModel(gdata.get("w"), gdata.get("g2"))
+                self.gsamples = []
+                try:
+                    self._gsamples_path.unlink()
+                except OSError:
+                    pass
+                self._append_gsamples(gsamples)
                 self.samples = []
                 try:
                     self._samples_path.unlink()
@@ -464,6 +539,12 @@ class Brain:
                 self.glyphs.extend(glyphs)
                 self.glyphs.trim()
                 self.save_glyphs()
+            known = {(tuple(f), y) for f, y in self.gsamples}
+            gsamples = [(f, y) for f, y in gsamples if (tuple(f), y) not in known]
+            if gsamples:
+                replay = random.sample(self.gsamples, min(len(self.gsamples), 2000))
+                self._append_gsamples(gsamples)
+                self.gmodel.train(gsamples + replay, epochs=3)
             self.save()
             return len(new)
 
@@ -472,7 +553,8 @@ class Brain:
             try:
                 self.dir.mkdir(parents=True, exist_ok=True)
                 data = {"version": 1, "weights": self.model.w, "g2": self.model.g2,
-                        "templates": self.templates, "stats": self.stats}
+                        "templates": self.templates, "stats": self.stats,
+                        "groups": {"w": self.gmodel.w, "g2": self.gmodel.g2}}
                 tmp = self._main.with_suffix(".tmp")
                 tmp.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
                 tmp.replace(self._main)
@@ -501,7 +583,8 @@ class Brain:
             self.model = PriceModel()
             self.templates, self.stats, self.samples = [], {}, []
             self.glyphs = GlyphBank()
-            for p in (self._main, self._samples_path, self._glyphs_path):
+            self.gmodel, self.gsamples = GroupModel(), []
+            for p in (self._main, self._samples_path, self._glyphs_path, self._gsamples_path):
                 try:
                     p.unlink()
                 except OSError:
@@ -658,6 +741,32 @@ class Brain:
                 self.templates = [t for t in self.templates if id(t) in keep_ids]
             self.save()
             return outcome
+
+    def learn_groups(self, samples: list[tuple[list[str], int]]) -> None:
+        """Learn which lines are group titles from checked pages (the teacher's groups)."""
+        if not samples:
+            return
+        with self.lock:
+            replay = random.sample(self.gsamples, min(len(self.gsamples), 2000))
+            self._append_gsamples(samples)
+            self.gmodel.train(samples + replay, epochs=3)
+            self.gmodel.train(samples, epochs=2)
+            self.stats["groups_learned"] = self.stats.get("groups_learned", 0) + 1
+            self.save()
+
+    def _append_gsamples(self, new: list[tuple[list[str], int]]) -> None:
+        self.gsamples.extend(new)
+        try:
+            self.dir.mkdir(parents=True, exist_ok=True)
+            if len(self.gsamples) > self.GROUP_SAMPLE_CAP * 1.2:
+                self.gsamples = self.gsamples[-self.GROUP_SAMPLE_CAP:]
+                _write_samples(self._gsamples_path, self.gsamples)
+            else:
+                with self._gsamples_path.open("a", encoding="utf-8") as fh:
+                    for f, y in new:
+                        fh.write(json.dumps({"f": f, "y": y}, ensure_ascii=False) + "\n")
+        except OSError as exc:
+            log.warning("could not save group samples: %s", exc)
 
     def _fill_template(self, tpl: dict, doc: PageDoc, truth: set[int]) -> None:
         cols, neg = [], []
