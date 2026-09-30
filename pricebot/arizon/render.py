@@ -510,17 +510,59 @@ def paginate(preps: list[Prepared | Frame], first_top: float, top: float, bottom
 @dataclass
 class Meta:
     title: str = "لیست قیمت محصولات"
-    subtitle: str = ""
+    subtitle: str = ""            # the user's line under the title («باباپارت»), empty: none
     currency: str = ""
     item_count: int = 0
     date: datetime | None = None
 
 
-def _band_html(meta: Meta) -> str:
-    sub = (f'<p dir="rtl" style="text-align:left; font-family:vzm; font-size:9.5pt; color:{YELLOW}; '
-           f'margin-top:2pt">{_esc(meta.subtitle)}</p>') if meta.subtitle else ""
+TITLE_TOP = 17.0                  # where the title starts in the band when it stands alone
+SUBTITLE_SIZES = (13.0, 12.0, 11.0, 10.0, 9.0)
+SUBTITLE_MIN = 8.5                # below this a long line wraps onto a second line instead
+SUBTITLE_MAX = 70                 # characters: two lines of the band at the smallest size
+_PERSIAN = re.compile("[\u0600-\u06ff]")
+_INVISIBLE = re.compile("[\u200b\u200d-\u200f\u202a-\u202e\u2066-\u2069\ufeff]")
+
+
+def clean_subtitle(text: str) -> str:
+    """The user's line under the title as it can be drawn: one line, Persian
+    letters (ي/ك typed on an Arabic keyboard become ی/ک), no direction marks, no
+    characters the template's font does not have (emoji), digits in the script
+    of the words beside them."""
+    t = unicodedata.normalize("NFKC", text or "").replace("ي", "ی").replace("ى", "ی").replace("ك", "ک")
+    t = _INVISIBLE.sub("", t)
+    font = _font("Vazirmatn-Bold.ttf")
+    t = "".join(c if c.isspace() or c == "\u200c" or font.has_glyph(ord(c)) else " " for c in t)
+    t = re.sub(r"\s+", " ", t).strip(" \u200c")
+    if _PERSIAN.search(t):
+        t = digits(t, "", True)
+    return t
+
+
+def subtitle_size(text: str, width: float) -> float:
+    """The largest size at which the line under the title fits the band on one line."""
+    for size in SUBTITLE_SIZES:
+        if _text_w(text, size, bold=True) * 1.04 <= width:
+            return size
+    return SUBTITLE_MIN
+
+
+def _band_html(meta: Meta, sub_size: float = SUBTITLE_SIZES[0]) -> str:
+    sub = (f'<p dir="rtl" style="text-align:left; font-family:vz; font-weight:bold; font-size:{sub_size}pt; '
+           f'color:{YELLOW}; margin-top:1.5pt">{_esc(meta.subtitle)}</p>') if meta.subtitle else ""
     return (f'<p dir="rtl" style="text-align:left; font-family:vzb; font-size:19pt; color:#FFFFFF">'
             f'{_esc(meta.title)}</p>{sub}')
+
+
+def _band(meta: Meta, css: str, arch, width: float) -> tuple[str, float]:
+    """The title (and the line under it) and where it starts: alone, the title stands
+    where it always has; with a line under it, the two are centred in the band."""
+    if not meta.subtitle:
+        return _band_html(meta), TITLE_TOP
+    size = subtitle_size(meta.subtitle, width)
+    html_text = _band_html(meta, size)
+    h = _story_h(html_text, css, arch, width)
+    return html_text, max(5.0, (BAND_H - h) / 2 + 1.0)
 
 
 def _date_html(meta: Meta) -> str:
@@ -621,6 +663,9 @@ def render(content: Content, items: dict[str, PriceItem], values: dict[str, Deci
         if spec.notes:
             spec.notes_box = pymupdf.Rect(MARGIN, spec.notes_h, W - MARGIN, spec.notes_h + notes_h - 6)
 
+    band_x0, band_x1 = MARGIN + 190, W - MARGIN - LOGO_W - 16
+    band_html, band_top = _band(meta, css, arch, band_x1 - band_x0)
+
     buf = io.BytesIO()
     writer = pymupdf.DocumentWriter(buf)
     total = len(pages)
@@ -632,7 +677,7 @@ def render(content: Content, items: dict[str, PriceItem], values: dict[str, Deci
             st.place(rect)
             st.draw(dev)
 
-        draw(_band_html(meta), pymupdf.Rect(MARGIN + 190, 17, W - MARGIN - LOGO_W - 16, BAND_H - 4))
+        draw(band_html, pymupdf.Rect(band_x0, band_top, band_x1, BAND_H - 2))
         draw(_date_html(meta), pymupdf.Rect(MARGIN, 11, MARGIN + 150, BAND_H - 2))
         if k == 0:
             for pl in pills:
@@ -656,7 +701,8 @@ def render(content: Content, items: dict[str, PriceItem], values: dict[str, Deci
     doc = pymupdf.open("pdf", buf.getvalue())
     for k, (page, spec) in enumerate(zip(doc, pages)):
         _decorate(page, spec, W, H, pills if k == 0 else [])
-    doc.set_metadata({"title": meta.title, "creator": "Arizon", "producer": "Arizon"})
+    title = f"{meta.title} — {meta.subtitle}" if meta.subtitle else meta.title
+    doc.set_metadata({"title": title, "creator": "Arizon", "producer": "Arizon"})
     try:
         _fix_text_layer(doc)
     except Exception:  # noqa: BLE001 - fontTools missing: the pages look the same either way

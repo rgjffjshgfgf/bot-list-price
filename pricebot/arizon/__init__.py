@@ -1,6 +1,6 @@
 """Arizon template: a price list rebuilt as a branded Arizon document.
 
-    build(analysis, values, native, out_dir, stem) -> [pdf]
+    build(analysis, values, native, out_dir, stem, subtitle="") -> pdf
 
 The list is read into tables (see reader.py), the prices are replaced by the
 new values and everything is drawn in the Arizon design (see render.py).
@@ -33,13 +33,14 @@ def content_of(analysis: Analysis) -> Content:
 
 
 def build(analysis: Analysis, values: dict[str, Decimal], native: Callable[[], Path], out_dir: Path,
-          stem: str) -> Path:
+          stem: str, subtitle: str = "") -> Path:
     """native() gives the list with its new prices applied (made only when a
-    page has to be shown as a picture)."""
+    page has to be shown as a picture). subtitle: the line under the title
+    («باباپارت»), empty for none."""
     content = reader.fill_frames(content_of(analysis), analysis, native)
     framed = {b.page for b in content.blocks if isinstance(b, Frame)}
     count = content.item_count + sum(1 for it in analysis.items if it.page in framed)
-    meta = render.Meta(currency=content.currency, item_count=count)
+    meta = render.Meta(subtitle=render.clean_subtitle(subtitle), currency=content.currency, item_count=count)
     path = out_dir / f"{stem}.pdf"
     t = time.time()
     pages = render.render(content, {it.id: it for it in analysis.items}, values, path, meta)

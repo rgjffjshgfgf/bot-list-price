@@ -163,7 +163,8 @@ class Exporter:
         self.summary = summary
         self.warnings: list[str] = []
         self._native: dict[int, Path] = {}
-        self._arizon: dict[int, Path] = {}
+        self._arizon: dict[tuple[int, str], Path] = {}     # (file, line under the title) -> pdf
+        self._arizon_dirs: dict[str, Path] = {}             # line under the title -> its folder
         out_dir.mkdir(parents=True, exist_ok=True)
 
     def _stem(self, analysis: Analysis) -> str:
@@ -222,8 +223,9 @@ class Exporter:
         excel.write_workbook(rows, path, self.summary)
         return path
 
-    def arizon(self, as_images: bool = False) -> list[Path]:
-        """The list rebuilt in the Arizon template (PDF, or one PNG per page)."""
+    def arizon(self, as_images: bool = False, subtitle: str = "") -> list[Path]:
+        """The list rebuilt in the Arizon template (PDF, or one PNG per page);
+        subtitle: the line under «لیست قیمت محصولات», empty for none."""
         from . import arizon   # heavy import, only when asked for
 
         out = []
@@ -232,22 +234,29 @@ class Exporter:
             stem = f"لیست قیمت آریزون {arizon.render.today_fa()[0].replace('/', '-')}"
             if len(self.entries) > 1:
                 stem += f" ({i + 1})"
-            if i not in self._arizon:
-                self._arizon[i] = arizon.build(analysis, values, lambda: self.native(i), self.out_dir, stem)
-            pdf = self._arizon[i]
+            key = (i, subtitle)
+            if key not in self._arizon:
+                # every line under the title makes its own documents (same file names, own folder)
+                if subtitle not in self._arizon_dirs:
+                    self._arizon_dirs[subtitle] = self.out_dir / f"arizon_v{len(self._arizon_dirs) + 1}"
+                folder = self._arizon_dirs[subtitle]
+                folder.mkdir(exist_ok=True)
+                self._arizon[key] = arizon.build(analysis, values, lambda: self.native(i), folder, stem, subtitle)
+            pdf = self._arizon[key]
             if as_images:
-                pages_dir = self.out_dir / f"arizon_{i + 1}"
+                pages_dir = pdf.parent / f"pages_{i + 1}"
                 pages_dir.mkdir(exist_ok=True)
                 out += pdf_to_images(pdf, pages_dir, stem, dpi=ARIZON_IMAGE_DPI)
             else:
                 out.append(pdf)
         return out
 
-    def build(self, fmt: str) -> list[Path]:
+    def build(self, fmt: str, subtitle: str = "") -> list[Path]:
+        """subtitle: the Arizon template's line under its title (other formats ignore it)."""
         if fmt == "arizon":
-            return self.arizon()
+            return self.arizon(subtitle=subtitle)
         if fmt == "arizon_image":
-            return self.arizon(as_images=True)
+            return self.arizon(as_images=True, subtitle=subtitle)
         if fmt == "pdf":
             return self.pdf()
         if fmt == "image":
