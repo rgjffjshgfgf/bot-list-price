@@ -47,6 +47,7 @@ HELP = (
     "• ۵ درصد کاهش\n"
     "• ۱۵ درصد افزایش و رند به هزار\n"
     "• فقط پرایدها ۲۰ درصد، بقیه ۱۰ درصد\n"
+    "• گروه پژو ۱۵ درصد افزایش، بقیه ۵ درصد (اگر لیست گروه‌بندی دارد)\n"
     "• ردیف ۱ تا ۱۰ رو ۵۰۰ هزار تومن اضافه کن\n"
     "۳) فرمت خروجی را انتخاب کن: PDF، Excel یا عکس، یا «✨ قالب آریزون»: لیست با قیمت‌های جدید "
     "در طراحی اختصاصی آریزون.\n\n"
@@ -595,6 +596,10 @@ async def _report_analysis(status: Message, analysis: Analysis, session: Session
         lines.append(f"• {label}{it.text}")
     if n > 4:
         lines.append("• …")
+    groups = _groups_note(analysis)
+    if groups:
+        lines.append("")
+        lines += groups
     notes = _brain_notes(analysis)
     if analysis.cache.get("seconds"):
         notes.append(f"⏱ زمان بررسی: {_fa(round(analysis.cache['seconds']))} ثانیه")
@@ -658,6 +663,11 @@ async def _handle_command_text(update: Update, context: ContextTypes.DEFAULT_TYP
     local = commands.parse_local(text)
     if local.plan is not None:
         return await _prepare(update, context, session, local.plan)
+    by_group = _group_plan(session, text)
+    if by_group is not None:
+        # «گروه پژو ۱۰ درصد، بقیه ۵ درصد»: understood from the list's own groups, no Gemini needed
+        await msg.reply_text(f"🗂 {by_group.summary}")
+        return await _prepare(update, context, session, by_group)
     if local.ask_direction is not None:
         v = fmt_plain(local.ask_direction)
         kb = InlineKeyboardMarkup([[
@@ -675,7 +685,7 @@ async def _handle_command_text(update: Update, context: ContextTypes.DEFAULT_TYP
     for fi, a in enumerate(session.analyses):
         for it in a.items:
             listing.append({"id": f"f{fi + 1}-{it.id}", "page": it.page + 1, "column": it.column or "-",
-                            "label": it.label or "-", "value": fmt_plain(it.value)})
+                            "group": it.group or "-", "label": it.label or "-", "value": fmt_plain(it.value)})
     currency = next((a.currency for a in session.analyses if a.currency), "")
     try:
         data = await asyncio.to_thread(ai.interpret_command, text, listing, currency)
@@ -698,6 +708,42 @@ async def _handle_command_text(update: Update, context: ContextTypes.DEFAULT_TYP
         return
     await _safe_edit(thinking, f"🧠 {plan.summary}" if plan.summary else "🧠 فهمیدم.")
     await _prepare(update, context, session, plan)
+
+
+def _session_groups(session: Session) -> list[str]:
+    names: list[str] = []
+    for a in session.analyses:
+        for g, _ in a.groups():
+            if g not in names:
+                names.append(g)
+    return names
+
+
+def _group_plan(session: Session, text: str) -> Plan | None:
+    rules = commands.parse_groups(text, _session_groups(session))
+    if rules is None:
+        return None
+    ids: dict[str, set[str]] = {}
+    for fi, a in enumerate(session.analyses):
+        for it in a.items:
+            if it.group:
+                ids.setdefault(it.group, set()).add(f"f{fi + 1}-{it.id}")
+    return commands.plan_for_groups(text, rules, ids)
+
+
+def _groups_note(analysis: Analysis) -> list[str]:
+    """The list's groups, for the analysis message."""
+    groups = analysis.groups()
+    if not groups:
+        return []
+    shown = "، ".join(f"{g} ({_fa(n)})" for g, n in groups[:8])
+    more = f" و {_fa(len(groups) - 8)} گروه دیگر" if len(groups) > 8 else ""
+    return [f"🗂 {_fa(len(groups))} گروه: {shown}{more}",
+            "برای تغییر یک گروه بنویس مثلاً: «گروه " + _short_group(groups[0][0]) + " ۱۰ درصد افزایش، بقیه ۵ درصد»"]
+
+
+def _short_group(name: str) -> str:
+    return name.replace("گروه", "", 1).strip() if name.startswith("گروه") else name
 
 
 def _label(plan: Plan) -> str:

@@ -119,6 +119,8 @@ class PageDoc:
     col_of: list[int] = field(default_factory=list)
     columns: list[list[int]] = field(default_factory=list)
     _headers: dict[int, list[Tok]] = field(default_factory=dict)
+    small: list[Tok] = field(default_factory=list)   # one-digit numbers (row numbers 1-9), seen by the group finder only
+    hidden: list[Tok] = field(default_factory=list)  # PDF text the file does not name (group finder only)
 
     def __post_init__(self) -> None:
         hs = [t.h for t in self.words + self.nums if t.h > 0]
@@ -229,9 +231,19 @@ class PageDoc:
         persian = sum(1 for w in self.words if _ARABIC.search(w.text))
         return persian >= 0.3 * max(1, len(self.words))
 
-    def label(self, i: int) -> str:
-        """Row number (if any) + the product words on the row, reading order."""
+    def label(self, i: int, skip: list = (), word_text=None) -> str:
+        """Row number (if any) + the product words on the row, reading order.
+        `skip`: boxes of group titles (a group name beside the rows is no product word);
+        `word_text`: how to write a word (e.g. its letters named where the PDF does not)."""
         words, nums = self.row(i)
+        if word_text is not None:
+            # words the file does not name are words too once their letters can be named
+            t = self.nums[i]
+            h = max(t.h, 0.6 * self.line_h)
+            words = words + [w for w in self.hidden
+                             if _overlap(w.box[1], w.box[3], t.box[1], t.box[3]) >= 0.45 * min(max(w.h, 1.0), h)]
+        if skip:
+            words = [w for w in words if not any(center_in(w.box, b, 0.2 * max(1.0, w.h)) for b in skip)]
         rtl = self.rtl()
         words.sort(key=lambda w: -w.xc if rtl else w.xc)
         row_no = ""
@@ -242,15 +254,21 @@ class PageDoc:
                 if _is_sequence(self, c):
                     row_no = digits_of(n.text)
                     break
-        text = " ".join(w.text for w in words[:10])
+        text = " ".join((word_text(w) if word_text else w.text) for w in words[:10])
         return f"{row_no} - {text}" if row_no and text else (text or row_no)
 
     def currency(self) -> str:
         counts: dict[str, int] = {}
+        big = [n for n in self.nums if n.num is not None and (n.num.fmt.group_sep or len(digits_of(n.text)) >= 5)]
         for w in self.words:
             cur = CURRENCIES.get(canon(w.text))
-            if cur:
-                counts[cur] = counts.get(cur, 0) + 1
+            if not cur:
+                continue
+            # «یورو ۴» in a product name is an engine standard, not the currency: on a row
+            # of the list (a line with a price or a code) «یورو» does not count
+            if cur == "یورو" and any(abs(n.yc - w.yc) <= 0.6 * self.line_h for n in big):
+                continue
+            counts[cur] = counts.get(cur, 0) + 1
         return max(counts, key=counts.get) if counts else ""
 
     def signature(self) -> set[str]:
@@ -337,15 +355,23 @@ def _char_kind(c: str) -> str:
     return "l" if unicodedata.category(c).startswith("L") else "o"
 
 
-def pdf_words(page) -> list[Tok]:
+_UNNAMED = re.compile("[\ufffd\ue000-\uf8ff]")
+
+
+def pdf_words(page, hidden: list[Tok] | None = None) -> list[Tok]:
     """Words from the PDF's characters: split at visible gaps (cell borders often
-    have no space character) and where digits meet letters ("10رینگ")."""
+    have no space character) and where digits meet letters ("10رینگ").
+    `hidden` collects runs of glyphs the PDF does not name (unreadable text)."""
     from ..pdftext import _lines, page_chars
     out: list[Tok] = []
     for line in _lines(page_chars(page)):
         run: list = []
 
         def flush() -> None:
+            if hidden is not None and run and not any(_char_kind(ch.c) == "l" for ch in run) \
+                    and sum(1 for ch in run if _UNNAMED.match(ch.c)) >= 2:
+                hidden.append(Tok("".join(ch.c for ch in run), (min(ch.bbox.x0 for ch in run), min(ch.bbox.y0 for ch in run),
+                                                              max(ch.bbox.x1 for ch in run), max(ch.bbox.y1 for ch in run))))
             if run and any(_char_kind(ch.c) == "l" for ch in run):
                 text = "".join(ch.c for ch in run)
                 if _ARABIC.search(text):
@@ -372,11 +398,16 @@ def pdf_words(page) -> list[Tok]:
     return out
 
 
-def from_pdf(page, cands) -> PageDoc:
-    """cands: the pipeline's number tokens (pdftext.TextToken) of this page, in order."""
+def from_pdf(page, cands, small=()) -> PageDoc:
+    """cands: the pipeline's number tokens (pdftext.TextToken) of this page, in order;
+    small: its one-digit number tokens (row numbers 1-9, for the group finder)."""
     nums = [Tok(t.text, tuple(t.bbox), t.parsed, t.attached) for t in cands]
     rect = page.rect * page.derotation_matrix
-    return PageDoc(abs(rect.width) or 1.0, abs(rect.height) or 1.0, pdf_words(page), nums, "pdf")
+    hidden: list[Tok] = []
+    doc = PageDoc(abs(rect.width) or 1.0, abs(rect.height) or 1.0, pdf_words(page, hidden), nums, "pdf")
+    doc.small = [Tok(t.text, tuple(t.bbox), t.parsed, t.attached) for t in small]
+    doc.hidden = hidden
+    return doc
 
 
 def overlap_share(a: Box, b: Box) -> float:

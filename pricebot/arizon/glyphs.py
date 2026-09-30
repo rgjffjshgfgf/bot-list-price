@@ -82,6 +82,9 @@ def page_fonts(page: pymupdf.Page) -> dict[str, int]:
     return out
 
 
+_KEYS: dict[str, dict[tuple[str, int], str | None]] = {}     # document -> (font, glyph) -> outline key
+
+
 def unnamed_glyphs(page: pymupdf.Page) -> dict[tuple[float, float], str]:
     """Origin (x, y) of every glyph the page does not name, mapped to the
     character the memory knows for its outline."""
@@ -97,19 +100,19 @@ def unnamed_glyphs(page: pymupdf.Page) -> dict[tuple[float, float], str]:
         return {}
     xrefs = page_fonts(page)
     fonts: dict[str, object] = {}
-    keys: dict[tuple[str, int], str | None] = {}
+    # the same fonts on every page of a file: their outlines are fingerprinted once per file
+    keys = _KEYS.setdefault(page.parent.name, {}) if page.parent.name else {}
+    if len(_KEYS) > 8:
+        _KEYS.pop(next(iter(_KEYS)))
     out: dict[tuple[float, float], str] = {}
     for sp, c in wanted:
         name = sp["font"]
-        if name not in fonts:
-            xref = xrefs.get(name) or xrefs.get(_font_name(name))
-            fonts[name] = load_font(page.parent, xref) if xref else None
-        font = fonts[name]
-        if font is None:
-            continue
         k = (name, c[1])
         if k not in keys:
-            keys[k] = outline_key(font, c[1])
+            if name not in fonts:
+                xref = xrefs.get(name) or xrefs.get(_font_name(name))
+                fonts[name] = load_font(page.parent, xref) if xref else None
+            keys[k] = outline_key(fonts[name], c[1]) if fonts[name] is not None else None
         ch = mem.get(keys[k] or "")
         if ch:
             out[(round(c[2][0], 1), round(c[2][1], 1))] = ch

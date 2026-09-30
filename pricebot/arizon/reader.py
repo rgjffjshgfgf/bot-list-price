@@ -32,13 +32,13 @@ MAX_UNREADABLE = 0.5      # share of gibberish text cells above which a page is 
 FRAME_DPI = 150
 
 
-def _good(r: extract.PageRead | None) -> bool:
+def _good(r: extract.PageRead | None, use_ai: bool = True) -> bool:
     """The page's own text makes a complete, readable table. With Gemini at hand
     even a few unreadable cells send the page to it; without, they are shown as
     pictures of the original text."""
     if r is None or r.total == 0 or r.placed + r.in_title != r.total:
         return False
-    return r.unreadable == 0 or (not ai.enabled() and r.unreadable <= MAX_UNREADABLE)
+    return r.unreadable == 0 or (not (use_ai and ai.enabled()) and r.unreadable <= MAX_UNREADABLE)
 
 
 def _ai_page(analysis: Analysis, page: int) -> list[extract.RawTable] | None:
@@ -90,10 +90,11 @@ def frame(analysis: Analysis, native: Path, page: int) -> Frame:
         return Frame(buf.getvalue(), rgb.width, rgb.height, page)
 
 
-def read(analysis: Analysis) -> Content:
+def read(analysis: Analysis, use_ai: bool = True) -> Content:
     """Content of the whole list. Pages kept as pictures are placeholders
     (Frame without picture): their picture depends on the new prices and is
-    filled in by fill_frames()."""
+    filled in by fill_frames(). use_ai=False: only what the file itself says
+    (no Gemini request)."""
     priced_pages = {it.page for it in analysis.items}
     # text pages between the first and last page with prices are read too: a page where no
     # price was found may still carry rows of the list
@@ -118,13 +119,13 @@ def read(analysis: Analysis) -> Content:
                 if r is not None:
                     got[p], how[p] = r, "pdf"
                 continue
-            if _good(r):
+            if _good(r, use_ai):
                 got[p], how[p] = r, "pdf"
                 continue
             if r is not None and r.total and r.placed + r.in_title == r.total and r.unreadable <= MAX_UNREADABLE:
                 second[p] = r
         need_ai.append(p)
-    if need_ai and ai.enabled():
+    if need_ai and use_ai and ai.enabled():
         with concurrent.futures.ThreadPoolExecutor(max_workers=config.AI_PARALLEL_PAGES) as pool:
             for p, raws in zip(need_ai, pool.map(lambda q: _ai_page(analysis, q), need_ai)):
                 if raws:
@@ -136,7 +137,10 @@ def read(analysis: Analysis) -> Content:
             got[p], how[p] = second[p], "pdf"
         else:
             got[p], how[p] = Frame(b"", 0, 0, p), "frame"
-    content = extract.assemble([(p, got[p]) for p in pages if p in got])
+    # the group of every price the bot's own AI saw (a price on a page it did not see is left out)
+    group_of = {it.id: it.group for it in analysis.items
+                if it.group or (analysis.brain.get(it.page) or {}).get("doc") is not None} if analysis.brain else None
+    content = extract.assemble([(p, got[p]) for p in pages if p in got], group_of)
     content.how = how
     log.info("arizon: %s", {k: sum(1 for v in how.values() if v == k) for k in ("pdf", "ai", "frame")})
     return content
