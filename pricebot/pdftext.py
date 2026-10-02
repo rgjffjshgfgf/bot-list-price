@@ -8,6 +8,7 @@ import logging
 import re
 import unicodedata
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import numpy as np
 import pymupdf
@@ -20,6 +21,7 @@ log = logging.getLogger(__name__)
 CLIPPED = 64
 FILLED = 16
 STROKED = 32
+BOLD = 16              # in a span's "flags" (not its "char_flags")
 
 
 @dataclass
@@ -32,6 +34,7 @@ class Char:
     color: int
     char_flags: int
     alpha: int
+    bold: bool = False
 
 
 @dataclass
@@ -62,6 +65,10 @@ class TextToken:
     @property
     def font(self) -> str:
         return self.chars[0].font
+
+    @property
+    def bold(self) -> bool:
+        return self.chars[0].bold
 
     @property
     def baseline(self) -> float:
@@ -97,7 +104,7 @@ def page_chars(page: pymupdf.Page) -> list[Char]:
                 for ch in span["chars"]:
                     out.append(Char(ch["c"], pymupdf.Rect(ch["bbox"]), tuple(ch["origin"]), span["size"],
                                     span["font"], span["color"], span.get("char_flags", FILLED),
-                                    span.get("alpha", 255)))
+                                    span.get("alpha", 255), bool(span.get("flags", 0) & BOLD)))
     return out
 
 
@@ -357,6 +364,18 @@ class FontBank:
         self._loaded = False
         self._registered: dict[tuple[int, str], str] = {}
         self._counter = 0
+        self._files: dict[str, pymupdf.Font] = {}
+        self._styles: dict[tuple[str, float], fonts.FontStyle | None] = {}
+        self.borrowed: set[str] = set()   # fonts whose own copy is not used for any number
+
+    def plan(self, reps: list["Replacement"]) -> None:
+        """Before anything is written: a font whose embedded copy cannot draw every
+        new number of the document draws none of them - all its numbers take the
+        same substitute, so a price column never mixes two typefaces."""
+        for rep in reps:
+            font = rep.token.font
+            if font not in self.borrowed and self.embedded_for(font, rep.new_text) is None:
+                self.borrowed.add(font)
 
     def _load(self) -> None:
         if self._loaded:
@@ -387,6 +406,19 @@ class FontBank:
                     if all(entry[2].has_glyph(ord(ch)) for ch in text):
                         return entry
         return None
+
+    def font_file(self, path: str) -> pymupdf.Font:
+        if path not in self._files:
+            self._files[path] = pymupdf.Font(fontfile=path)
+        return self._files[path]
+
+    def look_alike(self, page: pymupdf.Page, tok: TextToken) -> fonts.FontStyle | None:
+        """The installed font that looks most like the number as the page shows it
+        (asked before the number is erased; once per font and size of a document)."""
+        key = (tok.font, round(tok.size, 1))
+        if key not in self._styles:
+            self._styles[key] = _fallback_style(page, tok)
+        return self._styles[key]
 
     def register(self, page: pymupdf.Page, key: str, **font_src) -> str:
         reg = (page.number, key)
@@ -430,12 +462,85 @@ def _fallback_style(page: pymupdf.Page, tok: TextToken) -> fonts.FontStyle | Non
     return style
 
 
+@dataclass
+class _Pen:
+    """How one replacement number is drawn: the font, and the text in its digits."""
+    key: str                          # registration key of the font on the page
+    src: dict                         # pymupdf insert_font arguments; empty for a built-in font
+    base14: str | None                # a built-in PDF font, used by name
+    measure: pymupdf.Font
+    same: pymupdf.Font | None         # the original font (or its twin): its widths give the spacing
+    text: str
+    size: float
+    hscale: float = 1.0
+    how: str = ""
+
+
+_ASSETS = Path(__file__).resolve().parent / "arizon" / "assets"
+_LATIN_ONLY = re.compile(r"^[0-9,./ \-]*$")
+
+
+def _last_resort(tok: TextToken, new_text: str) -> _Pen:
+    """A font that can always draw the number: Helvetica for Latin digits, the
+    bundled Vazirmatn for Persian/Arabic ones."""
+    if _LATIN_ONLY.match(new_text):
+        name = "hebo" if tok.bold else "helv"
+        f = pymupdf.Font(name)
+        return _Pen(name, {}, name, f, None, new_text, tok.size, how="last-resort")
+    path = str(_ASSETS / ("Vazirmatn-Bold.ttf" if tok.bold else "Vazirmatn-Regular.ttf"))
+    f = pymupdf.Font(fontfile=path)
+    text = new_text if all(f.has_glyph(ord(ch)) or ch.isspace() for ch in new_text) else to_latin_digits(new_text)
+    return _Pen(path, {"fontfile": path}, None, f, None, text, tok.size, how="last-resort")
+
+
+def _choose(page: pymupdf.Page, tok: TextToken, new_text: str, bank: FontBank) -> _Pen:
+    """The font a number is redrawn in, chosen while the page still shows the old number:
+    1. the PDF's own font, when its embedded copy has every glyph the document's new
+       numbers need (see FontBank.plan);
+    2. the built-in twin of Arial/Times/Courier;
+    3. an installed font of the same family and widths (Excel's Calibri -> Carlito...);
+    4. the installed font that looks most like the number as drawn on the page;
+    5. a font that can always draw it."""
+    entry = None if tok.font in bank.borrowed else bank.embedded_for(tok.font, new_text)
+    if entry is not None:
+        xref, buf, font = entry
+        return _Pen(f"x{xref}", {"fontbuffer": buf}, None, font, font, new_text, tok.size, how="own")
+    base14 = _base14_for(tok.font)
+    if base14 and _LATIN_ONLY.match(new_text):
+        f = pymupdf.Font(base14)
+        return _Pen(base14, {}, base14, f, f, new_text, tok.size, how="base14")
+    twin = fonts.twin_font(tok.font, tok.bold, new_text)
+    if twin is not None:
+        f = bank.font_file(twin)
+        return _Pen(twin, {"fontfile": twin}, None, f, f, new_text, tok.size, how="twin")
+    style = bank.look_alike(page, tok)
+    if style is not None:
+        text = to_script(to_latin_digits(new_text), style.script)
+        if fonts.supports(style.path, text):
+            return _Pen(style.path, {"fontfile": style.path}, None, bank.font_file(style.path), None, text,
+                        style.size_px, style.hscale, how="look-alike")
+    return _last_resort(tok, new_text)
+
+
 def apply_page(page: pymupdf.Page, reps: list[Replacement], bank: FontBank) -> list[str]:
-    """Replace numbers on one page. Returns warnings."""
+    """Replace numbers on one page. Returns warnings (in Persian, for the user).
+    Every number's font is chosen before anything is erased, and a number that
+    cannot be redrawn keeps its old value on the page - a price is never lost."""
     warnings: list[str] = []
     if not reps:
         return warnings
+    pens: list[_Pen | None] = []
     for rep in reps:
+        try:
+            pens.append(_choose(page, rep.token, rep.new_text, bank))
+        except Exception:  # noqa: BLE001 - this number stays as it is
+            log.exception("no font for %s", rep.token.text)
+            pens.append(None)
+    for rep, pen in zip(reps, pens):
+        if pen is None:
+            warnings.append(f"صفحه {page.number + 1}: قیمت {rep.token.text} عوض نشد (فونت مناسب پیدا نشد) "
+                            "و همان قیمت قبلی ماند.")
+            continue
         for ch in rep.token.chars + rep.token.shadows:
             r = ch.bbox
             cx, w, h = (r.x0 + r.x1) / 2, r.width, r.height
@@ -445,18 +550,25 @@ def apply_page(page: pymupdf.Page, reps: list[Replacement], bank: FontBank) -> l
                           graphics=pymupdf.PDF_REDACT_LINE_ART_NONE,
                           text=pymupdf.PDF_REDACT_TEXT_REMOVE)
 
-    for rep in reps:
-        tok = rep.token
+    for rep, pen in zip(reps, pens):
+        if pen is None:
+            continue
+        rep.result["font"] = pen.how
         try:
-            _insert(page, tok, rep.new_text, bank)
-        except Exception as exc:  # noqa: BLE001 - report and continue with others
-            log.exception("insert failed")
-            warnings.append(f"page {page.number + 1}: could not write {rep.new_text}: {exc}")
+            _insert(page, rep.token, pen, bank)
+        except Exception:  # noqa: BLE001 - the old number is gone: draw it with the font that always works
+            log.exception("drawing %s with %s failed", rep.new_text, pen.key)
+            try:
+                _insert(page, rep.token, _last_resort(rep.token, rep.new_text), bank)
+                rep.result["font"] = "last-resort"
+            except Exception:  # noqa: BLE001
+                log.exception("drawing %s failed", rep.new_text)
+                warnings.append(f"صفحه {page.number + 1}: قیمت جدید {rep.new_text} نوشته نشد.")
     return warnings
 
 
-def _insert(page: pymupdf.Page, tok: TextToken, new_text: str, bank: FontBank) -> None:
-    size = tok.size
+def _insert(page: pymupdf.Page, tok: TextToken, pen: _Pen, bank: FontBank) -> None:
+    size = pen.size
     ch0 = tok.chars[0]
     color = pymupdf.sRGB_to_pdf(ch0.color)
     flags = ch0.char_flags
@@ -466,33 +578,14 @@ def _insert(page: pymupdf.Page, tok: TextToken, new_text: str, bank: FontBank) -
     elif flags & STROKED:
         render_mode = 1
 
-    text = new_text
-    hscale = 1.0
-    entry = bank.embedded_for(tok.font, new_text)
-    base14 = _base14_for(tok.font)
-    if entry is not None:
-        # Best case: the very font the PDF uses (its subset has all needed glyphs).
-        xref, buf, measure = entry
-        alias = bank.register(page, f"x{xref}", fontbuffer=buf)
-        same_font = measure
-    elif base14 and all(ch in "0123456789,./ " for ch in new_text):
-        alias = base14
-        measure = same_font = pymupdf.Font(base14)
-    else:
-        # Subset lacks a digit we need: pick the closest-looking installed font.
-        style = _fallback_style(page, tok)
-        if style is None:
-            raise RuntimeError(f"no font for {tok.font}")
-        text = to_script(to_latin_digits(new_text), style.script)
-        alias = bank.register(page, style.path, fontfile=style.path)
-        measure = pymupdf.Font(fontfile=style.path)
-        same_font = None
-        size = style.size_px
-        hscale = style.hscale
+    text = pen.text
+    hscale = pen.hscale
+    alias = pen.base14 or bank.register(page, pen.key, **pen.src)
+    measure = pen.measure
 
     # Reproduce any character spacing / horizontal scaling of the original.
-    if same_font is not None:
-        natural_old = same_font.text_length(tok.text, size)
+    if pen.same is not None:
+        natural_old = pen.same.text_length(tok.text, size)
         old_w = tok.chars[-1].bbox.x1 - tok.chars[0].bbox.x0
         ratio = old_w / natural_old if natural_old else 1.0
         if 0.7 < ratio < 1.3 and abs(ratio - 1) > 0.02:

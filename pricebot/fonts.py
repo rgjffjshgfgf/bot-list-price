@@ -9,6 +9,7 @@ import functools
 import logging
 import math
 import os
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -78,6 +79,49 @@ def candidate_fonts() -> tuple[str, ...]:
     paths = sorted(found.values(), key=lambda p: (not _is_user_font(p), p.lower()))
     log.info("font candidates: %d", len(paths))
     return tuple(paths)
+
+
+@functools.lru_cache(maxsize=1)
+def _all_fonts() -> dict[str, str]:
+    """Every font file of the system (and of FONTS_DIR), by lower-case file name."""
+    found: dict[str, str] = {}
+    for d in _font_dirs():
+        for root, _, files in os.walk(d):
+            for name in files:
+                if name.lower().endswith((".ttf", ".otf")):
+                    found.setdefault(name.lower(), str(Path(root) / name))
+    return found
+
+
+# Free fonts drawn on the very widths of common Office fonts: a number typed in
+# one of these (Excel's Calibri...) is redrawn in its twin when the PDF's own
+# copy of the font cannot draw it. Most specific names first.
+_TWINS = (
+    (("arialnarrow",), "liberationsansnarrow-regular.ttf", "liberationsansnarrow-bold.ttf"),
+    (("calibri", "carlito"), "carlito-regular.ttf", "carlito-bold.ttf"),
+    (("cambria", "caladea"), "caladea-regular.ttf", "caladea-bold.ttf"),
+    (("arial", "helvetica", "arimo", "liberationsans", "microsoftsansserif", "segoeui"),
+     "liberationsans-regular.ttf", "liberationsans-bold.ttf"),
+    (("timesnewroman", "times", "tinos", "liberationserif"), "liberationserif-regular.ttf",
+     "liberationserif-bold.ttf"),
+    (("couriernew", "courier", "cousine", "liberationmono"), "liberationmono-regular.ttf", "liberationmono-bold.ttf"),
+    (("tahoma", "verdana", "dejavusans"), "dejavusans.ttf", "dejavusans-bold.ttf"),
+)
+
+
+def twin_font(font_name: str, bold: bool, text: str) -> str | None:
+    """The installed font that draws `text` as the named PDF font would (same family,
+    same widths), or None."""
+    key = re.sub(r"[^a-z]", "", re.sub(r"^[A-Z]{6}\+", "", font_name).lower())
+    bold = bold or any(w in key for w in ("bold", "black", "heavy"))
+    for names, regular, heavy in _TWINS:
+        if any(n in key for n in names):
+            # (a twin not installed: the next family the name matches, «arialnarrow» -> «arial»)
+            for file in ((heavy, regular) if bold else (regular,)):
+                path = _all_fonts().get(file)
+                if path and supports(path, text):
+                    return path
+    return None
 
 
 def _is_user_font(path: str) -> bool:
