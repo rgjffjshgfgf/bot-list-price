@@ -28,20 +28,41 @@ def original_format(analysis: Analysis) -> str:
 
 # ============================================================ edit in place ==
 
-def _edit_raster(rgb: np.ndarray, items: list[tuple[PriceItem, Decimal]], soften: bool) -> list[tuple[int, int, int, int]]:
+def _edit_raster(rgb: np.ndarray, items: list[tuple[PriceItem, Decimal]], soften: bool
+                 ) -> tuple[list[tuple[int, int, int, int]], list[PriceItem]]:
+    """Redraw the prices in the picture. Returns the changed rects, and the prices
+    that could not be redrawn - those keep their old value on the picture."""
     targets = [(it.payload, it.fmt.format(v)) for it, v in items]
     if not targets:
-        return []
+        return [], []
+    original = rgb.copy()
     ink = raster.InkMap(rgb, float(np.median([t.box[3] - t.box[1] for t, _ in targets])))
     # erase everything first, so a neighbour's erase can never clip a freshly drawn price
     erased = [raster.erase(rgb, ink, t) for t, _ in targets]
-    rects = []
-    for (t, text), er in zip(targets, erased):
-        drawn = raster.draw(rgb, t, text, soften=soften)
-        if drawn:
-            er = (min(er[0], drawn[0]), min(er[1], drawn[1]), max(er[2], drawn[2]), max(er[3], drawn[3]))
+    drawn = [raster.draw(rgb, t, text, soften=soften) for t, text in targets]
+    painted = np.zeros(rgb.shape[:2], dtype=bool)
+    for d in drawn:
+        if d:
+            painted[max(0, d[1]):d[3], max(0, d[0]):d[2]] = True
+    H, W = rgb.shape[:2]
+    rects, failed = [], []
+    for (it, _), er, d in zip(items, erased, drawn):
+        if d:
+            rects.append((min(er[0], d[0]), min(er[1], d[1]), max(er[2], d[2]), max(er[3], d[3])))
+            continue
+        # the new price could not be drawn: the old one comes back (a price is never lost),
+        # except where a neighbour's new price now stands
+        x0, y0, x1, y1 = max(0, er[0]), max(0, er[1]), min(W, er[2]), min(H, er[3])
+        if x1 > x0 and y1 > y0:
+            keep = ~painted[y0:y1, x0:x1]
+            rgb[y0:y1, x0:x1][keep] = original[y0:y1, x0:x1][keep]
         rects.append(er)
-    return rects
+        failed.append(it)
+    return rects, failed
+
+
+def _kept_warnings(page: int, failed: list[PriceItem]) -> list[str]:
+    return [f"صفحه {page + 1}: قیمت {it.text} در عکس دوباره نوشته نشد و همان قیمت قبلی ماند." for it in failed]
 
 
 def _merge_rects(rects: list[tuple[int, int, int, int]], pad: int = 2) -> list[tuple[int, int, int, int]]:
@@ -70,16 +91,19 @@ def apply_pdf(analysis: Analysis, new_values: dict[str, Decimal], out_path: Path
     for it in analysis.items:
         if it.id in new_values:
             by_page.setdefault(it.page, []).append(it)
+    reps_of = {pno: [Replacement(it.payload, it.fmt.format(new_values[it.id])) for it in items if it.kind == "text"]
+               for pno, items in by_page.items()}
+    bank.plan([r for reps in reps_of.values() for r in reps])     # one font per price column, whole file
     for pno, items in sorted(by_page.items()):
         page = doc[pno]
-        reps = [Replacement(it.payload, it.fmt.format(new_values[it.id])) for it in items if it.kind == "text"]
-        warnings += apply_page(page, reps, bank)
+        warnings += apply_page(page, reps_of[pno], bank)
         rast = [(it, new_values[it.id]) for it in items if it.kind == "raster"]
         if not rast:
             continue
         info = analysis.pages[pno]
         rgb = np.asarray(Image.open(info.raster_path).convert("RGB")).copy()
-        rects = _edit_raster(rgb, rast, soften=True)
+        rects, failed = _edit_raster(rgb, rast, soften=True)
+        warnings += _kept_warnings(pno, failed)
         H, W = rgb.shape[:2]
         for x0, y0, x1, y1 in _merge_rects(rects):
             x0, y0, x1, y1 = max(0, x0), max(0, y0), min(W, x1), min(H, y1)
@@ -100,7 +124,7 @@ def apply_image(analysis: Analysis, new_values: dict[str, Decimal], out_path: Pa
     rgb = np.asarray(Image.open(info.raster_path).convert("RGB")).copy()
     items = [(it, new_values[it.id]) for it in analysis.items if it.id in new_values]
     fmt = image_save_format(analysis)
-    _edit_raster(rgb, items, soften=fmt in {"JPEG", "WEBP"})
+    _, failed = _edit_raster(rgb, items, soften=fmt in {"JPEG", "WEBP"})
     out = Image.fromarray(rgb)
     alpha_path = analysis.workdir / "alpha.png"
     if alpha_path.exists() and fmt in {"PNG", "WEBP"}:
@@ -114,7 +138,7 @@ def apply_image(analysis: Analysis, new_values: dict[str, Decimal], out_path: Pa
     elif fmt == "GIF":
         out = out.convert("P", palette=Image.ADAPTIVE)
     out.save(out_path, fmt, **kwargs)
-    return []
+    return _kept_warnings(0, failed)
 
 
 def image_save_format(analysis: Analysis) -> str:
