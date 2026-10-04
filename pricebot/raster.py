@@ -242,7 +242,9 @@ def _refine(ink: InkMap, box, text: str, seed: Word | None, h_med: float, col: i
             return None
         seed = max(near, key=lambda w: _overlap(w.x0, w.x1, ax0, ax1))
     pol = seed.polarity
-    h_ref = float(seed.h)
+    # a seed far smaller than the number (a dot-shaped Persian zero, a comma) must not
+    # set the scale: the digits around it would count as too tall to belong to it
+    h_ref = max(float(seed.h), 0.7 * min(h_med, float(ay1 - ay0)))
     min_area = max(3.0, 0.006 * h_ref * h_ref)
     n_chars = max(1, sum(1 for ch in text if not ch.isspace()))
 
@@ -299,6 +301,18 @@ def _refine(ink: InkMap, box, text: str, seed: Word | None, h_med: float, col: i
     x1, y1 = max(b[2] for b in sel), max(b[3] for b in sel)
     left, right = _free_bounds(ink, (x0, y0, x1, y1), pol)
     return Target((x0, y0, x1, y1), pol, text, (left, right), column=col)
+
+
+def targets_at(ink: InkMap, boxes: list[tuple[int, int, int, int]], polarities: list[str],
+               columns: list[int]) -> list[Target]:
+    """Targets for prices whose exact ink boxes are already known (from a remembered
+    list format); their text is filled in once read."""
+    out = []
+    for box, pol, col in zip(boxes, polarities, columns):
+        box = tuple(int(v) for v in box)
+        out.append(Target(box, pol, "", _free_bounds(ink, box, pol), column=col))
+    _set_alignment(ink, out)
+    return out
 
 
 def _vline_between(ink: InkMap, xa: int, xb: int, y0: int, y1: int) -> bool:

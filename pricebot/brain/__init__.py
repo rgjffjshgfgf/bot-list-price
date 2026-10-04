@@ -95,6 +95,9 @@ def page_note(info: dict) -> str:
     need = BRAIN.trust_after
     streak = min(tpl.get("streak", 0), need)
     if how == "local":
+        if info.get("by") == "layout":
+            return (f"🧠 قالب آشنا «{name}»: جای همه قیمت‌ها را ربات خودش از روی جدول پیدا کرد "
+                    "و فقط ارقام هر قیمت، بریده و بزرگ‌شده، خوانده شد")
         if info.get("by") == "format":
             return f"🧠 تشخیص با هوش خود ربات، بدون Gemini (قالب آشنا: «{name}»)"
         return "🧠 تشخیص با هوش خود ربات، بدون Gemini (قالب تازه، با تجربه‌ای که از لیست‌های قبلی دارد)"
@@ -135,6 +138,17 @@ def report() -> str:
         lines.append(f"• {t.get('name', '')[:40]} ({kind}) — {ready}")
     if len(tpls) > 8:
         lines.append(f"• … و {_fa(len(tpls) - 8)} قالب دیگر")
+
+    with b.lock:
+        lays = sorted(b.layouts, key=lambda t: -t.get("updated", 0))
+    if lays:
+        ready = [t for t in lays if t.get("streak", 0) >= b.trust_after]
+        lines.append(f"\n📐 لیست‌های جدول‌دار عکس (جای قیمت‌ها از روی خطوط جدول): {_fa(len(lays))} — "
+                     f"مستقل: {_fa(len(ready))}")
+        for t in lays[:5]:
+            st = min(t.get("streak", 0), b.trust_after)
+            state = "✅ مستقل" if t.get("streak", 0) >= b.trust_after else f"⏳ {_fa(st)} از {_fa(b.trust_after)}"
+            lines.append(f"• {t.get('name', '')[:40]} ({_fa(len(t.get('prices', [])))} قیمت) — {state}")
 
     lines.append("\n🎯 مدل تشخیص قیمت")
     for src, label in (("pdf", "PDF"), ("ocr", "عکس")):

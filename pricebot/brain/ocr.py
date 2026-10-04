@@ -573,6 +573,11 @@ def glyph_words(rgb: np.ndarray, words: list[tuple[str, Box, float]],
     return kept + found
 
 
+def fits(ink: raster.InkMap, t: raster.Target, text: str) -> bool:
+    """A read of a target is a real amount with about as many characters as its ink."""
+    return _plausible(text, _glyphs(ink, t))
+
+
 def _plausible(text: str, glyphs: list[Glyph] | None) -> bool:
     """A read must fit the ink: not far fewer characters than glyphs seen (a whole
     price read as "0" happens with unknown fonts), and be a real amount."""
@@ -587,16 +592,19 @@ def _plausible(text: str, glyphs: list[Glyph] | None) -> bool:
 
 
 def read_targets(ink: raster.InkMap, targets: list[raster.Target], first_reads: list[str],
-                 library: GlyphBank | None = None, trust_glyphs: bool = False) -> list[Read]:
+                 library: GlyphBank | None = None, trust_glyphs: bool = False,
+                 script: str | None = None) -> list[Read]:
     """Independent reads of every target; accepted only where they agree.
 
     library: lasting digit shapes learned from checked lists. trust_glyphs: its
     reads have proven themselves, so a sure shape read alone is accepted (for
-    fonts Tesseract cannot read)."""
+    fonts Tesseract cannot read). script: the digits the list uses, when known
+    (otherwise taken from the first reads)."""
     if not targets:
         return []
-    scripts = [digit_script(r) if r else "latin" for r in first_reads]
-    script = max(set(scripts), key=scripts.count)
+    if script is None:
+        scripts = [digit_script(r) if r else "latin" for r in first_reads]
+        script = max(set(scripts), key=scripts.count)
     a = _sheet_reads(ink, targets, 44, False, script)
     b = _sheet_reads(ink, targets, 64, True, script)
     first = [_clean(r) for r in first_reads]

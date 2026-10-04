@@ -21,6 +21,7 @@ import pymupdf
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from . import ai, brain, config, fonts, raster
+from .brain import grid as bgrid
 from .brain import groups as bgroups
 from .brain import layout as blayout
 from .brain import ocr as bocr
@@ -547,16 +548,21 @@ def _contact_sheets(rgb: np.ndarray, targets: list[raster.Target], strip_h: int)
     return sheets
 
 
-def _read_all(rgb: np.ndarray, targets: list[raster.Target], strip_h: int, provider: ai.Provider) -> dict[int, str]:
+def _read_all(rgb: np.ndarray, targets: list[raster.Target], strip_h: int,
+              provider: ai.Provider) -> dict[int, str] | None:
+    """Reads by index (1-based), or None when the model failed on every sheet."""
     reads: dict[int, str] = {}
-    for sheet, idxs in _contact_sheets(rgb, targets, strip_h):
+    failed = 0
+    sheets = _contact_sheets(rgb, targets, strip_h)
+    for sheet, idxs in sheets:
         try:
             got = ai.verify_reads(sheet, idxs, provider)
         except Exception as exc:  # noqa: BLE001
             log.warning("verification by %s failed: %s", provider.name, exc)
+            failed += 1
             continue
         reads.update({idx: got[idx] for idx in idxs if idx in got})
-    return reads
+    return None if sheets and failed == len(sheets) else reads
 
 
 def _majority(votes: list[str]) -> str | None:
@@ -568,16 +574,16 @@ def _majority(votes: list[str]) -> str | None:
 
 
 def _verify(rgb: np.ndarray, targets: list[raster.Target], votes: list[list[tuple[str, str]]],
-            agreed: list[bool]) -> list[str | None]:
+            agreed: list[bool], rounds: tuple[int, ...] = (56, 90)) -> list[str | None]:
     """Independent re-reads of each crop until two reads agree.
 
     A read from a model that has not voted on an item yet is preferred
-    (Flash-Lite checks Flash and vice versa); the second round uses bigger crops.
+    (Flash-Lite checks Flash and vice versa); each round uses other crop sizes.
     """
     provs = ai.providers()
     result: list[str | None] = [votes[i][0][1] if agreed[i] else None for i in range(len(targets))]
     pending = [i for i in range(len(targets)) if not agreed[i]]
-    for strip_h in (56, 90):
+    for strip_h in rounds:
         if not pending or not provs:
             break
         groups: dict[ai.Provider, list[int]] = {}
@@ -588,6 +594,9 @@ def _verify(rgb: np.ndarray, targets: list[raster.Target], votes: list[list[tupl
             groups.setdefault(p, []).append(i)
         for p, idxs in groups.items():
             reads = _read_all(rgb, [targets[i] for i in idxs], strip_h, p)
+            if reads is None:
+                provs = [q for q in provs if q is not p]     # down (busy, quota): the others read on
+                continue
             for k, i in enumerate(idxs):
                 votes[i].append((p.name, reads.get(k + 1, "")))
         still = []
@@ -635,6 +644,7 @@ def _analyze_image(analysis: Analysis, progress: Progress | None) -> list[str]:
     analysis.items = items
     analysis.warnings.extend(warns)
     assign_groups(analysis)
+    _learn_layout(analysis, rgb, currency)
     if progress:
         progress(1, 1)
     return [currency]
@@ -653,6 +663,13 @@ def _local_raster(analysis: Analysis, rgb: np.ndarray, bdoc: blayout.PageDoc, de
 def _raster_page(analysis: Analysis, rgb: np.ndarray, index: int, start: int) -> tuple[list[PriceItem], list[str], str]:
     """Prices of one photo / scanned page (pixel coordinates of `rgb`)."""
     mode = _brain_mode(analysis)
+    known = _layout_page(analysis, rgb, index, start, mode) if brain.enabled() and mode != "teacher" else None
+    if known is not None and (known.unread <= max(1, 0.1 * known.total) or not ai.enabled() or mode == "local"
+                              or not ai.providers("image")):
+        return known.use(analysis, index)
+    if known is not None:
+        log.info("page %d: %d of %d prices of «%s» unread, asking the teacher", index + 1, known.unread,
+                 known.total, known.layout.get("name"))
     bdoc = dec = None
     if brain.enabled() and bocr.available():
         _stage(analysis, "🧠 خواندن عکس با هوش ربات")
@@ -693,6 +710,9 @@ def _raster_page(analysis: Analysis, rgb: np.ndarray, index: int, start: int) ->
     try:
         data = _merge_page(ai.analyze_page_all(small, [], raster_only=True), [], [])
     except Exception as exc:  # noqa: BLE001
+        if known is not None:
+            log.warning("AI failed on page %d, keeping what the known list gave: %s", index + 1, exc)
+            return known.use(analysis, index)
         if dec is not None and dec.selected:
             log.warning("AI failed on page %d, using the brain: %s", index + 1, exc)
             quota = isinstance(exc, ai.QuotaExceeded)
@@ -702,6 +722,10 @@ def _raster_page(analysis: Analysis, rgb: np.ndarray, index: int, start: int) ->
     columns = {c["column_id"]: c["header"] for c in data.get("columns", [])}
     prices = [{**p, "bbox": [v / s for v in p["bbox"]]} for p in data.get("image_prices", [])]
     items, warns, reads, _ = _raster_items(rgb, prices, index, start, columns, bdoc)
+    if known is not None and len(known.items) >= len(items):
+        # the teacher found no more on a list the brain knows: the known list's answer stands
+        log.info("page %d: the teacher found %d prices, the known list %d", index + 1, len(items), len(known.items))
+        return known.use(analysis, index)
     if bdoc is not None:
         truth = brain.truth_from_boxes(bdoc, [it.bbox for it in items], [tuple(p["bbox"]) for p in prices])
         outcome = brain.BRAIN.learn(bdoc, truth, dec, "gemini", {"reads": reads, "img": False})
@@ -711,6 +735,135 @@ def _raster_page(analysis: Analysis, rgb: np.ndarray, index: int, start: int) ->
                                  "new_format": outcome.get("new_format", False),
                                  "guess_ok": outcome.get("model_ok")}
     return items, warns, data.get("currency", "")
+
+
+# ==================================================== known ruled lists ==
+
+def _fa(n) -> str:
+    return str(n).translate(str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹"))
+
+
+@dataclass
+class KnownPage:
+    """What a known ruled list gave for one page."""
+    layout: dict
+    items: list[PriceItem]
+    warnings: list[str]
+    unread: int
+    total: int
+
+    def use(self, analysis: Analysis, index: int) -> tuple[list[PriceItem], list[str], str]:
+        brain.BRAIN.count("local")
+        analysis.brain[index] = {"how": "local", "by": "layout", "doc": None, "decision": None, "taught": False,
+                                 "selected": set(), "format": self.layout}
+        return self.items, self.warnings, self.layout.get("currency", "")
+
+
+def _layout_page(analysis: Analysis, rgb: np.ndarray, index: int, start: int, mode: str) -> KnownPage | None:
+    """A photo of a ruled list the brain knows by its table grid: every price is
+    found in its cell, and only its digits are read (cut out and enlarged -
+    no OCR of the page, no Gemini reading of the whole page). None when the
+    page is no known list, or does not fit it exactly."""
+    try:
+        grid = bgrid.find(rgb)
+        analysis.cache.setdefault("grids", {})[index] = grid
+        lay = brain.BRAIN.find_layout(grid)
+        placed = bgrid.place(lay, grid, rgb) if lay is not None else None
+    except Exception:  # noqa: BLE001 - the usual way still works
+        log.exception("page %d: checking the known list formats failed", index + 1)
+        return None
+    if placed is None:
+        if lay is not None:
+            log.info("page %d: same grid as «%s» but the cells do not fit it", index + 1, lay.get("name"))
+        return None
+    ink, found = placed
+    _stage(analysis, f"🧠 قالب آشنا «{lay.get('name', '')}»؛ خواندن ارقام قیمت‌ها")
+    targets = raster.targets_at(ink, [p.box for p in found], [p.rec["pol"] for p in found],
+                                [int(p.rec.get("column_id", 1)) for p in found])
+    items, warns, unread = _layout_items(rgb, ink, targets, [p.rec for p in found], index, start, mode,
+                                         lay.get("script") or None)
+    return KnownPage(lay, items, warns, unread, len(found))
+
+
+def _layout_items(rgb: np.ndarray, ink: raster.InkMap, targets: list[raster.Target], recs: list[dict],
+                  page: int, start: int, mode: str, script: str | None) -> tuple[list[PriceItem], list[str], int]:
+    """Read the prices of a known list (local reads, then Gemini reads of the cut-out
+    numbers until two agree). Returns (items, warnings, prices left unread)."""
+    n = len(targets)
+    finals: list[str | None] = [None] * n
+    local = None
+    if bocr.available():
+        try:
+            local = bocr.read_targets(ink, targets, [""] * n, brain.BRAIN.glyphs, brain.BRAIN.glyph_trusted(), script)
+            finals = [r.text for r in local]
+        except Exception:  # noqa: BLE001 - the local reader is an extra, never a blocker
+            log.exception("local reading failed")
+    pending = [k for k in range(n) if finals[k] is None]
+    answered = False
+    if pending and ai.enabled() and mode != "local":
+        sub = [targets[k] for k in pending]
+        if config.AI_VERIFY_IMAGE_PRICES:
+            reads = _verify(rgb, sub, [[] for _ in pending], [False] * len(pending), rounds=(56, 90, 72))
+        else:
+            provs = ai.providers()
+            got = (_read_all(rgb, sub, 56, provs[0]) if provs else None) or {}
+            reads = [got.get(i + 1) or None for i in range(len(sub))]
+        for k, r in zip(pending, reads):
+            finals[k] = r
+        answered = any(reads)
+        if local:
+            _learn_shapes(ink, targets, finals, local)
+    ok: list[tuple[raster.Target, dict]] = []
+    unread: list[dict] = []
+    for t, rec, text in zip(targets, recs, finals):
+        if not text or parse_number(text) is None or not bocr.fits(ink, t, text):
+            unread.append(rec)
+            continue
+        t.text = text
+        ok.append((t, rec))
+    raster.style_columns(ink, [t for t, _ in ok])
+    warnings: list[str] = []
+    items: list[PriceItem] = []
+    for t, rec in ok:                            # in the list's own order, table by table
+        if t.style is None:
+            warnings.append(f"صفحه {page + 1}: فونت مناسب برای «{t.text}» پیدا نشد.")
+            continue
+        parsed = parse_number(t.text)
+        items.append(PriceItem(
+            id=f"p{page + 1}-{start + len(items)}", page=page, kind="raster", value=parsed.value, text=t.text,
+            fmt=parsed.fmt, bbox=tuple(float(v) for v in t.box), label=rec.get("label", ""),
+            column=rec.get("column", ""), payload=t, group=rec.get("group", "")))
+    if unread:
+        why = " (ارقام این لیست را Gemini می‌خواند و در دسترس نبود)" if pending and not answered else ""
+        if len(unread) <= 3:
+            warnings += [f"صفحه {page + 1}: قیمت «{r.get('label', '')}» با اطمینان خوانده نشد و تغییر نمی‌کند.{why}"
+                         for r in unread]
+        else:
+            warnings.append(f"صفحه {page + 1}: {_fa(len(unread))} قیمت با اطمینان خوانده نشد و تغییر نمی‌کند.{why}")
+    return items, warnings, len(unread)
+
+
+def _learn_layout(analysis: Analysis, rgb: np.ndarray, currency: str) -> None:
+    """A photo the teacher answered: if it is a clean ruled table, its grid and the
+    cells of its (checked) prices are remembered - next time the same list needs no
+    reading of the whole page."""
+    info = analysis.brain.get(0) or {}
+    if not brain.enabled() or info.get("how") != "teacher" or not analysis.items:
+        return
+    try:
+        grid = analysis.cache.get("grids", {}).get(0) or bgrid.find(rgb)
+        prices = [{"box": it.bbox, "pol": it.payload.polarity, "text": it.text, "label": it.label,
+                   "group": it.group, "column": it.column} for it in analysis.items
+                  if it.page == 0 and isinstance(it.payload, raster.Target)]
+        record = bgrid.describe(rgb, grid, prices) if len(prices) == len(analysis.items) else None
+        if record is None:
+            return
+        groups = [g for g, _ in analysis.groups()]
+        name = "، ".join(groups[:2]) + ("، …" if len(groups) > 2 else "") if groups else \
+            (info.get("format") or {}).get("name", "")
+        info["layout"] = brain.BRAIN.learn_layout(grid, record, name, currency)
+    except Exception:  # noqa: BLE001 - learning must never break a job
+        log.exception("learning the grid of %s failed", analysis.filename)
 
 
 # ================================================================== groups ==

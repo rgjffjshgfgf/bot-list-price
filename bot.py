@@ -840,6 +840,8 @@ def _learn_from_user(analysis: Analysis, good: bool) -> None:
             continue
         if tpl.get("id"):
             ids.add(tpl["id"])
+        if (info.get("layout") or {}).get("id"):
+            ids.add(info["layout"]["id"])
         if not good and info.get("how") in ("local", "fallback") and info.get("by") == "model":
             wrong_models.append(info["doc"].source)
     brain.BRAIN.feedback(ids, good, wrong_models)

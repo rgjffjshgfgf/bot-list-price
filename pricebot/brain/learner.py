@@ -26,6 +26,7 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from . import grid as bgrid
 from .groups import GroupModel
 from .ocr import GlyphBank
 from .layout import (CURRENCIES, UNITS, PageDoc, _is_sequence, canon, digits_of, keyword_groups,
@@ -280,6 +281,7 @@ class Brain:
     SAMPLE_CAP = 40000
     GROUP_SAMPLE_CAP = 20000
     TEMPLATE_CAP = 3000
+    LAYOUT_CAP = 300
     SAME_FORMAT = 0.9               # similarity above which a disagreeing page updates the format itself
     HISTORY = 60
 
@@ -290,6 +292,7 @@ class Brain:
         self.lock = threading.RLock()
         self.model = PriceModel()
         self.templates: list[dict] = []
+        self.layouts: list[dict] = []      # ruled lists seen in photos: grid + price cells (grid.py)
         self.stats: dict = {}
         self.samples: list[tuple[list[str], int]] = []
         self.glyphs = GlyphBank()          # digit shapes learned from checked lists
@@ -338,6 +341,7 @@ class Brain:
             data = json.loads(self._main.read_text(encoding="utf-8"))
             self.model = PriceModel(data.get("weights"), data.get("g2"))
             self.templates = data.get("templates", [])
+            self.layouts = data.get("layouts", [])
             self.stats = data.get("stats", {})
             g = data.get("groups") or {}
             self.gmodel = GroupModel(g.get("w"), g.get("g2"))
@@ -367,11 +371,12 @@ class Brain:
         if seed_dir.resolve() == self.dir.resolve():
             return 0
         with self.lock:
+            layouts = self._merge_seed_layouts(data)
             done = set(self.stats.get("seed_formats", []))
             have = {t["id"] for t in self.templates}
             new = [t for t in data.get("templates", []) if t["id"] not in have and t["id"] not in done]
             if not new and done:
-                if self._merge_seed_groups(seed_dir, data):
+                if self._merge_seed_groups(seed_dir, data) or layouts:
                     self.save()
                 return 0
             self.templates.extend(new)
@@ -404,6 +409,18 @@ class Brain:
             self.save()
             return len(new)
 
+    def _merge_seed_layouts(self, data: dict) -> bool:
+        """Photo formats taught by hand, each taken once (a 👎 later is not undone)."""
+        seed = data.get("layouts", [])
+        done = set(self.stats.get("seed_layouts", []))
+        have = {lay["id"] for lay in self.layouts}
+        new = [lay for lay in seed if lay["id"] not in have and lay["id"] not in done]
+        if not new:
+            return False
+        self.layouts.extend(json.loads(json.dumps(new)))
+        self.stats["seed_layouts"] = sorted(done | {lay["id"] for lay in seed})
+        return True
+
     def _merge_seed_groups(self, seed_dir: Path, data: dict) -> bool:
         """Group lessons shipped with the code, taken once per edition: a brain that
         has not learned groups yet takes the shipped model; one that has learned
@@ -428,8 +445,8 @@ class Brain:
 
     def summary(self) -> dict:
         with self.lock:
-            return {"formats": len(self.templates),
-                    "trusted": sum(1 for t in self.templates if t.get("streak", 0) >= self.trust_after),
+            return {"formats": len(self.templates) + len(self.layouts),
+                    "trusted": sum(1 for t in self.templates + self.layouts if t.get("streak", 0) >= self.trust_after),
                     "samples": len(self.samples), "glyphs": len(self.glyphs)}
 
     def export_zip(self, path: Path) -> dict:
@@ -441,7 +458,8 @@ class Brain:
             with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as zf:
                 zf.writestr("manifest.json", json.dumps(info, ensure_ascii=False))
                 zf.writestr("brain.json", json.dumps({"version": 1, "weights": self.model.w, "g2": self.model.g2,
-                                                      "templates": self.templates, "stats": self.stats,
+                                                      "templates": self.templates, "layouts": self.layouts,
+                                                      "stats": self.stats,
                                                       "groups": {"w": self.gmodel.w, "g2": self.gmodel.g2}},
                                                      ensure_ascii=False))
                 zf.writestr("samples.jsonl", "".join(json.dumps({"f": f, "y": y}, ensure_ascii=False) + "\n"
@@ -503,6 +521,7 @@ class Brain:
             if not merge:
                 self.model = PriceModel(data.get("weights"), data.get("g2"))
                 self.templates = list(data.get("templates", []))
+                self.layouts = list(data.get("layouts", []))
                 self.stats = data.get("stats", {})
                 if gdata:
                     self.gmodel = GroupModel(gdata.get("w"), gdata.get("g2"))
@@ -525,10 +544,14 @@ class Brain:
                     pass
                 self.save_glyphs()
                 self.save()
-                return len(self.templates)
+                return len(self.templates) + len(self.layouts)
             have = {t["id"] for t in self.templates}
             new = [t for t in data.get("templates", []) if t.get("id") not in have]
             self.templates.extend(new)
+            have = {lay["id"] for lay in self.layouts}
+            new_layouts = [lay for lay in data.get("layouts", []) if lay.get("id") not in have]
+            self.layouts.extend(new_layouts)
+            new += new_layouts
             seen = {(tuple(f), y) for f, y in self.samples}
             samples = [(f, y) for f, y in samples if (tuple(f), y) not in seen]
             if samples:
@@ -553,7 +576,7 @@ class Brain:
             try:
                 self.dir.mkdir(parents=True, exist_ok=True)
                 data = {"version": 1, "weights": self.model.w, "g2": self.model.g2,
-                        "templates": self.templates, "stats": self.stats,
+                        "templates": self.templates, "layouts": self.layouts, "stats": self.stats,
                         "groups": {"w": self.gmodel.w, "g2": self.gmodel.g2}}
                 tmp = self._main.with_suffix(".tmp")
                 tmp.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
@@ -582,6 +605,7 @@ class Brain:
         with self.lock:
             self.model = PriceModel()
             self.templates, self.stats, self.samples = [], {}, []
+            self.layouts = []
             self.glyphs = GlyphBank()
             self.gmodel, self.gsamples = GroupModel(), []
             for p in (self._main, self._samples_path, self._glyphs_path, self._gsamples_path):
@@ -611,6 +635,52 @@ class Brain:
                                   and tpl.get("updated", 0) > best.get("updated", 0)):
                     best, best_s = tpl, s       # on a tie, the most recently confirmed format
         return (best, best_s) if best is not None and best_s >= need else (None, best_s)
+
+    # ---- ruled lists in photos (grid.py) ----------------------------------
+    def _best_layout(self, grid: "bgrid.Grid", trusted_only: bool) -> tuple[dict | None, float]:
+        best, best_s = None, 0.0
+        with self.lock:
+            for lay in self.layouts:
+                if trusted_only and lay.get("streak", 0) < self.trust_after:
+                    continue
+                s = bgrid.similarity(lay.get("grid") or {}, grid)
+                if s > best_s or (best is not None and s == best_s and lay.get("updated", 0) > best.get("updated", 0)):
+                    best, best_s = lay, s
+        return (best, best_s) if best is not None and best_s >= bgrid.MATCH else (None, best_s)
+
+    def find_layout(self, grid: "bgrid.Grid") -> dict | None:
+        """The trusted photo format with this exact table grid, if any."""
+        if not grid.ok():
+            return None
+        return self._best_layout(grid, True)[0]
+
+    def learn_layout(self, grid: "bgrid.Grid", record: dict, name: str, currency: str) -> dict:
+        """Remember a checked answer for a ruled list (record: grid.describe()). The
+        same grid with the prices in the same cells as before is one more agreeing
+        check; other cells start the count again."""
+        with self.lock:
+            lay, _ = self._best_layout(grid, False)
+            now = time.time()
+            if lay is None:
+                lay = {"id": f"g{int(now * 1000) % 10**10}", "source": "photo", "name": name or "لیست عکس",
+                       "created": now, "streak": 0, "checks": 0, "agree": 0, "seen": 0}
+                self.layouts.append(lay)
+            else:
+                agree = bgrid.same_cells(lay, record)
+                lay["checks"] = lay.get("checks", 0) + 1
+                if agree:
+                    lay["agree"] = lay.get("agree", 0) + 1
+                    lay["streak"] = lay.get("streak", 0) + 1
+                else:
+                    lay["streak"] = 0
+            lay.update(record)                  # the latest checked answer: its labels and groups
+            lay["currency"] = currency
+            lay["seen"] = lay.get("seen", 0) + 1
+            lay["updated"] = now
+            if len(self.layouts) > self.LAYOUT_CAP:
+                self.layouts = sorted(self.layouts, key=lambda x: x.get("updated", 0))[-self.LAYOUT_CAP:]
+            self.save()
+            return lay
 
     def _hist(self, source: str) -> list[int]:
         return self.stats.setdefault("hist", {}).setdefault(source, [])
@@ -788,7 +858,7 @@ class Brain:
                 h = self._hist(source)
                 h.append(0)
                 del h[:-self.HISTORY]
-            for tpl in self.templates:
+            for tpl in self.templates + self.layouts:
                 if tpl["id"] in template_ids:
                     if good:
                         tpl["streak"] = tpl.get("streak", 0) + 1

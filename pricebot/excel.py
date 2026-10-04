@@ -164,6 +164,27 @@ def _ocr_table(analysis: Analysis, page: int) -> list[Table]:
     return [Table(t["title"], t["direction"], t["headers"], rows)]
 
 
+def _layout_table(analysis: Analysis, page: int) -> list[Table]:
+    """A known ruled list (found by its grid): its rows as the format remembers them -
+    row number, product and price, in the list's own order."""
+    if analysis.brain.get(page, {}).get("by") != "layout":
+        return []
+    items = [it for it in analysis.items if it.page == page]
+    headers = {it.column for it in items if it.column}
+    price_head = headers.pop() if len(headers) == 1 else ""
+    rows = []
+    for it in items:
+        num, sep, name = it.label.partition(" - ")
+        if not sep or not num.strip().isdigit():
+            num, name = "", it.label
+        row = [Cell(num.strip()), Cell(name.strip() or "-")]
+        if not price_head:
+            row.append(Cell(it.column or "-"))
+        rows.append(row + [Cell(it.text, it.id)])
+    head = ["ردیف", "شرح کالا"] + ([] if price_head else ["ستون"]) + [price_head or "قیمت"]
+    return [Table("", "rtl", head, rows)] if rows else []
+
+
 def _clean_text(s: str) -> str:
     """Presentation-form Persian letters -> normal letters; drop characters Excel refuses."""
     return ILLEGAL_CHARACTERS_RE.sub("", unicodedata.normalize("NFKC", s or ""))
@@ -178,7 +199,8 @@ def _extract(analysis: Analysis) -> tuple[list[Table], str]:
         tables = []
         for p in pages:
             if p in local:
-                found = (_pdf_tables(analysis, [p]) if analysis.pages[p].mode == "text" else _ocr_table(analysis, p))
+                found = (_pdf_tables(analysis, [p]) if analysis.pages[p].mode == "text"
+                         else _layout_table(analysis, p) or _ocr_table(analysis, p))
             else:
                 found = _ai_page_safe(analysis, p) if ai.enabled() else []
                 found = found or (_pdf_tables(analysis, [p]) if analysis.kind == "pdf" else [])
