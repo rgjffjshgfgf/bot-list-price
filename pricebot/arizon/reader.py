@@ -73,6 +73,25 @@ def _ai_page(analysis: Analysis, page: int) -> list[extract.RawTable] | None:
     return raws
 
 
+def _layout_page(analysis: Analysis, page: int) -> list[extract.RawTable] | None:
+    """A photo of a ruled list the brain knows (by its grid): its rows as the list's
+    memory holds them - row, product, price, under each group's title. No Gemini."""
+    from ..excel import _group_rows, _layout_table   # heavy import, only when needed
+
+    tables = _layout_table(analysis, page)
+    if not tables:
+        return None
+    _group_rows(tables, analysis)
+    t = tables[0]
+    rows = []
+    for r in t.rows:
+        if len(r) == 1 and r[0].group:
+            rows.append(Row([Cell(extract.clean(r[0].text))], "group"))
+        else:
+            rows.append(Row([Cell(extract.clean(c.text), [c.price_id] if c.price_id else []) for c in r], "item"))
+    return [extract.RawTable([extract.clean(h) for h in t.headers], rows, True)]
+
+
 def frame(analysis: Analysis, native: Path, page: int) -> Frame:
     """The page with its new prices, as a picture."""
     if analysis.kind == "pdf":
@@ -124,6 +143,11 @@ def read(analysis: Analysis, use_ai: bool = True) -> Content:
                 continue
             if r is not None and r.total and r.placed + r.in_title == r.total and r.unreadable <= MAX_UNREADABLE:
                 second[p] = r
+        if (analysis.brain.get(p) or {}).get("by") == "layout":
+            raws = _layout_page(analysis, p)
+            if raws:
+                got[p], how[p] = raws, "layout"
+                continue
         need_ai.append(p)
     if need_ai and use_ai and ai.enabled():
         with concurrent.futures.ThreadPoolExecutor(max_workers=config.AI_PARALLEL_PAGES) as pool:

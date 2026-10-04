@@ -15,6 +15,7 @@ or a row whose text changed - and the page goes the ordinary way (Gemini)."""
 from __future__ import annotations
 
 import base64
+import logging
 import math
 import statistics
 from dataclasses import dataclass
@@ -24,6 +25,8 @@ import numpy as np
 
 from .. import raster
 from ..numfmt import digit_script
+
+log = logging.getLogger(__name__)
 
 Box = tuple[float, float, float, float]
 
@@ -35,7 +38,8 @@ SPAN_TOL = 0.025      # where a line starts / ends
 MATCH = 0.95          # share of lines that must match, both ways
 ROW_SAME = 0.8        # a row's text (all but the price) must look this much alike
 SIG_W, SIG_H = 96, 8  # size of a row's text picture
-MIN_DIGIT_H = 7.0     # prices smaller than this (pixels) lose their zeros to the paper
+MIN_DIGIT_H = 5.0     # prices smaller than this (pixels) lose their zeros to the paper
+WORK_DIGIT_H = 14.0   # smaller prices are looked at enlarged to this height
 
 
 @dataclass
@@ -155,6 +159,17 @@ class Grid:
         v = cv2.resize(band, (SIG_W, SIG_H), interpolation=cv2.INTER_AREA).flatten()
         n = float(np.linalg.norm(v))
         return v / n if n else v
+
+
+def row_likeness(a: np.ndarray, b: np.ndarray) -> float:
+    """How alike two rows' text pictures are, compared coarsely (a small or soft photo
+    draws the same words a little differently)."""
+    def coarse(v: np.ndarray) -> np.ndarray:
+        c = v.reshape(SIG_H, SIG_W).reshape(SIG_H // 2, 2, SIG_W // 4, 4).mean(axis=(1, 3)).flatten()
+        c = cv2.GaussianBlur(c.reshape(SIG_H // 2, SIG_W // 4).astype(np.float32), (3, 1), 0).flatten()
+        n = float(np.linalg.norm(c))
+        return c / n if n else c
+    return float(np.dot(coarse(a), coarse(b)))
 
 
 def _merge(segs: list[Seg], pos_tol: float, gap: float) -> list[Seg]:
@@ -277,22 +292,53 @@ def _decode(s: str) -> np.ndarray:
     return v / n if n else v
 
 
-def _cell_ink(ink: raster.InkMap, cell: Cell, pol: str) -> list[raster.Word]:
-    x0, y0, x1, y1 = cell.inner
-    return [w for w in ink.words if w.polarity == pol and w.x0 >= x0 - 1 and w.x1 <= x1 + 1
-            and w.y0 >= y0 - 1 and w.y1 <= y1 + 1]
+def _cell_ink(ink: raster.InkMap, cell: Cell, pol: str) -> tuple[int, int, int, int] | None:
+    """The box of all the writing inside a cell. The threshold follows the cell's own
+    darkest ink: on a small or soft photo a dot-shaped Persian zero is far fainter
+    than the digits, and a fixed threshold loses it (the price would look shorter)."""
+    H, W = ink.gray.shape
+    x0, y0 = max(0, math.ceil(cell.inner[0])), max(0, math.ceil(cell.inner[1]))
+    x1, y1 = min(W, int(cell.inner[2])), min(H, int(cell.inner[3]))
+    if x1 - x0 < 3 or y1 - y0 < 3:
+        return None
+    strength = (ink.dark if pol == "dark" else ink.light)[y0:y1, x0:x1]
+    peak = float(strength.max())
+    if peak < INK_T:
+        return None
+    bw = ((strength > max(12.0, 0.15 * peak)) & ~(ink.lines[y0:y1, x0:x1] > 0)).astype(np.uint8)
+    n, _, st, _ = cv2.connectedComponentsWithStats(bw, connectivity=8)
+    boxes = []
+    for k in range(1, n):
+        x, y, w, h, a = (int(v) for v in st[k])
+        if a < 2 or x == 0 or y == 0 or x + w >= x1 - x0 or y + h >= y1 - y0:
+            continue                                # speck, or the edge of a ruling line
+        boxes.append((x0 + x, y0 + y, x0 + x + w, y0 + y + h))
+    if not boxes:
+        return None
+    # the number is one line of glyphs close together: grow it from its biggest glyph,
+    # leaving out specks a soft JPEG puts along the cell's lines
+    main = max(boxes, key=lambda b: (b[2] - b[0]) * (b[3] - b[1]))
+    h = main[3] - main[1]
+    line = [b for b in boxes if main[1] - 0.6 * h <= (b[1] + b[3]) / 2 <= main[3] + 0.6 * h]
+    x0, x1 = main[0], main[2]
+    grown = True
+    while grown:
+        grown = False
+        for b in line:
+            if b[0] < x0 - 1e-6 or b[2] > x1:
+                if b[2] >= x0 - 1.6 * h and b[0] <= x1 + 1.6 * h:
+                    x0, x1 = min(x0, b[0]), max(x1, b[2])
+                    grown = True
+    keep = [b for b in line if b[0] >= x0 and b[2] <= x1]
+    return (x0, min(b[1] for b in keep), x1, max(b[3] for b in keep))
 
 
-def _union(words: list[raster.Word]) -> tuple[int, int, int, int]:
-    return (min(w.x0 for w in words), min(w.y0 for w in words), max(w.x1 for w in words), max(w.y1 for w in words))
-
-
-def _numberlike(words: list[raster.Word], h: float, cell: Cell) -> bool:
+def _numberlike(box: tuple[int, int, int, int] | None, h: float, cell: Cell) -> bool:
     """Ink that may be a price: a run of glyphs of about the prices' height."""
-    if not words:
+    if box is None:
         return False
-    x0, y0, x1, y1 = _union(words)
-    return 0.6 * h <= y1 - y0 <= 1.6 * h and 0.8 * h <= x1 - x0 <= cell.x1 - cell.x0
+    x0, y0, x1, y1 = box
+    return 0.6 * h <= y1 - y0 <= 1.7 * h and 0.8 * h <= x1 - x0 <= cell.x1 - cell.x0
 
 
 def _same_cell(a: list[float], b: list[float]) -> bool:
@@ -323,10 +369,9 @@ def describe(rgb: np.ndarray, grid: Grid, prices: list[dict]) -> dict | None:
         ix0, iy0, ix1, iy1 = c.inner
         if not (b[0] >= ix0 - 2 and b[2] <= ix1 + 2 and b[1] >= iy0 - 2 and b[3] <= iy1 + 2):
             return None                         # the price crosses a line: no cell of its own
-        words = _cell_ink(ink, c, p["pol"])
-        if not words:
+        u = _cell_ink(ink, c, p["pol"])
+        if u is None:
             return None
-        u = _union(words)
         m = 0.5 * price_h
         if u[0] < b[0] - m or u[2] > b[2] + m or u[1] < b[1] - m or u[3] > b[3] + m:
             return None                         # more than the price in its cell (a unit, a note)
@@ -349,6 +394,7 @@ def describe(rgb: np.ndarray, grid: Grid, prices: list[dict]) -> dict | None:
         out.append({"cell": grid.to_norm((c.x0, c.y0, c.x1, c.y1)),
                     "h": round((p["box"][3] - p["box"][1]) / grid.fh, 5),
                     "w": round((p["box"][2] - p["box"][0]) / grid.fw, 5),
+                    "dx": round(((p["box"][0] + p["box"][2]) / 2 - c.xc) / grid.fw, 5),
                     "pol": p["pol"], "text": p.get("text", ""), "label": p.get("label", ""),
                     "group": p.get("group", ""), "column": p.get("column", ""),
                     "column_id": col, "row": _encode(grid.row_signature(c))})
@@ -385,30 +431,77 @@ class Placed:
 
 def place(layout: dict, grid: Grid, rgb: np.ndarray) -> tuple[raster.InkMap, list[Placed]] | None:
     """Every price of a known format on this page, found in its cell. None if the
-    page does not fit the format exactly."""
+    page does not fit the format exactly. A small photo is looked at enlarged (its
+    prices a comfortable size), the boxes given back in the photo's own pixels."""
+    price_h = float(statistics.median(r["h"] for r in layout["prices"])) * grid.fh
+    if price_h < MIN_DIGIT_H:
+        log.info("known list: prices %.1f px tall, too small to find every zero", price_h)
+        return None
+    f = min(3.0, WORK_DIGIT_H / price_h)
+    if f <= 1.05:
+        found = _place(layout, grid, rgb)
+        return None if found is None else (found[0], found[1])
+    big = cv2.resize(rgb, None, fx=f, fy=f, interpolation=cv2.INTER_CUBIC)
+    found = _place(layout, find(big), big)
+    if found is None:
+        return None
+    H, W = rgb.shape[:2]
+    out = [Placed((max(0, int(p.box[0] / f)), max(0, int(p.box[1] / f)),
+                   min(W, math.ceil(p.box[2] / f)), min(H, math.ceil(p.box[3] / f))), p.rec) for p in found[1]]
+    return _ink_map(rgb, price_h), out
+
+
+def _place(layout: dict, grid: Grid, rgb: np.ndarray) -> tuple[raster.InkMap, list[Placed]] | None:
     recs = layout["prices"]
     price_h = float(statistics.median(r["h"] for r in recs)) * grid.fh
-    if price_h < MIN_DIGIT_H:
-        return None                             # too small to find every zero of a price
     ink = _ink_map(rgb, price_h)
     out: list[Placed] = []
     cells: list[Cell] = []
+    unsure = 0
     for r in recs:
         x0, y0, x1, y1 = grid.to_px(r["cell"])
         c = grid.cell_at((x0 + x1) / 2, (y0 + y1) / 2)
+        hard = soft = ""
+        u = None
         if c is None or not _same_cell(grid.to_norm((c.x0, c.y0, c.x1, c.y1)), r["cell"]):
+            hard = "its cell is not where it was"
+        else:
+            u = _cell_ink(ink, c, r["pol"])
+            row = row_likeness(grid.row_signature(c), _decode(r["row"]))
+            if row < ROW_SAME:
+                hard = f"the text of its row changed (likeness {row:.2f})"
+            elif u is None or (u[3] - u[1]) < 0.4 * r["h"] * grid.fh:
+                hard = "its cell is empty"
+            elif not _numberlike(u, r["h"] * grid.fh, c):
+                soft = f"its ink does not look like the price did ({u})"
+            elif u[2] - u[0] < 0.7 * r.get("w", 0.0) * grid.fw:
+                soft = f"far narrower than it was ({u[2] - u[0]} < {0.7 * r['w'] * grid.fw:.1f} px)"
+        if hard:
+            log.info("known list «%s» does not fit: price «%s» - %s", layout.get("name"), r.get("label"), hard)
             return None
-        words = _cell_ink(ink, c, r["pol"])
-        if not _numberlike(words, r["h"] * grid.fh, c):
-            return None                         # an empty cell, or not a number there
-        u = _union(words)
-        if u[2] - u[0] < 0.75 * r.get("w", 0.0) * grid.fw:
-            return None                         # far narrower than the price was: part of it unseen?
-        if float(np.dot(grid.row_signature(c), _decode(r["row"]))) < ROW_SAME:
-            return None                         # the row's text changed: another list on the same grid?
+        if soft:
+            # faint or smudged on this photo: the whole inside of the cell is the price's place
+            # (a price cell holds nothing else), so no faint zero is left out
+            log.info("known list «%s»: price «%s» - %s; using its whole cell", layout.get("name"), r.get("label"), soft)
+            unsure += 1
+            ix0, iy0, ix1, iy1 = c.inner
+            u = (math.ceil(ix0) + 1, math.ceil(iy0) + 1, int(ix1) - 1, int(iy1) - 1)
+        if "dx" in r:
+            # never narrower than the price was, where it was: a zero too faint to see on
+            # this photo is still inside the box (erased, and shown when the digits are read)
+            half = r["w"] * grid.fw / 2
+            xc = c.xc + r["dx"] * grid.fw
+            ix0, iy0, ix1, iy1 = c.inner
+            grow = max(0.0, r["h"] * grid.fh - (u[3] - u[1])) / 2 + 1     # the faint tip of a tall digit
+            u = (max(math.ceil(ix0), min(u[0], int(xc - half))), max(math.ceil(iy0), int(u[1] - grow)),
+                 min(int(ix1), max(u[2], math.ceil(xc + half))), min(int(iy1), math.ceil(u[3] + grow)))
         cells.append(c)
-        out.append(Placed(_union(words), r))
+        out.append(Placed(u, r))
+    if unsure > max(2, 0.15 * len(recs)):
+        log.info("known list «%s» does not fit: %d prices unclear", layout.get("name"), unsure)
+        return None
     if _unknown_numbers(grid, ink, cells, [r["pol"] for r in recs], price_h):
+        log.info("known list «%s» does not fit: a number in a price column it does not know", layout.get("name"))
         return None
     return ink, out
 
