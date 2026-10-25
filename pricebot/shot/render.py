@@ -8,11 +8,10 @@ import cv2
 import numpy as np
 
 from .bank import EYE, Bank, load_bank
-from .detect import Analysis, Comp, Footer, ShotError, _gray, analyze, native_layout
+from .detect import VIEWS_RE, Analysis, Comp, Footer, ShotError, _gray, _warp, analyze, native_layout
 
 _FA = {**{ord(c): str(i) for i, c in enumerate("۰۱۲۳۴۵۶۷۸۹")}, **{ord(c): str(i) for i, c in enumerate("٠١٢٣٤٥٦٧٨٩")},
        ord("٫"): ".", ord("٬"): "", ord(","): "", ord("،"): ""}
-SS = 3                      # supersampling used when a layer is moved to the screenshot's pixel grid
 
 
 # ------------------------------------------------------------- the number --
@@ -49,7 +48,7 @@ def parse_value(text: str) -> str:
 # --------------------------------------------------------- pixel plumbing --
 
 def _fill(img: np.ndarray, mask: np.ndarray, box: tuple[int, int, int, int]) -> np.ndarray:
-    """Rebuild the background under `mask` (inside box) by interpolating along every row."""
+    """Rebuild the background under `mask` (inside box): interpolate along every row, then smooth."""
     x0, y0, x1, y1 = box
     out = img.astype(np.float32).copy()
     H, W = mask.shape
@@ -70,32 +69,24 @@ def _fill(img: np.ndarray, mask: np.ndarray, box: tuple[int, int, int, int]) -> 
             for k in range(n):
                 t = (k + 1) / (n + 1)
                 out[y, a + k] = left * (1 - t) + right * t
+    _relax(out, mask, box)
     return out
 
 
-def _warp(canvas: np.ndarray, cx0: float, cy0: float, s: float, tx: float, ty: float,
-          win: tuple[int, int, int, int]) -> np.ndarray:
-    """Move a native-resolution layer (index coords cx0.., cy0..) into the screenshot window (x0, y0, x1, y1).
-
-    Native index i lands on screenshot position s*i + t (continuous), pixel j covers [j, j + 1]."""
-    X0, Y0, X1, Y1 = win
-    w, h = X1 - X0, Y1 - Y0
-    bx = s * cx0 + tx - 0.5 - X0
-    by = s * cy0 + ty - 0.5 - Y0
-    if abs(s - 1.0) < 1e-3 and abs(bx - round(bx)) < 1e-2 and abs(by - round(by)) < 1e-2:
-        out = np.zeros((h, w), np.float32)
-        ox, oy = int(round(bx)), int(round(by))
-        ch, cw = canvas.shape
-        sx0, sy0 = max(0, -ox), max(0, -oy)
-        dx0, dy0 = max(0, ox), max(0, oy)
-        ww, hh = min(cw - sx0, w - dx0), min(ch - sy0, h - dy0)
-        if ww > 0 and hh > 0:
-            out[dy0:dy0 + hh, dx0:dx0 + ww] = canvas[sy0:sy0 + hh, sx0:sx0 + ww]
-        return out
-    M = np.array([[s * SS, 0, SS * (bx + 0.5) - 0.5], [0, s * SS, SS * (by + 0.5) - 0.5]], np.float32)
-    big = cv2.warpAffine(canvas, M, (w * SS, h * SS), flags=cv2.INTER_LINEAR,
-                         borderMode=cv2.BORDER_CONSTANT, borderValue=0)
-    return cv2.resize(big, (w, h), interpolation=cv2.INTER_AREA)
+def _relax(out: np.ndarray, mask: np.ndarray, box: tuple[int, int, int, int], steps: int = 400) -> None:
+    """Smooth the rebuilt pixels in place: each becomes the mean of its four neighbours (the real pixels around
+    stay fixed). On JPEG photos the row ends pick up compression noise that row interpolation stretches into
+    streaks; this spreads it out in both directions instead (a membrane over the hole)."""
+    H, W = mask.shape
+    x0, y0, x1, y1 = max(1, box[0]), max(1, box[1]), min(W - 1, box[2]), min(H - 1, box[3])
+    m = mask[y0:y1, x0:x1]
+    if not m.any():
+        return
+    sub = out[y0 - 1:y1 + 1, x0 - 1:x1 + 1]
+    for _ in range(steps):
+        avg = (sub[:-2, 1:-1] + sub[2:, 1:-1] + sub[1:-1, :-2] + sub[1:-1, 2:]) * 0.25
+        inner = sub[1:-1, 1:-1]
+        inner[m] = avg[m]
 
 
 def _canvas(items: list[tuple[np.ndarray, int, int]]) -> tuple[np.ndarray, int, int]:
@@ -131,7 +122,7 @@ def _native_lefts(foot: Footer, bank: Bank, s: float) -> tuple[list[int], list[i
     def one(c: Comp) -> int:
         g = bank.glyphs[c.char]
         return int(round((c.cx - foot.tx) / s - g.cx))
-    return [one(c) for c in foot.views], [one(c) for c in foot.time]
+    return [one(c) for c in foot.views if c.char in bank.glyphs], [one(c) for c in foot.time]
 
 
 def _calibrate(img: np.ndarray, bgfill: np.ndarray, foot: Footer, bank: Bank, s: float,
@@ -189,7 +180,8 @@ def _edit_footer(img: np.ndarray, out: np.ndarray, foot: Footer, text: str, bank
     bx0, by0, bx1, by1 = foot.band
     time_x0 = foot.time[0].x0
     views_l, time_l = _native_lefts(foot, bank, s)
-    old_text = foot.views_text if foot.readable else ""
+    # the old count only decides how far the eye moves; an unsure digit is close enough for that
+    old_text = foot.views_text if foot.readable else foot.views_guess if VIEWS_RE.match(foot.views_guess) else ""
     anchor = time_l[0]
 
     # --- the new layout, in native pixels, hanging on the real first character of the time
@@ -254,29 +246,36 @@ def _edit_footer(img: np.ndarray, out: np.ndarray, foot: Footer, text: str, bank
     return res
 
 
-def apply_views(an: Analysis, text: str, bank: Bank | None = None, only: list[int] | None = None,
+def apply_views(an: Analysis, text: str | dict[int, str], bank: Bank | None = None, only: list[int] | None = None,
                 force: bool = False) -> Result:
-    """Set the view count of every readable footer (or of `only`, 0-based) to `text`."""
+    """Set view counts: `text` for every footer (or for `only`, 0-based), or {footer index: text} for a
+    different number on each one."""
     bank = bank or load_bank()
-    if not text:
-        raise ShotError("عدد جدید را بگو.")
-    miss = bank.missing(text)
-    if miss:
-        raise ShotError("این نویسه‌ها هنوز در نمونه‌های من نیست: " + " ".join(miss)
-                        + "\nفقط رقم، نقطه و K را می‌توانم بنویسم؛ برای بقیه چند اسکرین‌شات نمونه بفرست.")
+    if isinstance(text, dict):
+        targets = dict(text)
+    else:
+        targets = {i: text for i in range(len(an.footers)) if only is None or i in only}
+    for t in targets.values():
+        if not t:
+            raise ShotError("عدد جدید را بگو.")
+        miss = bank.missing(t)
+        if miss:
+            raise ShotError("این نویسه‌ها هنوز در نمونه‌های من نیست: " + " ".join(miss)
+                            + "\nفقط رقم، نقطه و K را می‌توانم بنویسم؛ برای بقیه چند اسکرین‌شات نمونه بفرست.")
     out = an.img.copy()
     result = Result(out)
     fits = []
-    count = 0
+    edited: dict[int, str] = {}
     for i, foot in enumerate(an.footers):
-        if only is not None and i not in only:
+        if i not in targets:
             continue
-        if not foot.readable:
-            result.notes.append(f"بازدید شماره {i + 1} خوانده نشد و دست نخورد.")
+        t = targets[i]
+        if not foot.time_ok:
+            result.notes.append(f"ساعت کنار بازدید شماره {i + 1} خوانده نشد؛ دست نخورد.")
             continue
-        if foot.views_text == text and not force:
+        if foot.readable and foot.views_text == t and not force:
             continue
-        r = _edit_footer(an.img, out, foot, text, bank, an.scale)
+        r = _edit_footer(an.img, out, foot, t, bank, an.scale)
         if r is None:
             continue
         result.old_texts.append(foot.views_text)
@@ -284,33 +283,33 @@ def apply_views(an: Analysis, text: str, bank: Bank | None = None, only: list[in
         for n in r.notes:
             if n not in result.notes:
                 result.notes.append(n)
-        count += 1
-    result.changed = count
+        edited[i] = t
+    result.changed = len(edited)
     result.fit = float(np.mean(fits)) if fits else 0.0
     poor = sum(1 for x in fits if x < 0.80)
     if fits and (result.fit < 0.85 or poor / len(fits) > 0.3):
         result.notes.append("شکل ارقام این عکس با نمونه‌ها کمی فرق دارد؛ نتیجه را از نزدیک نگاه کن.")
-    if count:
+    if edited:
         try:
             again = analyze(out, bank)
         except ShotError:
             again = None
-        bad = 0
-        for i, foot in enumerate(an.footers):
-            if (only is not None and i not in only) or not foot.readable:
-                continue
+        bad = []
+        for i, t in edited.items():
             if again is None:
                 result.unchecked += 1
                 continue
+            foot = an.footers[i]
             near = [g for g in again.footers if abs(g.eye[1] - foot.eye[1]) <= 6]
             if not near:
                 result.unchecked += 1
-            elif near[0].readable and near[0].views_text == text:
+            elif near[0].readable and near[0].views_text == t:
                 result.verified += 1
             else:
-                bad += 1
+                bad.append(i + 1)
         if bad:
-            result.notes.append(f"بعد از ساخت، {bad} عدد درست خوانده نشد؛ خروجی را یک بار نگاه کن.")
+            result.notes.append(f"بعد از ساخت، بازدید شماره {'، '.join(map(str, bad))} درست خوانده نشد؛ "
+                                "خروجی را یک بار نگاه کن.")
     return result
 
 
