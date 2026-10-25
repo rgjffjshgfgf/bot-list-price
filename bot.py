@@ -668,8 +668,19 @@ def _read_image(data: bytes) -> np.ndarray:
         return cv2.cvtColor(np.asarray(im), cv2.COLOR_RGB2BGR)
 
 
+HD_SIDE = 2560      # Telegram keeps photos up to this long side as "HD"; 1280 and below show as SD
+
+
 def _photo_bytes(img: np.ndarray) -> bytes:
-    """The result as a normal Telegram photo (Telegram re-encodes photos anyway; this keeps the upload small)."""
+    """The result as a normal Telegram photo, always at HD size.
+
+    A forwarded photo is usually SD (1280 px), so the finished picture is enlarged as a whole: the new numbers
+    were drawn at the photo's own sharpness and grow with everything around them."""
+    h, w = img.shape[:2]
+    f = HD_SIDE / max(h, w)
+    if abs(f - 1) > 1e-3:
+        img = cv2.resize(img, (round(w * f), round(h * f)),
+                         interpolation=cv2.INTER_LANCZOS4 if f > 1 else cv2.INTER_AREA)
     ok, buf = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, 95])
     if not ok:
         raise RuntimeError("jpeg encode failed")
