@@ -21,9 +21,12 @@ from telegram.error import BadRequest
 from telegram.ext import (Application, CallbackQueryHandler, CommandHandler, ContextTypes, MessageHandler,
                           filters)
 
+import cv2
+import numpy as np
 import pymupdf
+from PIL import Image, ImageOps
 
-from pricebot import ai, brain, commands, config, pipeline
+from pricebot import ai, brain, commands, config, pipeline, shot
 from pricebot.commands import Plan, Rule
 from pricebot.models import Analysis
 from pricebot.numfmt import fmt_plain
@@ -63,7 +66,8 @@ HELP = (
     "🧠 ربات هوش مصنوعی خودش را دارد: قالب‌های جدید را با کمک Gemini (طرح رایگان) یاد می‌گیرد و بعد از "
     "چند بار تأیید، همان قالب را بدون Gemini و بدون مصرف سهمیه پردازش می‌کند. زیر عکس پیش‌نمایش با 👍 / 👎 "
     "بگو تشخیص درست بود یا نه تا سریع‌تر یاد بگیرد. وضعیت یادگیری: /brain\n\n"
-    "/help راهنما   /brain هوش ربات   /backup بکاپ   /restore بازیابی   /usage سهمیه Gemini   "
+    "🖼 تغییر عدد بازدید در اسکرین‌شات تلگرام: /shot\n\n"
+    "/help راهنما   /shot تغییر بازدید اسکرین‌شات   /brain هوش ربات   /backup بکاپ   /restore بازیابی   /usage سهمیه Gemini   "
     "/test آزمایش اتصال Gemini   /status وضعیت   "
     "/reset شروع دوباره   /id شناسه شما"
 )
@@ -110,6 +114,24 @@ SESSIONS: dict[int, Session] = {}
 CHAT_LOCKS: dict[int, asyncio.Lock] = {}
 
 
+@dataclass
+class ShotSession:
+    """A Telegram screenshot whose view counts can be changed (see /shot)."""
+    analysis: shot.Analysis
+    filename: str
+    from_photo: bool
+    created: float = field(default_factory=time.time)
+
+    def expired(self) -> bool:
+        return time.time() - self.created > config.SESSION_TTL_MINUTES * 60
+
+
+SHOTS: dict[int, ShotSession] = {}
+SHOT_WAIT: dict[int, float] = {}            # chat -> when /shot asked for a screenshot
+SHOT_WORDS = ("بازدید", "ویو", "view", "اسکرین")
+IMAGE_EXT = (".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff")
+
+
 def _chat_lock(chat_id: int) -> asyncio.Lock:
     return CHAT_LOCKS.setdefault(chat_id, asyncio.Lock())
 
@@ -124,6 +146,9 @@ def _purge_expired() -> None:
     for chat_id, s in list(SESSIONS.items()):
         if s.expired():
             _drop_session(chat_id)
+    for chat_id, t in list(SHOTS.items()):
+        if t.expired():
+            SHOTS.pop(chat_id, None)
 
 
 def _allowed(update: Update) -> bool:
@@ -456,7 +481,180 @@ async def cmd_reset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return await _deny(update)
     async with _chat_lock(update.effective_chat.id):
         _drop_session(update.effective_chat.id)
+        SHOTS.pop(update.effective_chat.id, None)
+        SHOT_WAIT.pop(update.effective_chat.id, None)
     await update.effective_message.reply_text("🗑 پاک شد. فایل جدید را بفرست.")
+
+
+# ------------------------------------------------------ screenshot numbers --
+
+SHOT_HELP = (
+    "🖼 تغییر عدد بازدید در اسکرین‌شات تلگرام\n\n"
+    "۱) اسکرین‌شات کانال را بفرست (حتماً به صورت «فایل»، نه عکس فشرده).\n"
+    "۲) بگو بازدیدها چه عددی بشوند: «۲» یا «۲۵۰۰» (می‌شود ۲٫۵K) یا «۲.۵K».\n"
+    "فقط یک پیام را عوض کنی: «ردیف ۳ بشود ۱۰».\n\n"
+    "عدد با همان فونت، رنگ و فاصله‌ی خود تلگرام دوباره کشیده می‌شود و بقیه‌ی عکس دست نمی‌خورد."
+)
+
+
+def _shot_values_keyboard() -> InlineKeyboardMarkup:
+    vals = ["1", "2", "5", "10", "100", "1K"]
+    return InlineKeyboardMarkup([[InlineKeyboardButton(_fa(v), callback_data=f"shot:val:{v}") for v in vals]])
+
+
+def _is_image_message(msg: Message) -> bool:
+    if msg.photo:
+        return True
+    doc = msg.document
+    if doc is None:
+        return False
+    name = (doc.file_name or "").lower()
+    return (doc.mime_type or "").lower().startswith("image/") or name.endswith(IMAGE_EXT)
+
+
+def _wants_shot(chat_id: int, caption: str) -> bool:
+    if time.time() - SHOT_WAIT.get(chat_id, 0) < 600:
+        return True
+    low = caption.lower()
+    return caption.startswith("/shot") or any(w in low for w in SHOT_WORDS)
+
+
+def _shot_request(text: str) -> tuple[str | None, int | None]:
+    """The new number and (optionally) which row, from a free-form message."""
+    t = (text or "").translate(shot.render._FA).lower()
+    only = None
+    m = re.search(r"(?:ردیف|شماره|پیام|مورد|row)\s*(\d+)", t)
+    if m:
+        only = int(m.group(1)) - 1
+        t = (t[:m.start()] + " " + t[m.end():])
+    m = re.search(r"(\d+(?:\.\d)?)\s*(k|هزار)?", t)
+    if not m:
+        return None, only
+    return m.group(1) + ("K" if m.group(2) else ""), only
+
+
+def _read_image(path: Path) -> np.ndarray:
+    with Image.open(path) as im:
+        im = ImageOps.exif_transpose(im).convert("RGB")
+        return cv2.cvtColor(np.asarray(im), cv2.COLOR_RGB2BGR)
+
+
+def _png_bytes(img: np.ndarray) -> bytes:
+    ok, buf = cv2.imencode(".png", img)
+    if not ok:
+        raise RuntimeError("png encode failed")
+    return buf.tobytes()
+
+
+async def cmd_shot(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not _allowed(update):
+        return await _deny(update)
+    SHOT_WAIT[update.effective_chat.id] = time.time()
+    await update.effective_message.reply_text(SHOT_HELP + "\n\nحالا اسکرین‌شات را بفرست 👇")
+
+
+async def _on_shot_image(update: Update, context: ContextTypes.DEFAULT_TYPE, tg_file, filename: str,
+                         from_photo: bool, caption: str) -> None:
+    msg = update.effective_message
+    chat_id = update.effective_chat.id
+    SHOT_WAIT.pop(chat_id, None)
+    async with _chat_lock(chat_id):
+        _purge_expired()
+        status = await msg.reply_text("📥 اسکرین‌شات دریافت شد، در حال پیدا کردن بازدیدها…")
+        WORK_ROOT.mkdir(parents=True, exist_ok=True)
+        path = WORK_ROOT / f"shot_{chat_id}_{uuid.uuid4().hex[:8]}{Path(filename).suffix or '.png'}"
+        try:
+            f = await context.bot.get_file(tg_file.file_id)
+            await f.download_to_drive(path)
+            img = await asyncio.to_thread(_read_image, path)
+        except Exception:  # noqa: BLE001
+            log.exception("shot download failed")
+            await _safe_edit(status, "❌ دریافت یا خواندن عکس انجام نشد. دوباره بفرست.")
+            return
+        finally:
+            path.unlink(missing_ok=True)
+        try:
+            analysis = await asyncio.to_thread(shot.analyze, img)
+        except shot.ShotError as exc:
+            await _safe_edit(status, f"❌ {exc}")
+            return
+        except Exception:  # noqa: BLE001
+            log.exception("shot analysis failed")
+            await _safe_edit(status, "❌ در بررسی اسکرین‌شات خطایی رخ داد.")
+            return
+        sess = SHOTS[chat_id] = ShotSession(analysis, filename, from_photo)
+        n = len(analysis.footers)
+        readable = [f_ for f_ in analysis.footers if f_.readable]
+        values = sorted({f_.views_text for f_ in readable})
+        lines = [f"✅ {_fa(n)} بازدید پیدا شد" + (f" (فعلی: {'، '.join(_fa(v) for v in values[:6])})" if values else "") + "."]
+        lines += [f"⚠️ {w}" for w in analysis.warnings[:3]]
+        if from_photo:
+            lines.append("ℹ️ عکس به صورت «عکس» آمد و تلگرام فشرده‌اش کرده؛ برای بهترین کیفیت آن را به صورت «فایل» بفرست.")
+        lines.append("\nبازدیدها چه عددی بشوند؟ بنویس یا یکی از دکمه‌ها را بزن (شماره‌ها روی عکس پیش‌نمایش است):")
+        await _safe_edit(status, "\n".join(lines), reply_markup=_shot_values_keyboard())
+        try:
+            prev = await asyncio.to_thread(shot.preview, analysis)
+            ok, buf = cv2.imencode(".jpg", prev, [cv2.IMWRITE_JPEG_QUALITY, 85])
+            if ok:
+                await context.bot.send_photo(chat_id, io.BytesIO(buf.tobytes()),
+                                             caption="بازدیدهای پیدا شده با کادر سبز و شماره مشخص شده‌اند")
+        except Exception:  # noqa: BLE001
+            log.exception("shot preview failed")
+        value, only = _shot_request(caption)
+        if value is not None:
+            await _apply_shot(update, context, sess, value, only)
+
+
+async def _apply_shot(update: Update, context: ContextTypes.DEFAULT_TYPE, sess: ShotSession, value: str,
+                      only: int | None) -> None:
+    msg = update.effective_message
+    chat_id = update.effective_chat.id
+    try:
+        text = shot.parse_value(value)
+    except shot.ShotError as exc:
+        await msg.reply_text(f"❓ {exc}")
+        return
+    if only is not None and not 0 <= only < len(sess.analysis.footers):
+        await msg.reply_text(f"❓ ردیف {_fa(only + 1)} وجود ندارد؛ شماره‌ها از ۱ تا {_fa(len(sess.analysis.footers))} است.")
+        return
+    status = await msg.reply_text(f"⏳ در حال ساخت عکس با بازدید {_fa(text)}…")
+    await context.bot.send_chat_action(chat_id, ChatAction.UPLOAD_DOCUMENT)
+    try:
+        result = await asyncio.to_thread(shot.apply_views, sess.analysis, text, None,
+                                         None if only is None else [only])
+        data = await asyncio.to_thread(_png_bytes, result.img)
+    except shot.ShotError as exc:
+        await _safe_edit(status, f"❌ {exc}")
+        return
+    except Exception:  # noqa: BLE001
+        log.exception("shot edit failed")
+        await _safe_edit(status, "❌ ساخت عکس با خطا روبه‌رو شد.")
+        return
+    if result.changed == 0:
+        await _safe_edit(status, "هیچ بازدیدی تغییر نکرد (همه همین عدد بودند یا خوانده نشدند).\n"
+                         + "\n".join(f"⚠️ {n}" for n in result.notes[:3]))
+        return
+    name = f"{Path(sess.filename).stem}_views_{text}.png"
+    cap = [f"✅ بازدید {_fa(result.changed)} پیام شد {_fa(text)}"]
+    if result.verified:
+        cap.append(f"🔎 بعد از ساخت، {_fa(result.verified)} عدد دوباره خوانده و تأیید شد.")
+    cap += [f"⚠️ {n}" for n in result.notes[:3]]
+    await context.bot.send_document(chat_id, io.BytesIO(data), filename=name, caption="\n".join(cap))
+    with contextlib.suppress(Exception):
+        await status.delete()
+    await msg.reply_text("عدد دیگری هم می‌خواهی؟ بنویس یا دکمه بزن. (هر بار از روی عکس اصلی ساخته می‌شود.)",
+                         reply_markup=_shot_values_keyboard())
+
+
+def _active_shot(chat_id: int) -> ShotSession | None:
+    sess = SHOTS.get(chat_id)
+    if sess is None or sess.expired():
+        return None
+    price = SESSIONS.get(chat_id)
+    if price is not None and not price.expired() and price.items and price.created > sess.created:
+        return None
+    return sess
+
 
 
 # -------------------------------------------------------------------- files --
@@ -485,6 +683,9 @@ async def on_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if size > MAX_DOWNLOAD:
         await msg.reply_text("حجم فایل بیشتر از ۲۰ مگابایت است (محدودیت تلگرام برای ربات‌ها). لطفاً فایل کوچک‌تری بفرست.")
         return
+
+    if _is_image_message(msg) and _wants_shot(chat_id, (msg.caption or "").strip()):
+        return await _on_shot_image(update, context, tg_file, filename, bool(msg.photo), (msg.caption or "").strip())
 
     async with _chat_lock(chat_id):
         _purge_expired()
@@ -671,6 +872,15 @@ async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return await _deny(update)
     chat_id = update.effective_chat.id
     async with _chat_lock(chat_id):   # waits for a file that is still being analysed
+        sess = _active_shot(chat_id)
+        if sess is not None:
+            value, only = _shot_request(update.effective_message.text or "")
+            if value is None:
+                await update.effective_message.reply_text(
+                    "عدد جدید را بنویس، مثلاً «۲» یا «۲۵۰۰» یا «ردیف ۳ بشود ۱۰».\n/shot راهنما")
+                return
+            await _apply_shot(update, context, sess, value, only)
+            return
         session = SESSIONS.get(chat_id)
         if session is None or session.expired() or not session.items:
             await update.effective_message.reply_text(
@@ -886,6 +1096,14 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     await q.answer()
     if (q.data or "").startswith("mem:"):
         return await _on_memory(update, context)
+    if (q.data or "").startswith("shot:val:"):
+        async with _chat_lock(update.effective_chat.id):
+            sess = SHOTS.get(update.effective_chat.id)
+            if sess is None or sess.expired():
+                await q.message.reply_text("اسکرین‌شات قبلی تمام شده. دوباره /shot را بزن و عکس را بفرست.")
+                return
+            await _apply_shot(update, context, sess, q.data.split(":", 2)[2], None)
+        return
     async with _chat_lock(update.effective_chat.id):
         session = SESSIONS.get(update.effective_chat.id)
         if (q.data or "").startswith("fb:"):
@@ -1111,6 +1329,7 @@ async def _set_menu(app: Application) -> None:
     try:
         await app.bot.set_my_commands([
             BotCommand("start", "راهنمای ربات"),
+            BotCommand("shot", "تغییر عدد بازدید در اسکرین‌شات تلگرام"),
             BotCommand("brain", "هوش ربات: وضعیت یادگیری، بکاپ و بازیابی"),
             BotCommand("backup", "گرفتن بکاپ از حافظه ربات"),
             BotCommand("restore", "بازیابی بکاپ حافظه ربات"),
@@ -1134,6 +1353,7 @@ def main() -> None:
            .read_timeout(60).write_timeout(180).connect_timeout(30).media_write_timeout(180).build())
     app.add_handler(CommandHandler(["start", "help"], cmd_start))
     app.add_handler(CommandHandler("id", cmd_id))
+    app.add_handler(CommandHandler(["shot", "views"], cmd_shot))
     app.add_handler(CommandHandler("status", cmd_status))
     app.add_handler(CommandHandler(["usage", "quota"], cmd_usage))
     app.add_handler(CommandHandler(["test", "diag"], cmd_test))
