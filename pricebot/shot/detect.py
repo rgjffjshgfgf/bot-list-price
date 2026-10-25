@@ -9,7 +9,12 @@ import numpy as np
 
 from .bank import EYE, Bank, load_bank
 
-TIME_RE = re.compile(r"^\d\d:\d\d$")
+TIME_RE = re.compile(r"^(?:[01]\d|2[0-3]):[0-5]\d$")
+VIEWS_RE = re.compile(r"^(?:\d{1,3}|\d{1,3}(?:\.\d)?[KM])$")    # 999, 1K, 1.2K, 24.6K, 1.5M
+SS = 3                      # supersampling used when a layer is moved to the screenshot's pixel grid
+MIN_SCORE = 0.70            # a character whose best match is weaker than this is not trusted ('?')
+MIN_MARGIN = 0.04           # ... nor one whose runner-up is this close
+MIN_DOT = 0.40              # the decimal point is checked by its place instead (see _parse_footer)
 
 
 class ShotError(Exception):
@@ -25,6 +30,7 @@ class Comp:
     kind: str = "glyph"          # glyph | colon
     char: str = "?"
     score: float = 0.0
+    guess: str = "?"             # the best match even when it was not sure enough to be trusted as `char`
     cx: float = 0.0              # centre of mass in the screenshot (px)
     cy: float = 0.0
 
@@ -56,12 +62,20 @@ class Footer:
         return "".join(c.char for c in self.views)
 
     @property
+    def views_guess(self) -> str:
+        return "".join(c.guess for c in self.views)
+
+    @property
     def time_text(self) -> str:
         return "".join(c.char for c in self.time)
 
     @property
+    def time_ok(self) -> bool:
+        return TIME_RE.match(self.time_text) is not None
+
+    @property
     def readable(self) -> bool:
-        return all(c.char != "?" for c in self.views) and TIME_RE.match(self.time_text) is not None
+        return VIEWS_RE.match(self.views_text) is not None and self.time_ok
 
 
 @dataclass
@@ -75,6 +89,31 @@ class Analysis:
 
 def _gray(img: np.ndarray) -> np.ndarray:
     return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY).astype(np.float32)
+
+
+def _warp(canvas: np.ndarray, cx0: float, cy0: float, s: float, tx: float, ty: float,
+          win: tuple[int, int, int, int]) -> np.ndarray:
+    """Move a native-resolution layer (index coords cx0.., cy0..) into the screenshot window (x0, y0, x1, y1).
+
+    Native index i lands on screenshot position s*i + t (continuous), pixel j covers [j, j + 1]."""
+    X0, Y0, X1, Y1 = win
+    w, h = X1 - X0, Y1 - Y0
+    bx = s * cx0 + tx - 0.5 - X0
+    by = s * cy0 + ty - 0.5 - Y0
+    if abs(s - 1.0) < 1e-3 and abs(bx - round(bx)) < 1e-2 and abs(by - round(by)) < 1e-2:
+        out = np.zeros((h, w), np.float32)
+        ox, oy = int(round(bx)), int(round(by))
+        ch, cw = canvas.shape
+        sx0, sy0 = max(0, -ox), max(0, -oy)
+        dx0, dy0 = max(0, ox), max(0, oy)
+        ww, hh = min(cw - sx0, w - dx0), min(ch - sy0, h - dy0)
+        if ww > 0 and hh > 0:
+            out[dy0:dy0 + hh, dx0:dx0 + ww] = canvas[sy0:sy0 + hh, sx0:sx0 + ww]
+        return out
+    M = np.array([[s * SS, 0, SS * (bx + 0.5) - 0.5], [0, s * SS, SS * (by + 0.5) - 0.5]], np.float32)
+    big = cv2.warpAffine(canvas, M, (w * SS, h * SS), flags=cv2.INTER_LINEAR,
+                         borderMode=cv2.BORDER_CONSTANT, borderValue=0)
+    return cv2.resize(big, (w, h), interpolation=cv2.INTER_AREA)
 
 
 # ---------------------------------------------------------------- the eye --
@@ -181,25 +220,43 @@ def _centroid(gray: np.ndarray, c: Comp, bg: float, sign: int, contrast: float) 
     return float((a * xs).sum() / tot) + 0.5, float((a * ys).sum() / tot) + 0.5
 
 
-def classify(gray: np.ndarray, c: Comp, bank: Bank, s: float) -> tuple[str, float, float]:
-    """Best matching learned character for one component: (char, score, runner-up score)."""
+def read_char(gray: np.ndarray, c: Comp, bank: Bank, s: float, sign: int, hd: float
+              ) -> tuple[str, float, float]:
+    """Best learned character for one component: (char, score, runner-up score).
+
+    Every candidate is drawn the way the screenshot itself was made: the native shape is placed on the
+    component's centre of mass and resampled to the screenshot's scale (with small sub-pixel shifts and a
+    little blur for JPEG / resized copies), then compared pixel by pixel. This stays exact on photos that
+    Telegram shrank to less than half size, where the digits are only ~7 px wide."""
     H, W = gray.shape
-    pad = 3
+    pad = 2
     X0, Y0, X1, Y1 = max(0, c.x0 - pad), max(0, c.y0 - pad), min(W, c.x1 + pad), min(H, c.y1 + pad)
-    crop = gray[Y0:Y1, X0:X1].astype(np.float32)
+    P = gray[Y0:Y1, X0:X1].astype(np.float32)
+    P = P - P.mean()
+    pn = float(np.sqrt((P * P).sum())) or 1.0
+    small = c.h < 0.5 * hd
+    native = abs(s - 1.0) < 2e-3
+    shifts = (-0.35, 0.0, 0.35)
+    sigmas = (0.0,) if native else (0.0, 0.45)
     scores: list[tuple[float, str]] = []
     for ch, g in bank.glyphs.items():
-        if ch == EYE:
+        if ch in (EYE, ":") or (ch == ".") != small:
             continue
-        gw, gh = max(2, int(round(g.w * s))), max(2, int(round(g.h * s)))
-        if abs(gw - c.w) > max(2.0, 0.28 * c.w) or abs(gh - c.h) > max(2.0, 0.22 * c.h):
+        if abs(g.h * s - c.h) > max(2.5, 0.35 * c.h):
             continue
-        cand = cv2.resize(g.a, (gw, gh), interpolation=cv2.INTER_AREA)
-        if cand.shape[0] > crop.shape[0] or cand.shape[1] > crop.shape[1]:
-            continue
-        r = cv2.matchTemplate(crop, cand, cv2.TM_CCOEFF_NORMED)
-        v = float(np.abs(np.nan_to_num(r)).max())
-        scores.append((v, ch))
+        can = np.pad(g.a, 2)
+        best = -1.0
+        for dx in shifts:
+            for dy in shifts:
+                tx = c.cx + dx - s * (g.cx + 2)
+                ty = c.cy + dy - s * (g.cy + 2)
+                R0 = _warp(can, 0, 0, s, tx, ty, (X0, Y0, X1, Y1))
+                for sg in sigmas:
+                    R = cv2.GaussianBlur(R0, (0, 0), sg) if sg else R0
+                    R = R - R.mean()
+                    rn = float(np.sqrt((R * R).sum())) or 1.0
+                    best = max(best, sign * float((P * R).sum()) / (pn * rn))
+        scores.append((best, ch))
     if not scores:
         return "?", 0.0, 0.0
     scores.sort(reverse=True)
@@ -285,13 +342,23 @@ def _parse_footer(gray: np.ndarray, bank: Bank, s: float, ex: int, ey: int, tw: 
     # the views/time gap must be the widest "space" in front of the time
     foot = Footer(eye, views, time, sign=sign, contrast=contrast, band=(bx0, by0, bx1, by1))
     for c in views + time:
-        if c.kind == "colon":
-            c.score = 1.0
-        else:
-            c.char, c.score, _ = classify(gray, c, bank, s)
-            if c.score < 0.72:
-                c.char = "?"
         c.cx, c.cy = _centroid(gray, c, bg, sign, contrast)
+        if c.kind == "colon":
+            c.score, c.guess = 1.0, ":"
+        else:
+            c.char, c.score, second = read_char(gray, c, bank, s, sign, hd)
+            c.guess = c.char
+            if c.char == ".":
+                continue
+            if c.score < MIN_SCORE or c.score - second < MIN_MARGIN:
+                c.char = "?"
+    # on shrunk photos the point is a 2x2 px blob that no shape comparison is sure of; it is the only small
+    # mark a view count has, so it is trusted when it sits on the baseline of the digits around it
+    bottoms = [c.y1 for c in views if c.char not in (".", "?")]
+    for c in views:
+        if c.char == "." and (c.score < MIN_DOT or not bottoms
+                              or abs(c.y1 - float(np.median(bottoms))) > max(1.5, 0.15 * hd)):
+            c.char = "?"
     foot.bg = bg
     return foot
 
@@ -321,9 +388,12 @@ def native_layout(bank: Bank, views: str, time: str, eye: bool = True) -> dict:
 
 
 def _points(foot: Footer, bank: Bank) -> np.ndarray:
-    lay = native_layout(bank, foot.views_text, foot.time_text, eye=False)
+    """(native x, native y, screenshot x, screenshot y) of every character centre; only the time when the
+    view count could not be read."""
+    lay = native_layout(bank, foot.views_text if foot.readable else "", foot.time_text, eye=False)
     pts = []
-    for comps, xs in ((foot.views, lay["views"]), (foot.time, lay["time"])):
+    groups = ((foot.views, lay["views"]), (foot.time, lay["time"])) if foot.readable else ((foot.time, lay["time"]),)
+    for comps, xs in groups:
         for c, x in zip(comps, xs):
             g = bank.glyphs[c.char]
             pts.append((x + g.cx, g.dy + g.cy, c.cx, c.cy))
@@ -351,10 +421,10 @@ def fit_scale(foot: Footer, bank: Bank) -> float | None:
 
 def fit_offsets(foot: Footer, bank: Bank, s: float) -> tuple[float, float, float] | None:
     """With the scale known: where native (0, 0) lands in the screenshot, and the leftover error (px)."""
-    if not foot.readable:
+    if not foot.time_ok:
         return None
     P = _points(foot, bank)
-    if len(P) < 5:
+    if len(P) < 4:
         return None
     tx = float(np.median(P[:, 2] - s * P[:, 0]))
     ty = float(np.median(P[:, 3] - s * P[:, 1]))
@@ -376,11 +446,13 @@ def analyze(img_bgr: np.ndarray, bank: Bank | None = None) -> Analysis:
     tpl, m = _eye_template(bank)
     tw = int(round(tpl.shape[1] * s))
     th = int(round(tpl.shape[0] * s))
-    footers: list[Footer] = []
-    for sc, x, y in sorted(eyes, key=lambda e: (e[2], e[1])):
-        f = _parse_footer(gray, bank, s, x, y, tw, th)
-        if f is not None:
-            footers.append(f)
+    eyes = sorted(eyes, key=lambda e: (e[2], e[1]))
+
+    def read_all(scale: float) -> list[Footer]:
+        found = (_parse_footer(gray, bank, scale, x, y, tw, th) for sc, x, y in eyes)
+        return [f for f in found if f is not None]
+
+    footers = read_all(s)
     if not footers:
         raise ShotError("علامت چشم پیدا شد ولی عدد بازدید و ساعت کنارش خوانده نشد.\n"
                         "عکس را به صورت «فایل» (بدون فشرده‌سازی) بفرست و دوباره امتحان کن.")
@@ -388,6 +460,11 @@ def analyze(img_bgr: np.ndarray, bank: Bank | None = None) -> Analysis:
     s_fit = float(np.median(scales)) if scales else s
     if abs(s_fit - s) / s > 0.05:
         s_fit = s
+    if abs(s_fit - s) / s > 0.003:
+        # the eye only gives a rough scale; read once more with the one the characters agree on
+        again = read_all(s_fit)
+        if sum(f.readable for f in again) >= sum(f.readable for f in footers):
+            footers = again
     for f in footers:
         r = fit_offsets(f, bank, s_fit)
         if r:
@@ -395,7 +472,9 @@ def analyze(img_bgr: np.ndarray, bank: Bank | None = None) -> Analysis:
     warnings: list[str] = []
     unread = [f for f in footers if not f.readable]
     if unread:
-        warnings.append(f"{len(unread)} مورد از بازدیدها را نتوانستم دقیق بخوانم (فونت یا اندازه‌ی متفاوت).")
+        fixable = sum(f.time_ok for f in unread)
+        warnings.append(f"{len(unread)} مورد از بازدیدها را نتوانستم دقیق بخوانم (فونت یا اندازه‌ی متفاوت)"
+                        + ("؛ جایش از روی ساعت معلوم است و باز هم عوض می‌شود." if fixable == len(unread) else "."))
     good = [f for f in footers if f.readable]
     conf = 0.0
     if good:
