@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from decimal import Decimal
 
 import cv2
 import numpy as np
@@ -32,17 +33,19 @@ def format_views(n: int) -> str:
     return str(n)
 
 
-def parse_value(text: str) -> str:
-    """'2', '۲', '2500', '2.5K' -> the text to draw ('2', '2', '2.5K', '2.5K')."""
+def parse_value(text: str, plain_thousands: bool = True) -> str:
+    """The text to draw for what the user typed: '36.2' / '36.2k' / '۳۶٫۲ هزار' -> '36.2K', '2500' -> '2.5K',
+    '0.5' -> '500'. A plain number under 1000 counts in thousands (views are almost always in K) unless
+    `plain_thousands` is off; Telegram's own rounding (one decimal, cut) is applied."""
     t = (text or "").strip().translate(_FA).replace(" ", "").upper()
-    t = t.replace("هزار", "K")
-    m = re.fullmatch(r"(\d+(?:\.\d)?)([KM]?)", t)
+    t = t.replace("هزار", "K").replace("میلیون", "M")
+    m = re.fullmatch(r"(\d+(?:\.\d+)?)([KM]?)", t)
     if not m:
-        raise ShotError("عدد را درست نفهمیدم. مثلاً بنویس: 2 یا 2500 یا 2.5K")
-    num, suffix = m.groups()
-    if suffix:
-        return num + suffix
-    return format_views(int(num))
+        raise ShotError("عدد را درست نفهمیدم. مثلاً بنویس: 36.2 (یعنی 36.2K) یا 5 یا 2500")
+    num, suffix = Decimal(m.group(1)), m.group(2)
+    if not suffix and plain_thousands and num < 1000:
+        suffix = "K"
+    return format_views(int(num * {"": 1, "K": 1000, "M": 1_000_000}[suffix]))
 
 
 # --------------------------------------------------------- pixel plumbing --
@@ -291,7 +294,7 @@ def apply_views(an: Analysis, text: str | dict[int, str], bank: Bank | None = No
         result.notes.append("شکل ارقام این عکس با نمونه‌ها کمی فرق دارد؛ نتیجه را از نزدیک نگاه کن.")
     if edited:
         try:
-            again = analyze(out, bank)
+            again = analyze(out, bank, an.scale)
         except ShotError:
             again = None
         bad = []
