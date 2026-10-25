@@ -17,7 +17,7 @@ from pathlib import Path
 
 from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaDocument, Message, Update
 from telegram.constants import ChatAction
-from telegram.error import BadRequest
+from telegram.error import BadRequest, RetryAfter
 from telegram.ext import (Application, CallbackQueryHandler, CommandHandler, ContextTypes, MessageHandler,
                           filters)
 
@@ -116,10 +116,9 @@ CHAT_LOCKS: dict[int, asyncio.Lock] = {}
 
 @dataclass
 class ShotSession:
-    """A Telegram screenshot whose view counts can be changed (see /shot)."""
+    """A screenshot that came without numbers (see /shot); its question message carries the buttons."""
     analysis: shot.Analysis
-    filename: str
-    from_photo: bool
+    source: Message                                          # the user's screenshot; the result answers it
     created: float = field(default_factory=time.time)
     picks: dict[int, str] = field(default_factory=dict)     # numbers chosen with the buttons, per view count
 
@@ -127,8 +126,9 @@ class ShotSession:
         return time.time() - self.created > config.SESSION_TTL_MINUTES * 60
 
 
-SHOTS: dict[int, ShotSession] = {}
-SHOT_WAIT: dict[int, float] = {}            # chat -> when /shot asked for a screenshot
+SHOTS: dict[int, dict[int, ShotSession]] = {}   # chat -> question message id -> screenshot
+SHOT_LAST: dict[int, int] = {}                  # chat -> the newest question (typed numbers go there)
+SHOT_MODE_FILE = config.DATA_DIR / "shot_mode.json"
 SHOT_WORDS = ("بازدید", "ویو", "view", "اسکرین")
 IMAGE_EXT = (".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff")
 
@@ -147,9 +147,10 @@ def _purge_expired() -> None:
     for chat_id, s in list(SESSIONS.items()):
         if s.expired():
             _drop_session(chat_id)
-    for chat_id, t in list(SHOTS.items()):
-        if t.expired():
-            SHOTS.pop(chat_id, None)
+    for chat in SHOTS.values():
+        for key, t in list(chat.items()):
+            if t.expired():
+                chat.pop(key, None)
 
 
 def _allowed(update: Update) -> bool:
@@ -243,7 +244,22 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return await _deny(update)
     extra = "" if ai.enabled() else (
         "\n\n⚠️ کلید Gemini تنظیم نشده؛ فقط PDFهای متنی با تشخیص ساده پشتیبانی می‌شوند.")
-    await update.effective_message.reply_text(HELP + extra)
+    chat_id = update.effective_chat.id
+    command = ((update.effective_message.text or "").split() or ["/start"])[0].split("@")[0].lower()
+    if command == "/help" and chat_id in SHOT_MODE:
+        await update.effective_message.reply_text(SHOT_HELP + "\n\nبرای برگشتن به لیست قیمت: /start")
+        return
+    head = ""
+    if command == "/start" and chat_id in SHOT_MODE:
+        _leave_shot(chat_id)
+        head = "🖼 حالت تغییر بازدید بسته شد.\n\n"
+    await update.effective_message.reply_text(head + HELP + extra)
+
+
+def _leave_shot(chat_id: int) -> None:
+    _set_shot_mode(chat_id, False)
+    SHOTS.pop(chat_id, None)
+    SHOT_LAST.pop(chat_id, None)
 
 
 async def cmd_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -482,27 +498,51 @@ async def cmd_reset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return await _deny(update)
     async with _chat_lock(update.effective_chat.id):
         _drop_session(update.effective_chat.id)
-        SHOTS.pop(update.effective_chat.id, None)
-        SHOT_WAIT.pop(update.effective_chat.id, None)
+        _leave_shot(update.effective_chat.id)
     await update.effective_message.reply_text("🗑 پاک شد. فایل جدید را بفرست.")
 
 
 # ------------------------------------------------------ screenshot numbers --
 
 SHOT_HELP = (
-    "🖼 تغییر عدد بازدید در اسکرین‌شات تلگرام\n\n"
-    "۱) اسکرین‌شات کانال را بفرست (حتماً به صورت «فایل»، نه عکس فشرده).\n"
-    "۲) بگو بازدیدها چه عددی بشوند: «۲» یا «۲۵۰۰» (می‌شود ۲٫۵K) یا «۲.۵K».\n"
-    "اگر چند پیام در عکس است، عدد همه را با هم بنویس، از بالا به پایین: «۱۰ ۵» یعنی بالایی ۱۰ و پایینی ۵ "
-    "(یا «بالا ۱۰ پایین ۵»). یک عدد تنها = همه همان عدد. فقط یکی: «ردیف ۲ بشود ۱۰».\n\n"
+    "🖼 حالت تغییر بازدید روشن شد.\n"
+    "تا وقتی /start نزنی همین‌جا می‌مانی و هر عکسی بفرستی اسکرین‌شات حساب می‌شود.\n\n"
+    "⚡️ سریع‌ترین راه: عددها را در کپشن هر عکس بنویس و هر چند تا عکس می‌خواهی یک‌جا بفرست یا فوروارد کن؛ "
+    "جواب‌ها به همان ترتیب، به صورت عکس برمی‌گردند.\n"
+    "• «۳۴.۸» ← فقط پایینی می‌شود ۳۴.۸K\n"
+    "• «۶.۲ ۵۳.۷» ← بالایی ۶.۲K و پایینی ۵۳.۷K\n"
+    "• عدد بدون K یعنی هزار: «۵» یعنی ۵K؛ «۲۵۰۰» یعنی ۲.۵K و «۰.۵» یعنی ۵۰۰.\n\n"
+    "عکس بدون کپشن هم بفرستی، بازدیدهایش را نشان می‌دهم و عدد را می‌پرسم.\n"
     "عدد با همان فونت، رنگ و فاصله‌ی خود تلگرام دوباره کشیده می‌شود و بقیه‌ی عکس دست نمی‌خورد."
 )
-SHOT_VALUES = ["1", "2", "5", "10", "100", "1K"]
+SHOT_VALUES = ["1K", "2K", "5K", "10K", "20K", "50K"]
 SHOT_KB_ROWS = 4                             # view counts that get their own row of buttons; the rest are typed
+
+
+def _load_shot_mode() -> set[int]:
+    try:
+        return {int(x) for x in json.loads(SHOT_MODE_FILE.read_text(encoding="utf-8"))}
+    except (OSError, ValueError, TypeError):
+        return set()
+
+
+def _set_shot_mode(chat_id: int, on: bool) -> None:
+    """/shot mode is kept on disk so a redeploy does not drop the user back into the price-list flow."""
+    (SHOT_MODE.add if on else SHOT_MODE.discard)(chat_id)
+    try:
+        SHOT_MODE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        SHOT_MODE_FILE.write_text(json.dumps(sorted(SHOT_MODE)), encoding="utf-8")
+    except OSError as exc:
+        log.warning("could not save shot mode: %s", exc)
+
+
+SHOT_MODE: set[int] = _load_shot_mode()
 
 
 def _shot_names(n: int) -> list[str]:
     """What the view counts are called, top to bottom."""
+    if n == 1:
+        return ["بازدید"]
     if n == 2:
         return ["بالایی", "پایینی"]
     if n == 3:
@@ -528,15 +568,14 @@ def _shot_keyboard(sess: ShotSession) -> InlineKeyboardMarkup:
 
 
 def _shot_ask(n: int) -> str:
+    tip = "\n💡 دفعه‌ی بعد عدد را در کپشن عکس بنویس تا بدون سؤال ساخته شود."
     if n == 1:
-        return "بازدید چه عددی بشود؟ بنویس (مثلاً «۲» یا «۲۵۰۰» یا «۲.۵K») یا یکی از دکمه‌ها را بزن."
+        return "چه عددی بشود؟ بنویس یا دکمه بزن. عدد بدون K یعنی هزار: «۳۴.۸» یعنی ۳۴.۸K." + tip
     if n == 2:
-        return ("بالایی و پایینی هر کدام چه عددی بشوند؟ هر دو را با هم بنویس، اول بالایی بعد پایینی؛ "
-                "مثلاً «۱۰ ۵» یعنی بالایی ۱۰ و پایینی ۵.\n"
-                "یا برای هر کدام یک دکمه بزن (با انتخاب هر دو، عکس ساخته می‌شود). یک عدد تنها = هر دو همان عدد.")
-    example = " ".join(_fa(v) for v in ["10", "5", "2", "7", "1", "3"][:n]) if n <= 6 else "۱۰ ۵ ۲ …"
-    return (f"هر کدام چه عددی بشود؟ {_fa(n)} عدد را با هم بنویس، به ترتیب از بالا به پایین؛ مثلاً «{example}».\n"
-            "فقط یکی: «ردیف ۲ بشود ۱۰». یک عدد تنها = همه همان عدد. یا با دکمه‌ها انتخاب کن و «ساختن» را بزن.")
+        return ("عدد بالایی و پایینی را با هم بنویس، اول بالایی: «۶.۲ ۵۳.۷». یک عدد تنها فقط پایینی را عوض "
+                "می‌کند. عدد بدون K یعنی هزار. یا برای هر کدام دکمه بزن." + tip)
+    return ("عددها را از بالا به پایین با هم بنویس؛ اگر کمتر بنویسی از پایین پر می‌شوند (یک عدد فقط پایینی). "
+            "«ردیف ۲ بشود ۱۰» هم می‌شود. عدد بدون K یعنی هزار." + tip)
 
 
 def _is_image_message(msg: Message) -> bool:
@@ -550,7 +589,7 @@ def _is_image_message(msg: Message) -> bool:
 
 
 def _wants_shot(chat_id: int, caption: str) -> bool:
-    if time.time() - SHOT_WAIT.get(chat_id, 0) < 600:
+    if chat_id in SHOT_MODE:
         return True
     low = caption.lower()
     return caption.startswith("/shot") or any(w in low for w in SHOT_WORDS)
@@ -560,32 +599,43 @@ _SHOT_DIGITS = str.maketrans({**{c: str(i) for i, c in enumerate("۰۱۲۳۴۵۶
                                **{c: str(i) for i, c in enumerate("٠١٢٣٤٥٦٧٨٩")}, "٫": "."})
 _SHOT_TOKEN = re.compile(
     r"(?P<row>(?:ردیف|شماره|مورد|پیام|row)\s*(?P<ri>\d+))"
-    r"|(?P<word>بالایی|بالا|اولی|پایینی|پایین|آخری|وسطی|وسط|دومی|سومی|top|bottom|middle)"
+    r"|(?P<word>بالایی|بالا|اولی|پایینی|پایین|آخری|وسطی|وسط|دومی|سومی|همه|top|bottom|middle|all)"
     r"|(?P<num>\d+(?:\.\d+)?)\s*(?P<suf>k|هزار|m|میلیون)?")
 _SHOT_WORD_ROW = {"بالایی": 0, "بالا": 0, "اولی": 0, "top": 0, "دومی": 1, "سومی": 2,
-                  "پایینی": -1, "پایین": -1, "آخری": -1, "bottom": -1, "وسطی": -2, "وسط": -2, "middle": -2}
+                  "پایینی": -1, "پایین": -1, "آخری": -1, "bottom": -1, "وسطی": -2, "وسط": -2, "middle": -2,
+                  "همه": -3, "all": -3}
+# what may stand around the numbers in a caption that is only numbers ("بازدید ۳۴.۸"، "۶.۲ و ۵۳.۷")
+_SHOT_FILLER = re.compile(r"\b(?:بازدید|بازدیدها|ویو|views?|بشود|بشوند|بشه|بشن|شود|کن|بکن|و|and)\b|[\s,،;:|/\\\-–+=.()*×]+")
+_ALL = -3
 
 
-def _shot_values(text: str, n: int) -> tuple[dict[int, str] | None, str | None]:
-    """The new number of each view count (0-based, top to bottom) from a free-form message.
+def _shot_values(text: str, n: int, strict: bool = False) -> tuple[dict[int, str] | None, str | None]:
+    """The new number of each view count (0-based, top to bottom) from a message or a caption.
 
-    «۱۰ ۵» -> top 10, bottom 5; «۵» -> all 5; «بالا ۱۰ پایین ۵»; «ردیف ۲ بشود ۱۰».
-    Returns (values, None), (None, a question for the user) or (None, None) when there is no number."""
+    «۳۴.۸» -> bottom 34.8K; «۶.۲ ۵۳.۷» -> top 6.2K, bottom 53.7K (fewer numbers than view counts fill from the
+    bottom); «بالا ۱۰ پایین ۵»; «ردیف ۲ بشود ۱۰»; «همه ۵». A plain number is in thousands (see shot.parse_value).
+    `strict` (captions): anything besides numbers and these words means the caption is not an instruction.
+    Returns (values, None), (None, a question for the user) or (None, None) when there are no numbers."""
     t = (text or "").translate(_SHOT_DIGITS).lower()
     t = re.sub(r"(?<=\d)[,٬](?=\d{3}(?!\d))", "", t)          # 2,500 -> 2500
     named: dict[int, str] = {}
     loose: list[str] = []
     slot: int | None = None
+    problem: str | None = None
+    rest_text = []
+    last = 0
     for m in _SHOT_TOKEN.finditer(t):
+        rest_text.append(t[last:m.start()])
+        last = m.end()
         if m.group("row"):
             slot = int(m.group("ri")) - 1
             if not 0 <= slot < n:
-                return None, f"ردیف {_fa(slot + 1)} وجود ندارد؛ شماره‌ها از ۱ تا {_fa(n)} است (روی عکس پیش‌نمایش)."
+                problem = problem or f"ردیف {_fa(slot + 1)} وجود ندارد؛ شماره‌ها از ۱ تا {_fa(n)} است."
         elif m.group("word"):
             slot = _SHOT_WORD_ROW[m.group("word")]
             slot = n - 1 if slot == -1 else (1 if n == 3 else None) if slot == -2 else slot
             if slot is None or slot >= n:
-                return None, f"«{m.group('word')}» را نفهمیدم؛ در این عکس {_fa(n)} بازدید هست. از «ردیف ۱» تا «ردیف {_fa(n)}» استفاده کن."
+                problem = problem or f"«{m.group('word')}» را نفهمیدم؛ در این عکس {_fa(n)} بازدید هست."
         else:
             suf = m.group("suf") or ""
             value = m.group("num") + ("K" if suf in ("k", "هزار") else "M" if suf in ("m", "میلیون") else "")
@@ -594,195 +644,287 @@ def _shot_values(text: str, n: int) -> tuple[dict[int, str] | None, str | None]:
             else:
                 named[slot] = value
                 slot = None
+    rest_text.append(t[last:])
+    if strict and _SHOT_FILLER.sub("", "".join(rest_text)):
+        return None, None
     if not named and not loose:
         return None, None
+    if problem:
+        return None, problem
+    values = {i: named[_ALL] for i in range(n)} if _ALL in named else {}
+    named.pop(_ALL, None)
     rest = [i for i in range(n) if i not in named]
-    if not named and len(loose) == 1:
-        return {i: loose[0] for i in range(n)}, None
-    if len(loose) == len(rest):
-        named.update(zip(rest, loose))
-        return named, None
-    if named and not loose:
-        return named, None
-    if named:
-        return None, (f"{_fa(len(loose))} عدد بدون جا ماند؛ برای بقیه {_fa(len(rest))} عدد لازم است. "
-                      "دوباره بنویس، مثلاً «بالا ۱۰ پایین ۵».")
-    return None, (f"در این عکس {_fa(n)} بازدید هست ولی {_fa(len(loose))} عدد نوشتی. "
-                  f"یا یک عدد بنویس (برای همه) یا {_fa(n)} عدد به ترتیب از بالا به پایین.")
+    if len(loose) > len(rest):
+        return None, (f"در این عکس {_fa(n)} بازدید هست ولی {_fa(len(loose) + len(named))} عدد نوشتی؛ "
+                      "عددها را از بالا به پایین بنویس (یک عدد فقط پایینی را عوض می‌کند).")
+    values.update(named)
+    values.update(zip(rest[len(rest) - len(loose):], loose))
+    return values, None
 
 
-def _read_image(path: Path) -> np.ndarray:
-    with Image.open(path) as im:
+def _read_image(data: bytes) -> np.ndarray:
+    with Image.open(io.BytesIO(data)) as im:
         im = ImageOps.exif_transpose(im).convert("RGB")
         return cv2.cvtColor(np.asarray(im), cv2.COLOR_RGB2BGR)
 
 
-def _png_bytes(img: np.ndarray) -> bytes:
-    ok, buf = cv2.imencode(".png", img)
+def _photo_bytes(img: np.ndarray) -> bytes:
+    """The result as a normal Telegram photo (Telegram re-encodes photos anyway; this keeps the upload small)."""
+    ok, buf = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, 95])
     if not ok:
-        raise RuntimeError("png encode failed")
+        raise RuntimeError("jpeg encode failed")
     return buf.tobytes()
+
+
+async def _tg(call, *args, **kwargs):
+    """A Telegram call that waits out flood limits (answering a batch of 30 screenshots can hit them)."""
+    for _ in range(4):
+        try:
+            return await call(*args, **kwargs)
+        except RetryAfter as exc:
+            wait = exc.retry_after
+            await asyncio.sleep((wait.total_seconds() if hasattr(wait, "total_seconds") else float(wait)) + 0.5)
+    return await call(*args, **kwargs)
 
 
 async def cmd_shot(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return await _deny(update)
-    SHOT_WAIT[update.effective_chat.id] = time.time()
-    await update.effective_message.reply_text(SHOT_HELP + "\n\nحالا اسکرین‌شات را بفرست 👇")
+    _set_shot_mode(update.effective_chat.id, True)
+    await update.effective_message.reply_text(SHOT_HELP + "\n\nحالا اسکرین‌شات‌ها را بفرست 👇")
 
 
-async def _on_shot_image(update: Update, context: ContextTypes.DEFAULT_TYPE, tg_file, filename: str,
-                         from_photo: bool, caption: str) -> None:
-    msg = update.effective_message
-    chat_id = update.effective_chat.id
-    SHOT_WAIT.pop(chat_id, None)
-    async with _chat_lock(chat_id):
-        _purge_expired()
-        status = await msg.reply_text("📥 اسکرین‌شات دریافت شد، در حال پیدا کردن بازدیدها…")
-        WORK_ROOT.mkdir(parents=True, exist_ok=True)
-        path = WORK_ROOT / f"shot_{chat_id}_{uuid.uuid4().hex[:8]}{Path(filename).suffix or '.png'}"
+def _keep_shot(chat_id: int, question: Message, sess: ShotSession) -> None:
+    chat = SHOTS.setdefault(chat_id, {})
+    chat[question.message_id] = sess
+    SHOT_LAST[chat_id] = question.message_id
+    for old in sorted(chat)[:-30]:                 # keep memory bounded: the newest 30 questions stay usable
+        chat.pop(old, None)
+
+
+def _find_shot(chat_id: int, msg: Message | None = None) -> ShotSession | None:
+    """The screenshot a typed answer is for: the question it replies to, else the newest one."""
+    chat = SHOTS.get(chat_id) or {}
+    reply = msg.reply_to_message if msg is not None else None
+    key = reply.message_id if reply is not None and reply.message_id in chat else SHOT_LAST.get(chat_id)
+    sess = chat.get(key) if key is not None else None
+    return None if sess is None or sess.expired() else sess
+
+
+# --- one chat's screenshots: worked on side by side, answered in the order they were sent
+
+@dataclass
+class ShotOutcome:
+    analysis: shot.Analysis | None = None
+    photo: bytes | None = None
+    notes: list[str] = field(default_factory=list)
+    error: str | None = None
+    question: str | None = None                  # the caption had numbers that do not fit this screenshot
+
+
+class ShotLine:
+    def __init__(self) -> None:
+        self.tail: asyncio.Task | None = None
+        self.made = self.asked = self.failed = 0
+
+
+SHOT_LINES: dict[int, ShotLine] = {}
+SHOT_WORKERS = asyncio.Semaphore(3)              # screenshots downloaded and redrawn at the same time
+SHOT_ALBUMS: dict[str, str] = {}                 # media group -> its caption (Telegram puts it on one photo)
+
+
+def _build(analysis: shot.Analysis, values: dict[int, str]) -> tuple[bytes, shot.Result]:
+    result = shot.apply_views(analysis, values)
+    return _photo_bytes(result.img), result
+
+
+async def _shot_work(context: ContextTypes.DEFAULT_TYPE, file_id: str, caption: str) -> ShotOutcome:
+    out = ShotOutcome()
+    async with SHOT_WORKERS:
         try:
-            f = await context.bot.get_file(tg_file.file_id)
-            await f.download_to_drive(path)
-            img = await asyncio.to_thread(_read_image, path)
+            f = await _tg(context.bot.get_file, file_id)
+            img = await asyncio.to_thread(_read_image, bytes(await f.download_as_bytearray()))
         except Exception:  # noqa: BLE001
             log.exception("shot download failed")
-            await _safe_edit(status, "❌ دریافت یا خواندن عکس انجام نشد. دوباره بفرست.")
-            return
-        finally:
-            path.unlink(missing_ok=True)
+            out.error = "دریافت یا خواندن عکس انجام نشد. دوباره بفرست."
+            return out
         try:
-            analysis = await asyncio.to_thread(shot.analyze, img)
+            out.analysis = await asyncio.to_thread(shot.analyze, img)
+            raw, out.question = _shot_values(caption, len(out.analysis.footers), strict=True)
+            if raw is None:
+                return out
+            values = {i: shot.parse_value(v) for i, v in sorted(raw.items())}
+            out.photo, result = await asyncio.to_thread(_build, out.analysis, values)
+            out.notes = result.notes
         except shot.ShotError as exc:
-            await _safe_edit(status, f"❌ {exc}")
-            return
+            out.error = str(exc)
         except Exception:  # noqa: BLE001
-            log.exception("shot analysis failed")
-            await _safe_edit(status, "❌ در بررسی اسکرین‌شات خطایی رخ داد.")
-            return
-        sess = SHOTS[chat_id] = ShotSession(analysis, filename, from_photo)
-        n = len(analysis.footers)
-        names = _shot_names(n)
-        now = [_fa(f_.views_text) if f_.readable else "؟" for f_ in analysis.footers]
-        if n == 1:
-            lines = [f"✅ ۱ بازدید پیدا شد (فعلی: {now[0]})."]
-        else:
-            lines = [f"✅ {_fa(n)} بازدید پیدا شد:"]
-            lines += [f"{'⬆️' if i == 0 else '⬇️' if i == n - 1 else '▫️'} {names[i]}: {v}" for i, v in enumerate(now)]
-        lines += [f"⚠️ {w}" for w in analysis.warnings[:3]]
-        if from_photo:
-            lines.append("ℹ️ عکس به صورت «عکس» آمد و تلگرام فشرده‌اش کرده؛ برای بهترین کیفیت آن را به صورت «فایل» بفرست.")
-        lines.append("\n" + _shot_ask(n))
-        await _safe_edit(status, "\n".join(lines), reply_markup=_shot_keyboard(sess))
-        try:
-            prev = await asyncio.to_thread(shot.preview, analysis)
-            ok, buf = cv2.imencode(".jpg", prev, [cv2.IMWRITE_JPEG_QUALITY, 85])
-            if ok:
-                await context.bot.send_photo(chat_id, io.BytesIO(buf.tobytes()),
-                                             caption="بازدیدهای پیدا شده با کادر سبز و شماره مشخص شده‌اند")
-        except Exception:  # noqa: BLE001
-            log.exception("shot preview failed")
-        values, question = _shot_values(caption, n)
-        if values is not None:
-            await _apply_shot(update, context, sess, values)
-        elif question:
-            await msg.reply_text(f"❓ {question}")
+            log.exception("shot work failed")
+            out.error = "در ساخت این عکس خطایی رخ داد."
+    return out
 
 
-async def _apply_shot(update: Update, context: ContextTypes.DEFAULT_TYPE, sess: ShotSession,
-                      raw: dict[int, str]) -> None:
-    """Build the screenshot with the asked number on each view count ({index: number as typed})."""
+def _queue_shot(update: Update, context: ContextTypes.DEFAULT_TYPE, tg_file, caption: str) -> None:
+    """Start on a screenshot right away and line its answer up behind the ones sent before it.
+
+    Nothing here waits, so screenshots join the line in the order Telegram delivered them."""
     msg = update.effective_message
     chat_id = update.effective_chat.id
-    footers = sess.analysis.footers
-    n = len(footers)
+    _purge_expired()
+    if msg.media_group_id:
+        if caption:
+            SHOT_ALBUMS[msg.media_group_id] = caption
+            while len(SHOT_ALBUMS) > 200:
+                SHOT_ALBUMS.pop(next(iter(SHOT_ALBUMS)))
+        else:
+            caption = SHOT_ALBUMS.get(msg.media_group_id, "")
+    line = SHOT_LINES.setdefault(chat_id, ShotLine())
+    work = asyncio.ensure_future(_shot_work(context, tg_file.file_id, caption))
+    line.tail = context.application.create_task(_shot_answer(update, context, line, line.tail, work), update=update)
+
+
+async def _shot_answer(update: Update, context: ContextTypes.DEFAULT_TYPE, line: ShotLine,
+                       before: asyncio.Task | None, work: asyncio.Future) -> None:
+    msg = update.effective_message
+    chat_id = update.effective_chat.id
+    if before is not None:
+        with contextlib.suppress(Exception):
+            await before
+    out = await work
+    try:
+        if out.photo is not None:
+            await _tg(context.bot.send_chat_action, chat_id, ChatAction.UPLOAD_PHOTO)
+            await _tg(msg.reply_photo, out.photo, do_quote=True)
+            if out.notes:
+                await _tg(msg.reply_text, "\n".join(f"⚠️ {n}" for n in out.notes[:3]), do_quote=True)
+            line.made += 1
+        elif out.error:
+            await _tg(msg.reply_text, f"❌ {out.error}", do_quote=True)
+            line.failed += 1
+        else:
+            await _ask_shot(context, msg, out.analysis, out.question)
+            line.asked += 1
+    except Exception:  # noqa: BLE001
+        log.exception("shot answer failed")
+        line.failed += 1
+    if line.tail is asyncio.current_task():          # the last one in line: report the batch, start a new one
+        made, asked, failed = line.made, line.asked, line.failed
+        line.made = line.asked = line.failed = 0
+        if made + asked + failed > 1:
+            parts = [f"✅ {_fa(made)} عکس آماده شد"]
+            if asked:
+                parts.append(f"{_fa(asked)} عکس کپشن عددی نداشت و عددش را پرسیدم")
+            if failed:
+                parts.append(f"❌ {_fa(failed)} عکس ساخته نشد (جواب همان پیام‌ها داده شد)")
+            with contextlib.suppress(Exception):
+                await _tg(context.bot.send_message, chat_id, "؛ ".join(parts) + ".")
+
+
+async def _ask_shot(context: ContextTypes.DEFAULT_TYPE, source: Message, analysis: shot.Analysis,
+                    question: str | None) -> None:
+    """A screenshot without numbers: one photo (found view counts boxed) with what they are now and the buttons."""
+    sess = ShotSession(analysis, source)
+    n = len(analysis.footers)
+    names = _shot_names(n)
+    now = [_fa(f.views_text) if f.readable else "؟" for f in analysis.footers]
+    if n == 1:
+        lines = [f"✅ بازدید فعلی: {now[0]}"]
+    else:
+        lines = [f"✅ {_fa(n)} بازدید پیدا شد:"]
+        lines += [f"{'⬆️' if i == 0 else '⬇️' if i == n - 1 else '▫️'} {names[i]}: {v}" for i, v in enumerate(now)]
+    lines += [f"⚠️ {w}" for w in analysis.warnings[:2]]
+    if question:
+        lines.append(f"❓ {question}")
+    lines.append(_shot_ask(n))
+    prev = await asyncio.to_thread(shot.preview, analysis)
+    ok, buf = cv2.imencode(".jpg", prev, [cv2.IMWRITE_JPEG_QUALITY, 85])
+    question_msg = await _tg(source.reply_photo, buf.tobytes(), caption="\n".join(lines)[:1024],
+                             reply_markup=_shot_keyboard(sess), do_quote=True)
+    _keep_shot(source.chat_id, question_msg, sess)
+
+
+async def _apply_shot(context: ContextTypes.DEFAULT_TYPE, sess: ShotSession, raw: dict[int, str],
+                      reply_to: Message) -> None:
+    """Build a screenshot whose numbers came by text or buttons; the photo answers the screenshot itself."""
     try:
         values = {i: shot.parse_value(v) for i, v in sorted(raw.items())}
     except shot.ShotError as exc:
-        await msg.reply_text(f"❓ {exc}")
+        await reply_to.reply_text(f"❓ {exc}")
         return
-    names = _shot_names(n)
-    same = len(set(values.values())) == 1 and (len(values) == n or n == 1)
-    desc = _fa(next(iter(values.values()))) if same else "، ".join(f"{names[i]} {_fa(v)}" for i, v in values.items())
-    status = await msg.reply_text(f"⏳ در حال ساخت عکس با بازدید {desc}…")
-    await context.bot.send_chat_action(chat_id, ChatAction.UPLOAD_DOCUMENT)
+    await _tg(context.bot.send_chat_action, sess.source.chat_id, ChatAction.UPLOAD_PHOTO)
     try:
-        result = await asyncio.to_thread(shot.apply_views, sess.analysis, values)
-        data = await asyncio.to_thread(_png_bytes, result.img)
+        photo, result = await asyncio.to_thread(_build, sess.analysis, values)
     except shot.ShotError as exc:
-        await _safe_edit(status, f"❌ {exc}")
+        await reply_to.reply_text(f"❌ {exc}")
         return
     except Exception:  # noqa: BLE001
         log.exception("shot edit failed")
-        await _safe_edit(status, "❌ ساخت عکس با خطا روبه‌رو شد.")
+        await reply_to.reply_text("❌ ساخت عکس با خطا روبه‌رو شد.")
         return
-    if result.changed == 0:
-        await _safe_edit(status, "هیچ بازدیدی تغییر نکرد (همه همین عدد بودند یا خوانده نشدند).\n"
-                         + "\n".join(f"⚠️ {n}" for n in result.notes[:3]))
-        return
-    name = f"{Path(sess.filename).stem}_views_{'_'.join(values.values())}.png"
-    if same:
-        cap = [f"✅ بازدید {_fa(result.changed)} پیام شد {_fa(next(iter(values.values())))}"]
-    else:
-        cap = ["✅ بازدیدها:"]
-        cap += [f"{names[i]}: {_fa(footers[i].views_text) if footers[i].readable else '؟'} ← {_fa(v)}"
-                for i, v in values.items()]
-    if result.verified:
-        cap.append(f"🔎 بعد از ساخت، {_fa(result.verified)} عدد دوباره خوانده و تأیید شد.")
-    cap += [f"⚠️ {note}" for note in result.notes[:3]]
-    await context.bot.send_document(chat_id, io.BytesIO(data), filename=name, caption="\n".join(cap))
-    with contextlib.suppress(Exception):
-        await status.delete()
-    sess.picks.clear()
-    again = ("عدد دیگری هم می‌خواهی؟ بنویس یا دکمه بزن." if n == 1 else
-             "عددهای دیگری هم می‌خواهی؟ دوباره همه را با هم بنویس (از بالا به پایین) یا با دکمه‌ها انتخاب کن.")
-    await msg.reply_text(again + " (هر بار از روی عکس اصلی ساخته می‌شود.)", reply_markup=_shot_keyboard(sess))
+    try:
+        await _tg(sess.source.reply_photo, photo, do_quote=True)
+    except BadRequest:                               # the screenshot was deleted meanwhile
+        await _tg(context.bot.send_photo, sess.source.chat_id, photo)
+    if result.notes:
+        await reply_to.reply_text("\n".join(f"⚠️ {n}" for n in result.notes[:3]))
 
 
 async def _on_shot_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """shot:val:<v> sets every view count; shot:set:<i>:<v> picks one row (built once every row has a number);
-    shot:go builds with what is picked so far."""
+    """shot:val:<v> sets the only view count; shot:set:<i>:<v> picks one row (built once every row has a number);
+    shot:go builds with what is picked so far. The buttons stay for another try."""
     q = update.callback_query
     _, action, *args = q.data.split(":")
     if action == "nop":
         return
-    async with _chat_lock(update.effective_chat.id):
-        sess = SHOTS.get(update.effective_chat.id)
-        if sess is None or sess.expired():
-            await q.message.reply_text("اسکرین‌شات قبلی تمام شده. دوباره /shot را بزن و عکس را بفرست.")
-            return
-        n = len(sess.analysis.footers)
-        if action == "val":
-            await _apply_shot(update, context, sess, {i: args[0] for i in range(n)})
-            return
-        if action == "set":
-            i, value = int(args[0]), args[1]
-            if not 0 <= i < n:
-                return
-            sess.picks[i] = value
-            if len(sess.picks) < n:
-                with contextlib.suppress(BadRequest):
-                    await q.message.edit_reply_markup(reply_markup=_shot_keyboard(sess))
-                return
-        elif not sess.picks:
-            await q.message.reply_text("اول برای بازدیدها عدد انتخاب کن (یا عددها را بنویس).")
-            return
-        picks = dict(sess.picks)
-        sess.picks.clear()
-        with contextlib.suppress(BadRequest):
-            await q.message.edit_reply_markup(reply_markup=None)
-        await _apply_shot(update, context, sess, picks)
-
-
-def _active_shot(chat_id: int) -> ShotSession | None:
-    sess = SHOTS.get(chat_id)
+    chat_id = update.effective_chat.id
+    sess = (SHOTS.get(chat_id) or {}).get(q.message.message_id)
     if sess is None or sess.expired():
-        return None
-    price = SESSIONS.get(chat_id)
-    if price is not None and not price.expired() and price.items and price.created > sess.created:
-        return None
-    return sess
+        await q.message.reply_text("این اسکرین‌شات منقضی شده؛ دوباره بفرستش.")
+        return
+    n = len(sess.analysis.footers)
+    if action == "val":
+        await _apply_shot(context, sess, {n - 1: args[0]}, q.message)
+        return
+    if action == "set":
+        i, value = int(args[0]), args[1]
+        if not 0 <= i < n:
+            return
+        sess.picks[i] = value
+        if len(sess.picks) < min(n, SHOT_KB_ROWS):
+            with contextlib.suppress(BadRequest):
+                await q.message.edit_reply_markup(reply_markup=_shot_keyboard(sess))
+            return
+    elif not sess.picks:
+        await q.message.reply_text("اول برای بازدیدها عدد انتخاب کن (یا عددها را بنویس).")
+        return
+    picks = dict(sess.picks)
+    sess.picks.clear()
+    with contextlib.suppress(BadRequest):
+        await q.message.edit_reply_markup(reply_markup=_shot_keyboard(sess))
+    await _apply_shot(context, sess, picks, q.message)
 
+
+async def _on_shot_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    """Typed numbers for a screenshot. Returns False when the text is not for /shot."""
+    msg = update.effective_message
+    chat_id = update.effective_chat.id
+    sess = _find_shot(chat_id, msg)
+    if chat_id not in SHOT_MODE:
+        price = SESSIONS.get(chat_id)
+        if sess is None or (price is not None and not price.expired() and price.items
+                            and price.created > sess.created):
+            return False
+    if sess is None:
+        await msg.reply_text("اسکرین‌شات‌ها را بفرست؛ عدد هر کدام را در کپشنش بنویس (مثلاً «۳۴.۸»).\n"
+                             "برای برگشتن به لیست قیمت: /start")
+        return True
+    n = len(sess.analysis.footers)
+    values, question = _shot_values(msg.text or "", n)
+    if values is None:
+        await msg.reply_text(f"❓ {question or _shot_ask(n)}")
+        return True
+    await _apply_shot(context, sess, values, msg)
+    return True
 
 
 # -------------------------------------------------------------------- files --
@@ -806,6 +948,10 @@ async def on_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 or filename.lower().endswith((".pdf", ".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"))):
             await msg.reply_text("این نوع فایل پشتیبانی نمی‌شود. لطفاً PDF یا عکس بفرست.")
             return
+        if chat_id in SHOT_MODE and not _is_image_message(msg):
+            await msg.reply_text("الان در حالت تغییر بازدید هستی و فقط اسکرین‌شات می‌گیرم.\n"
+                                 "برای لیست قیمت اول /start را بزن.")
+            return
         tg_file = doc
         size = doc.file_size or 0
     if size > MAX_DOWNLOAD:
@@ -813,7 +959,7 @@ async def on_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
 
     if _is_image_message(msg) and _wants_shot(chat_id, (msg.caption or "").strip()):
-        return await _on_shot_image(update, context, tg_file, filename, bool(msg.photo), (msg.caption or "").strip())
+        return _queue_shot(update, context, tg_file, (msg.caption or "").strip())
 
     async with _chat_lock(chat_id):
         _purge_expired()
@@ -999,16 +1145,9 @@ async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return await _deny(update)
     chat_id = update.effective_chat.id
+    if await _on_shot_text(update, context):
+        return
     async with _chat_lock(chat_id):   # waits for a file that is still being analysed
-        sess = _active_shot(chat_id)
-        if sess is not None:
-            n = len(sess.analysis.footers)
-            values, question = _shot_values(update.effective_message.text or "", n)
-            if values is None:
-                await update.effective_message.reply_text(f"❓ {question or _shot_ask(n)}\n/shot راهنما")
-                return
-            await _apply_shot(update, context, sess, values)
-            return
         session = SESSIONS.get(chat_id)
         if session is None or session.expired() or not session.items:
             await update.effective_message.reply_text(

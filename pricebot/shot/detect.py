@@ -27,7 +27,7 @@ class Comp:
     y0: int
     x1: int          # exclusive
     y1: int          # exclusive
-    kind: str = "glyph"          # glyph | colon
+    kind: str = "glyph"          # glyph | colon | part (a piece of a blob that JPEG noise had joined)
     char: str = "?"
     score: float = 0.0
     guess: str = "?"             # the best match even when it was not sure enough to be trusted as `char`
@@ -141,16 +141,22 @@ def _peaks(r: np.ndarray, thr: float, size: int) -> list[tuple[float, int, int]]
     return [(float(r[y, x]), int(x), int(y)) for y, x in zip(ys, xs)]
 
 
-def find_eyes(gray: np.ndarray, bank: Bank) -> tuple[float, list[tuple[float, int, int]]]:
+def find_eyes(gray: np.ndarray, bank: Bank, lo: float | None = None, hi: float | None = None
+              ) -> tuple[float, list[tuple[float, int, int]]]:
     """Return (scale, [(score, x, y)]) of the eye icons; x, y is the template corner.
 
-    A coarse search runs on a half-size copy of big screenshots, then every candidate is refined at full size."""
+    A coarse search over the scales lo..hi (default: every scale that is worth trying) runs on a half-size
+    copy of big screenshots, then every candidate is refined at full size."""
     tpl, m = _eye_template(bank)
     f = 0.5 if gray.shape[1] > 900 else 1.0
     small = cv2.resize(gray, None, fx=f, fy=f, interpolation=cv2.INTER_AREA) if f != 1.0 else gray
     cands: list[tuple[float, float, int, int]] = []
     s = 0.40 if f == 1.0 else 0.56
+    lo, hi = (lo or 0.0) / 1.045, min(hi or 1.50, 1.50) * 1.045    # one step of slack on either side
     while s <= 1.50:
+        if not lo <= s <= hi:        # the same grid of sizes either way; a narrower range only skips some
+            s *= 1.045
+            continue
         r = _match(small, tpl, s * f)
         for sc, x, y in _peaks(r, 0.72, int(tpl.shape[0] * s * f)):
             cands.append((sc, s, int(round(x / f)), int(round(y / f))))
@@ -236,14 +242,10 @@ def read_char(gray: np.ndarray, c: Comp, bank: Bank, s: float, sign: int, hd: fl
     pn = float(np.sqrt((P * P).sum())) or 1.0
     small = c.h < 0.5 * hd
     native = abs(s - 1.0) < 2e-3
-    shifts = (-0.35, 0.0, 0.35)
     sigmas = (0.0,) if native else (0.0, 0.45)
-    scores: list[tuple[float, str]] = []
-    for ch, g in bank.glyphs.items():
-        if ch in (EYE, ":") or (ch == ".") != small:
-            continue
-        if abs(g.h * s - c.h) > max(2.5, 0.35 * c.h):
-            continue
+
+    def score(ch: str, shifts: tuple[float, ...]) -> float:
+        g = bank.glyphs[ch]
         can = np.pad(g.a, 2)
         best = -1.0
         for dx in shifts:
@@ -256,10 +258,15 @@ def read_char(gray: np.ndarray, c: Comp, bank: Bank, s: float, sign: int, hd: fl
                     R = R - R.mean()
                     rn = float(np.sqrt((R * R).sum())) or 1.0
                     best = max(best, sign * float((P * R).sum()) / (pn * rn))
-        scores.append((best, ch))
-    if not scores:
+        return best
+
+    chars = [ch for ch, g in bank.glyphs.items()
+             if ch not in (EYE, ":") and (ch == ".") == small and abs(g.h * s - c.h) <= max(2.5, 0.35 * c.h)]
+    if not chars:
         return "?", 0.0, 0.0
-    scores.sort(reverse=True)
+    # every candidate centred, then the sub-pixel search only for the few that came close
+    scores = sorted(((score(ch, (0.0,)), ch) for ch in chars), reverse=True)
+    scores = sorted([(score(ch, (-0.35, 0.0, 0.35)), ch) for _, ch in scores[:4]] + scores[4:], reverse=True)
     second = scores[1][0] if len(scores) > 1 else 0.0
     return scores[0][1], scores[0][0], second
 
@@ -294,51 +301,72 @@ def _parse_footer(gray: np.ndarray, bank: Bank, s: float, ex: int, ey: int, tw: 
     # the bubble colour right next to the eye (the band may reach past the bubble edge onto the wallpaper)
     near = gray[by0:by1, bx0:min(W, bx0 + max(3, int(6 * s)))]
     bg = float(np.median(near)) if abs(float(np.median(near)) - bg0) < 0.5 * contrast else bg0
-    thr = 0.30 * contrast
-    mask = (sign * (band - bg)) > thr
-    comps_raw = [c for c in _components(mask) if c[4] >= 2]
-    items: list[Comp] = []
-    for x, y, w, h, _ in sorted(comps_raw):
-        items.append(Comp(bx0 + x, by0 + y, bx0 + x + w, by0 + y + h))
-    # keep the chain of neighbours that starts next to the eye
-    chain: list[Comp] = []
-    last_x = eye[2]
-    for c in items:
-        if c.h > 1.45 * hd or c.w > 1.4 * hd:
-            if chain:
-                break
-            continue
-        if not chain and c.x0 - last_x > 14 * s * 1.6:
-            return None
-        if chain and c.x0 - last_x > 24 * s:
-            break
-        chain.append(c)
-        last_x = max(last_x, c.x1)
-    if len(chain) < 6:
-        return None
-    # merge the two dots of a colon
-    merged: list[Comp] = []
-    i = 0
-    while i < len(chain):
-        c = chain[i]
-        if i + 1 < len(chain):
-            n = chain[i + 1]
-            small = c.h < 0.34 * hd and n.h < 0.34 * hd
-            overlap = min(c.x1, n.x1) - max(c.x0, n.x0)
-            if small and overlap >= 0.5 * min(c.w, n.w) and abs(c.y0 - n.y0) > 0.15 * hd:
-                merged.append(Comp(min(c.x0, n.x0), min(c.y0, n.y0), max(c.x1, n.x1), max(c.y1, n.y1), "colon", ":"))
-                i += 2
+    ink = sign * (band - bg)
+
+    def marks(mask: np.ndarray, x0: int, y0: int) -> list[Comp]:
+        return [Comp(x0 + x, y0 + y, x0 + x + w, y0 + y + h)
+                for x, y, w, h, area in sorted(_components(mask)) if area >= 2]
+
+    def split() -> tuple[list[Comp], list[Comp]] | None:
+        """The view count and the time as separate marks, or None when the band does not read as a footer."""
+        items = marks(ink > 0.30 * contrast, bx0, by0)
+        # keep the chain of neighbours that starts next to the eye
+        chain: list[Comp] = []
+        last_x = eye[2]
+        while items:
+            c = items.pop(0)
+            if c.h > 1.45 * hd or c.w > 1.4 * hd:
+                if chain and c.kind == "glyph":
+                    # JPEG noise can join the time's last digit to whatever sits right after it (a tick, a
+                    # button edge): look at just this blob with a stricter threshold, once
+                    box = ink[c.y0 - by0:c.y1 - by0, c.x0 - bx0:c.x1 - bx0]
+                    parts = marks(box > 0.5 * contrast, c.x0, c.y0)
+                    for part in parts:
+                        part.kind = "part"      # never split twice
+                    if parts:
+                        items[:0] = parts
+                        continue
+                if chain:
+                    break
                 continue
-        merged.append(c)
-        i += 1
-    colon = next((k for k, c in enumerate(merged) if c.kind == "colon"), None)
-    if colon is None or colon < 3 or colon + 2 >= len(merged):
+            c.kind = "glyph"
+            if not chain and c.x0 - last_x > 14 * s * 1.6:
+                return None
+            if chain and c.x0 - last_x > 24 * s:
+                break
+            chain.append(c)
+            last_x = max(last_x, c.x1)
+        if len(chain) < 6:
+            return None
+        # merge the two dots of a colon
+        merged: list[Comp] = []
+        i = 0
+        while i < len(chain):
+            c = chain[i]
+            if i + 1 < len(chain):
+                n = chain[i + 1]
+                small = c.h < 0.34 * hd and n.h < 0.34 * hd
+                overlap = min(c.x1, n.x1) - max(c.x0, n.x0)
+                if small and overlap >= 0.5 * min(c.w, n.w) and abs(c.y0 - n.y0) > 0.15 * hd:
+                    merged.append(Comp(min(c.x0, n.x0), min(c.y0, n.y0), max(c.x1, n.x1), max(c.y1, n.y1), "colon", ":"))
+                    i += 2
+                    continue
+            merged.append(c)
+            i += 1
+        colon = next((k for k, c in enumerate(merged) if c.kind == "colon"), None)
+        if colon is None or colon < 3 or colon + 2 >= len(merged):
+            return None
+        time = merged[colon - 2: colon + 3]
+        views = merged[:colon - 2]
+        tall = [c for c in time if c.kind != "colon"]
+        if any(c.h < 0.7 * hd for c in tall) or not views:
+            return None
+        return views, time
+
+    parts = split()
+    if parts is None:
         return None
-    time = merged[colon - 2: colon + 3]
-    views = merged[:colon - 2]
-    tall = [c for c in time if c.kind != "colon"]
-    if any(c.h < 0.7 * hd for c in tall) or not views:
-        return None
+    views, time = parts
     # the views/time gap must be the widest "space" in front of the time
     foot = Footer(eye, views, time, sign=sign, contrast=contrast, band=(bx0, by0, bx1, by1))
     for c in views + time:
@@ -434,28 +462,44 @@ def fit_offsets(foot: Footer, bank: Bank, s: float) -> tuple[float, float, float
 
 # ----------------------------------------------------------------- entry --
 
-def analyze(img_bgr: np.ndarray, bank: Bank | None = None) -> Analysis:
+def analyze(img_bgr: np.ndarray, bank: Bank | None = None, scale: float | None = None) -> Analysis:
+    """Find and read every footer. `scale` (screenshot px per native px), when already known, skips the search
+    over sizes; otherwise the sizes an iPhone screenshot of this width can have are tried first, then all."""
     bank = bank or load_bank()
     if not bank.ready():
         raise ShotError("نمونه‌های فونت هنوز روی ربات نصب نشده‌اند (فایل‌های pricebot/shot/assets).")
     gray = _gray(img_bgr)
-    s, eyes = find_eyes(gray, bank)
-    if not eyes:
+    W = gray.shape[1]
+    tpl, m = _eye_template(bank)
+    if scale:
+        tries = [(0.96 * scale, 1.04 * scale)]
+    else:
+        # iPhones are 1080..1320 px wide at 3x (2x models come out the same); a cropped screenshot falls through
+        tries = [(0.93 * W / 1320, 1.07 * W / 1080), (None, None)]
+    seen_eyes = False
+    footers: list[Footer] = []
+    for lo, hi in tries:
+        s, eyes = find_eyes(gray, bank, lo, hi)
+        if not eyes:
+            continue
+        seen_eyes = True
+        tw = int(round(tpl.shape[1] * s))
+        th = int(round(tpl.shape[0] * s))
+        eyes = sorted(eyes, key=lambda e: (e[2], e[1]))
+
+        def read_all(at: float) -> list[Footer]:
+            found = (_parse_footer(gray, bank, at, x, y, tw, th) for sc, x, y in eyes)
+            return [f for f in found if f is not None]
+
+        footers = read_all(s)
+        if footers:
+            break
+    if not seen_eyes:
         raise ShotError("هیچ «تعداد بازدید» (علامت چشم کنار ساعت پیام) در این عکس پیدا نشد.\n"
                         "این قابلیت برای اسکرین‌شات تلگرام روی آیفون است و پیام‌های کانال را می‌خواند.")
-    tpl, m = _eye_template(bank)
-    tw = int(round(tpl.shape[1] * s))
-    th = int(round(tpl.shape[0] * s))
-    eyes = sorted(eyes, key=lambda e: (e[2], e[1]))
-
-    def read_all(scale: float) -> list[Footer]:
-        found = (_parse_footer(gray, bank, scale, x, y, tw, th) for sc, x, y in eyes)
-        return [f for f in found if f is not None]
-
-    footers = read_all(s)
     if not footers:
         raise ShotError("علامت چشم پیدا شد ولی عدد بازدید و ساعت کنارش خوانده نشد.\n"
-                        "عکس را به صورت «فایل» (بدون فشرده‌سازی) بفرست و دوباره امتحان کن.")
+                        "اسکرین‌شات کامل و بدون برش بفرست و دوباره امتحان کن.")
     scales = [r for r in (fit_scale(f, bank) for f in footers) if r]
     s_fit = float(np.median(scales)) if scales else s
     if abs(s_fit - s) / s > 0.05:
