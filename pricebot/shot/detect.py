@@ -9,7 +9,7 @@ import numpy as np
 
 from .bank import EYE, Bank, load_bank
 
-TIME_RE = re.compile(r"^(?:[01]\d|2[0-3]):[0-5]\d$")
+TIME_RE = re.compile(r"^(?:[01]\d|2[0-3]):(?:[0-5]\d?)?$")    # minutes may be hidden under a button
 VIEWS_RE = re.compile(r"^(?:\d{1,3}|\d{1,3}(?:\.\d)?[KM])$")    # 999, 1K, 1.2K, 24.6K, 1.5M
 SS = 3                      # supersampling used when a layer is moved to the screenshot's pixel grid
 MIN_SCORE = 0.70            # a character whose best match is weaker than this is not trusted ('?')
@@ -354,10 +354,15 @@ def _parse_footer(gray: np.ndarray, bank: Bank, s: float, ex: int, ey: int, tw: 
             merged.append(c)
             i += 1
         colon = next((k for k, c in enumerate(merged) if c.kind == "colon"), None)
-        if colon is None or colon < 3 or colon + 2 >= len(merged):
+        if colon is None or colon < 3:
             return None
         time = merged[colon - 2: colon + 3]
         views = merged[:colon - 2]
+        # the minutes are often half hidden under the round scroll-down button, or joined to its rim: the time
+        # only anchors the layout (by its first digit), so doubtful marks at its end are left out (a sliver of a
+        # covered digit can even pass for a second colon)
+        while len(time) > 3 and (time[-1].h < 0.7 * hd or time[-1].kind in ("part", "colon")):
+            time.pop()
         tall = [c for c in time if c.kind != "colon"]
         if any(c.h < 0.7 * hd for c in tall) or not views:
             return None
@@ -380,6 +385,8 @@ def _parse_footer(gray: np.ndarray, bank: Bank, s: float, ex: int, ey: int, tw: 
                 continue
             if c.score < MIN_SCORE or c.score - second < MIN_MARGIN:
                 c.char = "?"
+    while len(time) > 3 and time[-1].char == "?":       # a minute digit the button covers
+        time.pop()
     # on shrunk photos the point is a 2x2 px blob that no shape comparison is sure of; it is the only small
     # mark a view count has, so it is trusted when it sits on the baseline of the digits around it
     bottoms = [c.y1 for c in views if c.char not in (".", "?")]
