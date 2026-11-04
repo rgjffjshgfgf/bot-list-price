@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 import cv2
 import numpy as np
@@ -303,12 +303,63 @@ def _parse_footer(gray: np.ndarray, bank: Bank, s: float, ex: int, ey: int, tw: 
     bg = float(np.median(near)) if abs(float(np.median(near)) - bg0) < 0.5 * contrast else bg0
     ink = sign * (band - bg)
 
+    def read(views: list[Comp], time: list[Comp]) -> Footer:
+        return _read_footer(gray, bank, s, hd, eye, views, time, sign, contrast, bg, (bx0, by0, bx1, by1))
+
     def marks(mask: np.ndarray, x0: int, y0: int) -> list[Comp]:
         return [Comp(x0 + x, y0 + y, x0 + x + w, y0 + y + h)
                 for x, y, w, h, area in sorted(_components(mask)) if area >= 2]
 
-    def split() -> tuple[list[Comp], list[Comp]] | None:
-        """The view count and the time as separate marks, or None when the band does not read as a footer."""
+    def find_colon(chain: list[Comp]) -> list[list[Comp]]:
+        """Where the time's colon may be when Telegram's compression erased one or both of its 2 px dots:
+        every plausible place, most likely first (the caller reads them and keeps the one that makes sense).
+
+        In the learned shapes the colon's dots sit at 23% and 77% of the digit height and a decimal point at
+        92%; the gap a colon leaves between hh and mm is 0.48-0.67 digit heights, two digits are never more
+        than 0.24 apart. So: a lone dot at the upper-dot height is a colon; a low dot is one only if a faint
+        partner shows up where the upper dot belongs; with no dot at all, the colon-wide gap after two digits
+        that follow the views/time space is the colon."""
+        tall = [c for c in chain if c.h >= 0.7 * hd]
+        if len(tall) < 4:
+            return []
+        top = float(np.median([c.y0 for c in tall]))
+        cap = max(float(np.median([c.y1 for c in tall])) - top, 1.0)
+
+        def colon(x0: int, x1: int) -> Comp:
+            return Comp(x0, int(top + 0.1 * cap), x1, int(np.ceil(top + 0.9 * cap)), "colon", ":")
+
+        def faint_dot(c: Comp, rel: float) -> bool:
+            y = top + rel * cap
+            Y0, Y1 = max(0, int(y - 0.15 * cap) - by0), int(np.ceil(y + 0.15 * cap)) + 1 - by0
+            X0, X1 = max(0, c.x0 - 1 - bx0), c.x1 + 1 - bx0
+            return any(w <= c.w + 2 and h <= c.h + 2
+                       for x, y_, w, h, area in _components(ink[Y0:Y1, X0:X1] > 0.12 * contrast))
+
+        def digits(k: int) -> bool:          # chain[k - 2], chain[k - 1] can be the hours
+            return k >= 3 and all(c.h >= 0.7 * hd for c in chain[k - 2:k])
+
+        def after_space(k: int) -> bool:     # ... and the views/time space comes right before them
+            # (0.38: two digits are at most 0.24 apart, plus a pixel of rounding next to a narrow "1")
+            return chain[k - 2].x0 - chain[k - 3].x1 >= 0.4 * cap and chain[k - 1].x0 - chain[k - 2].x1 <= 0.38 * cap
+
+        found = []
+        for k, c in enumerate(chain):
+            if c.h >= 0.34 * hd or c.kind == "colon" or not digits(k):
+                continue
+            rel = ((c.y0 + c.y1) / 2 - top) / cap
+            # a decimal point also sits low, but always between digits of the views, never right after the space
+            if 0.1 <= rel <= 0.42 or (0.55 <= rel <= 1.05 and (faint_dot(c, 0.23) or after_space(k))):
+                found.append(chain[:k] + [colon(c.x0, c.x1)] + chain[k + 1:])
+        for k in range(3, len(chain)):
+            b, m = chain[k - 1], chain[k]
+            if digits(k) and after_space(k) and m.h >= 0.7 * hd and m.x0 - b.x1 >= 0.4 * cap:
+                mid = (b.x1 + m.x0) / 2
+                found.append(chain[:k] + [colon(int(mid - 0.1 * cap), int(np.ceil(mid + 0.1 * cap)))] + chain[k:])
+        return found
+
+    def split() -> list[tuple[list[Comp], list[Comp]]]:
+        """The view count and the time as separate marks (several ways when the colon had to be guessed),
+        or [] when the band does not read as a footer."""
         items = marks(ink > 0.30 * contrast, bx0, by0)
         # keep the chain of neighbours that starts next to the eye
         chain: list[Comp] = []
@@ -331,13 +382,13 @@ def _parse_footer(gray: np.ndarray, bank: Bank, s: float, ex: int, ey: int, tw: 
                 continue
             c.kind = "glyph"
             if not chain and c.x0 - last_x > 14 * s * 1.6:
-                return None
+                return []
             if chain and c.x0 - last_x > 24 * s:
                 break
             chain.append(c)
             last_x = max(last_x, c.x1)
-        if len(chain) < 6:
-            return None
+        if len(chain) < 5:          # one view digit + hh mm, when both dots of the colon faded
+            return []
         # merge the two dots of a colon
         merged: list[Comp] = []
         i = 0
@@ -353,27 +404,41 @@ def _parse_footer(gray: np.ndarray, bank: Bank, s: float, ex: int, ey: int, tw: 
                     continue
             merged.append(c)
             i += 1
-        colon = next((k for k, c in enumerate(merged) if c.kind == "colon"), None)
-        if colon is None or colon < 3:
-            return None
-        time = merged[colon - 2: colon + 3]
-        views = merged[:colon - 2]
-        # the minutes are often half hidden under the round scroll-down button, or joined to its rim: the time
-        # only anchors the layout (by its first digit), so doubtful marks at its end are left out (a sliver of a
-        # covered digit can even pass for a second colon)
-        while len(time) > 3 and (time[-1].h < 0.7 * hd or time[-1].kind in ("part", "colon")):
-            time.pop()
-        tall = [c for c in time if c.kind != "colon"]
-        if any(c.h < 0.7 * hd for c in tall) or not views:
-            return None
-        return views, time
+        # two specks next to the time (the rim of a button) can also pair up as a "colon": the real one, if
+        # one of its dots faded, is then still looked for; reading decides
+        options = ([merged] if any(c.kind == "colon" for c in merged) else []) + find_colon(merged)
+        out = []
+        for marks_ in options:
+            colon = next((k for k, c in enumerate(marks_) if c.kind == "colon"), None)
+            if colon is None or colon < 3:
+                continue
+            time = [replace(c) for c in marks_[colon - 2: colon + 3]]
+            views = [replace(c) for c in marks_[:colon - 2]]
+            # the minutes are often half hidden under the round scroll-down button, or joined to its rim: the
+            # time only anchors the layout (by its first digit), so doubtful marks at its end are left out (a
+            # sliver of a covered digit can even pass for a second colon)
+            while len(time) > 3 and (time[-1].h < 0.7 * hd or time[-1].kind in ("part", "colon")):
+                time.pop()
+            tall = [c for c in time if c.kind != "colon"]
+            if any(c.h < 0.7 * hd for c in tall) or not views:
+                continue
+            out.append((views, time))
+        return out
 
-    parts = split()
-    if parts is None:
-        return None
-    views, time = parts
-    # the views/time gap must be the widest "space" in front of the time
-    foot = Footer(eye, views, time, sign=sign, contrast=contrast, band=(bx0, by0, bx1, by1))
+    feet = []
+    for views, time in split():
+        foot = read(views, time)
+        if foot.readable:
+            return foot
+        feet.append(foot)
+    return feet[0] if feet else None
+
+
+def _read_footer(gray: np.ndarray, bank: Bank, s: float, hd: float, eye: tuple[int, int, int, int],
+                 views: list[Comp], time: list[Comp], sign: int, contrast: float, bg: float,
+                 band: tuple[int, int, int, int]) -> Footer:
+    """Read the characters of one footer whose marks are already split into views and time."""
+    foot = Footer(eye, views, time, sign=sign, contrast=contrast, band=band)
     for c in views + time:
         c.cx, c.cy = _centroid(gray, c, bg, sign, contrast)
         if c.kind == "colon":
