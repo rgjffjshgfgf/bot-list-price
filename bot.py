@@ -3,12 +3,16 @@ then pick the output format (PDF / Excel / image / the Arizon template)."""
 from __future__ import annotations
 
 import asyncio
+import atexit
 import contextlib
+import ctypes
+import gc
 import io
 import json
 import logging
 import re
 import shutil
+import sys
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -21,16 +25,15 @@ from telegram.error import BadRequest, RetryAfter
 from telegram.ext import (Application, CallbackQueryHandler, CommandHandler, ContextTypes, MessageHandler,
                           filters)
 
-import cv2
-import numpy as np
-import pymupdf
-from PIL import Image, ImageOps
-
-from pricebot import ai, brain, commands, config, pipeline, shot
+# Only light modules here: the heavy work (PDFs, photos, Gemini, output files, screenshots, the brain) runs
+# in the engine process (pricebot.engine), which quits when idle and gives its memory back.
+from pricebot import ai, brain_light, commands, config
 from pricebot.commands import Plan, Rule
-from pricebot.models import Analysis
+from pricebot.engine import ENGINE, EngineError
+from pricebot.errors import UserError
+from pricebot.models import Analysis, ExportJob
 from pricebot.numfmt import fmt_plain
-from pricebot.outputs import Exporter, original_format
+from pricebot.shot import values as shotv
 
 logging.basicConfig(level=config.LOG_LEVEL, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 for noisy in ("httpx", "httpx2", "telegram.ext"):
@@ -79,7 +82,7 @@ class Pending:
     key: str
     plan: Plan
     values: list[dict[str, Decimal]]
-    exporter: Exporter
+    export: ExportJob
     sent: set[str] = field(default_factory=set)
 
 
@@ -117,7 +120,8 @@ CHAT_LOCKS: dict[int, asyncio.Lock] = {}
 @dataclass
 class ShotSession:
     """A screenshot that came without numbers (see /shot); its question message carries the buttons."""
-    analysis: shot.Analysis
+    count: int                                               # view counts on it, top to bottom
+    blob: bytes                                              # what the engine needs to build it (opaque here)
     source: Message                                          # the user's screenshot; the result answers it
     created: float = field(default_factory=time.time)
     picks: dict[int, str] = field(default_factory=dict)     # numbers chosen with the buttons, per view count
@@ -199,7 +203,7 @@ def _quick_keyboard() -> InlineKeyboardMarkup:
 
 
 def _format_row(session: Session, key: str, exclude: set[str] = frozenset()) -> list[InlineKeyboardButton]:
-    originals = {original_format(a) for a in session.analyses}
+    originals = {"pdf" if a.kind == "pdf" else "image" for a in session.analyses}
     row = []
     for fmt in ("pdf", "xlsx", "image"):
         if fmt in exclude:
@@ -272,9 +276,14 @@ async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     sess = SESSIONS.get(update.effective_chat.id)
     files = (f"{_fa(len(sess.analyses))} فایل، {_fa(len(sess.items))} قیمت"
              if sess and not sess.expired() else "فایلی باز نیست")
+    try:
+        brain_line, ocr_line = await ENGINE.call("status_lines")
+    except Exception as exc:  # noqa: BLE001
+        log.warning("status lines failed: %s", exc)
+        brain_line, ocr_line = "هوش ربات: وضعیت در دسترس نیست", "OCR: وضعیت در دسترس نیست"
     await update.effective_message.reply_text(
-        f"🤖 Gemini: {ai.describe()}\n🧠 {_brain_short()}\n👁 {_ocr_status()}\n📂 جلسه فعلی: {files}\n\n"
-        f"{ai.usage_report()}")
+        f"🤖 Gemini: {ai.describe()}\n🧠 {brain_line}\n👁 {ocr_line}\n📂 جلسه فعلی: {files}\n"
+        f"💾 {_memory_line()}\n\n{ai.usage_report()}")
 
 
 async def cmd_usage(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -287,25 +296,11 @@ async def cmd_test(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return await _deny(update)
     status = await update.effective_message.reply_text("🩺 در حال آزمایش اتصال به Gemini…")
-    report = await asyncio.to_thread(ai.self_test)
+    try:
+        report = await ENGINE.call("self_test")
+    except Exception as exc:  # noqa: BLE001
+        report = f"❌ آزمایش انجام نشد: {ai.short_error(exc)}"
     await _safe_edit(status, report)
-
-
-def _ocr_status() -> str:
-    if not brain.ocr.available():
-        return "OCR (Tesseract): نصب نیست — عکس‌ها فقط با Gemini"
-    langs = sorted(brain.ocr._LANGS or [])
-    fa = "fas" in langs
-    return f"OCR (Tesseract): فعال — زبان‌ها: {', '.join(langs)}" + ("" if fa else " ⚠️ فارسی نصب نیست")
-
-
-def _brain_short() -> str:
-    if not brain.enabled():
-        return "هوش ربات: خاموش"
-    with brain.BRAIN.lock:
-        tpls = list(brain.BRAIN.templates)
-    ready = sum(1 for t in tpls if t.get("streak", 0) >= brain.BRAIN.trust_after)
-    return f"هوش ربات: {_fa(len(tpls))} قالب یادگرفته، {_fa(ready)} مستقل — جزئیات: /brain"
 
 
 def _brain_keyboard() -> InlineKeyboardMarkup:
@@ -320,7 +315,8 @@ def _brain_keyboard() -> InlineKeyboardMarkup:
 async def cmd_brain(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return await _deny(update)
-    await update.effective_message.reply_text(brain.report(), reply_markup=_brain_keyboard() if brain.enabled() else None)
+    await update.effective_message.reply_text(await ENGINE.call("brain_report"),
+                                              reply_markup=_brain_keyboard() if brain_light.enabled() else None)
 
 
 async def cmd_backup(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -346,24 +342,14 @@ def _fa_date(ts: float) -> str:
     return _fa(time.strftime("%Y/%m/%d %H:%M", time.localtime(ts)))
 
 
-def _auto_backup(reason: str) -> Path:
-    """A safety copy kept on the server before the memory is replaced or wiped (last 5 kept)."""
-    BACKUP_DIR.mkdir(parents=True, exist_ok=True)
-    path = BACKUP_DIR / f"auto-{time.strftime('%Y%m%d-%H%M%S')}-{reason}.zip"
-    brain.BRAIN.export_zip(path)
-    for old in sorted(BACKUP_DIR.glob("auto-*.zip"))[:-5]:
-        old.unlink(missing_ok=True)
-    return path
-
-
 async def _send_backup(context: ContextTypes.DEFAULT_TYPE, chat_id: int) -> None:
-    if not brain.enabled():
+    if not brain_light.enabled():
         await context.bot.send_message(chat_id, "هوش ربات خاموش است (BRAIN_MODE=off).")
         return
     await context.bot.send_chat_action(chat_id, ChatAction.UPLOAD_DOCUMENT)
     path = WORK_ROOT / f"pricebot-brain-{time.strftime('%Y-%m-%d_%H-%M')}.zip"
     WORK_ROOT.mkdir(parents=True, exist_ok=True)
-    info = await asyncio.to_thread(brain.BRAIN.export_zip, path)
+    info = await ENGINE.call("backup_export", path)
     caption = (f"💾 بکاپ حافظه هوش ربات\n"
                f"📚 {_fa(info['formats'])} قالب ({_fa(info['trusted'])} مستقل) — {_fa(info['samples'])} نمونه آموزشی\n"
                f"🕒 {_fa_date(info['created'])}\n\n"
@@ -397,7 +383,7 @@ async def _on_backup_file(update: Update, context: ContextTypes.DEFAULT_TYPE, do
     try:
         f = await context.bot.get_file(doc.file_id)
         await f.download_to_drive(path)
-        info, _, _ = await asyncio.to_thread(brain.BRAIN.read_backup, path)
+        info = await ENGINE.call("backup_info", path)
     except Exception as exc:  # noqa: BLE001
         log.warning("bad backup file: %s", exc)
         path.unlink(missing_ok=True)
@@ -408,7 +394,7 @@ async def _on_backup_file(update: Update, context: ContextTypes.DEFAULT_TYPE, do
     if old:
         old.unlink(missing_ok=True)
     RESTORE_FILES[chat_id] = path
-    now = brain.BRAIN.summary()
+    now = await ENGINE.call("brain_summary")
     kb = InlineKeyboardMarkup([
         [InlineKeyboardButton("➕ ادغام با حافظه فعلی (پیشنهادی)", callback_data="mem:merge")],
         [InlineKeyboardButton("🔁 جایگزینی کامل", callback_data="mem:replace"),
@@ -439,7 +425,7 @@ async def _on_memory(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     elif action == "restore":
         await _ask_for_backup(q.message, chat_id)
     elif action == "refresh":
-        await _safe_edit(q.message, brain.report(), reply_markup=_brain_keyboard())
+        await _safe_edit(q.message, await ENGINE.call("brain_report"), reply_markup=_brain_keyboard())
     elif action == "cancel":
         RESTORE_WAIT.pop(chat_id, None)
         path = RESTORE_FILES.pop(chat_id, None)
@@ -453,17 +439,13 @@ async def _on_memory(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
             return
         await _safe_edit(q.message, "⏳ در حال بازیابی…")
         try:
-            safety = await asyncio.to_thread(_auto_backup, "before-restore")
-            _, data, samples = await asyncio.to_thread(brain.BRAIN.read_backup, path)
-            glyphs = await asyncio.to_thread(brain.BRAIN.backup_glyphs, path)
-            n = await asyncio.to_thread(brain.BRAIN.restore, data, samples, action == "merge", glyphs)
+            n, now, safety = await ENGINE.call("backup_restore", path, action == "merge")
         except Exception:  # noqa: BLE001
             log.exception("restore failed")
             await _safe_edit(q.message, "❌ بازیابی انجام نشد؛ حافظه فعلی دست نخورد.")
             return
         finally:
             path.unlink(missing_ok=True)
-        now = brain.BRAIN.summary()
         head = (f"✅ ادغام شد: {_fa(n)} قالب تازه اضافه شد." if action == "merge"
                 else f"✅ بازیابی کامل شد: {_fa(n)} قالب برگشت.")
         await _safe_edit(q.message, f"{head}\n🧠 حافظه الان: {_fa(now['formats'])} قالب "
@@ -474,10 +456,7 @@ async def _on_memory(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         if path is None or not path.exists() or path.parent != BACKUP_DIR:
             await q.message.reply_text("نسخه قبلی دیگر موجود نیست.")
             return
-        _, data, samples = await asyncio.to_thread(brain.BRAIN.read_backup, path)
-        glyphs = await asyncio.to_thread(brain.BRAIN.backup_glyphs, path)
-        await asyncio.to_thread(brain.BRAIN.restore, data, samples, False, glyphs)
-        now = brain.BRAIN.summary()
+        now = await ENGINE.call("backup_undo", path)
         await _safe_edit(q.message, f"↩️ حافظه به حالت قبل برگشت: {_fa(now['formats'])} قالب، "
                                     f"{_fa(now['samples'])} نمونه.")
     elif action == "reset":
@@ -486,9 +465,7 @@ async def _on_memory(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         await q.message.reply_text("⚠️ مطمئنی؟ هرچه ربات یاد گرفته پاک می‌شود و فقط درس‌های پایه می‌ماند.\n"
                                    "(قبل از پاک کردن یک نسخه خودکار نگه داشته می‌شود.)", reply_markup=kb)
     elif action == "reset_yes":
-        safety = await asyncio.to_thread(_auto_backup, "before-reset")
-        await asyncio.to_thread(brain.BRAIN.reset)
-        await asyncio.to_thread(brain.BRAIN.merge_seed, brain.SEED_DIR)
+        safety = await ENGINE.call("brain_reset")
         await _safe_edit(q.message, "🗑 حافظه پاک شد و ربات به درس‌های پایه برگشت.",
                          reply_markup=_undo_keyboard(safety))
 
@@ -552,7 +529,7 @@ def _shot_names(n: int) -> list[str]:
 
 def _shot_keyboard(sess: ShotSession) -> InlineKeyboardMarkup:
     """One row of numbers per view count (a single row when there is only one); a ✔ marks what is picked."""
-    n = len(sess.analysis.footers)
+    n = sess.count
     if n == 1:
         return InlineKeyboardMarkup([[InlineKeyboardButton(_fa(v), callback_data=f"shot:val:{v}")
                                       for v in SHOT_VALUES]])
@@ -595,96 +572,8 @@ def _wants_shot(chat_id: int, caption: str) -> bool:
     return caption.startswith("/shot") or any(w in low for w in SHOT_WORDS)
 
 
-_SHOT_DIGITS = str.maketrans({**{c: str(i) for i, c in enumerate("۰۱۲۳۴۵۶۷۸۹")},
-                               **{c: str(i) for i, c in enumerate("٠١٢٣٤٥٦٧٨٩")}, "٫": "."})
-_SHOT_TOKEN = re.compile(
-    r"(?P<row>(?:ردیف|شماره|مورد|پیام|row)\s*(?P<ri>\d+))"
-    r"|(?P<word>بالایی|بالا|اولی|پایینی|پایین|آخری|وسطی|وسط|دومی|سومی|همه|top|bottom|middle|all)"
-    r"|(?P<num>\d+(?:\.\d+)?)\s*(?P<suf>k|هزار|m|میلیون)?")
-_SHOT_WORD_ROW = {"بالایی": 0, "بالا": 0, "اولی": 0, "top": 0, "دومی": 1, "سومی": 2,
-                  "پایینی": -1, "پایین": -1, "آخری": -1, "bottom": -1, "وسطی": -2, "وسط": -2, "middle": -2,
-                  "همه": -3, "all": -3}
-# what may stand around the numbers in a caption that is only numbers ("بازدید ۳۴.۸"، "۶.۲ و ۵۳.۷")
-_SHOT_FILLER = re.compile(r"\b(?:بازدید|بازدیدها|ویو|views?|بشود|بشوند|بشه|بشن|شود|کن|بکن|و|and)\b|[\s,،;:|/\\\-–+=.()*×]+")
-_ALL = -3
-
-
 def _shot_values(text: str, n: int, strict: bool = False) -> tuple[dict[int, str] | None, str | None]:
-    """The new number of each view count (0-based, top to bottom) from a message or a caption.
-
-    «۳۴.۸» -> bottom 34.8K; «۶.۲ ۵۳.۷» -> top 6.2K, bottom 53.7K (fewer numbers than view counts fill from the
-    bottom); «بالا ۱۰ پایین ۵»; «ردیف ۲ بشود ۱۰»; «همه ۵». A plain number is in thousands (see shot.parse_value).
-    `strict` (captions): anything besides numbers and these words means the caption is not an instruction.
-    Returns (values, None), (None, a question for the user) or (None, None) when there are no numbers."""
-    t = (text or "").translate(_SHOT_DIGITS).lower()
-    t = re.sub(r"(?<=\d)[,٬](?=\d{3}(?!\d))", "", t)          # 2,500 -> 2500
-    named: dict[int, str] = {}
-    loose: list[str] = []
-    slot: int | None = None
-    problem: str | None = None
-    rest_text = []
-    last = 0
-    for m in _SHOT_TOKEN.finditer(t):
-        rest_text.append(t[last:m.start()])
-        last = m.end()
-        if m.group("row"):
-            slot = int(m.group("ri")) - 1
-            if not 0 <= slot < n:
-                problem = problem or f"ردیف {_fa(slot + 1)} وجود ندارد؛ شماره‌ها از ۱ تا {_fa(n)} است."
-        elif m.group("word"):
-            slot = _SHOT_WORD_ROW[m.group("word")]
-            slot = n - 1 if slot == -1 else (1 if n == 3 else None) if slot == -2 else slot
-            if slot is None or slot >= n:
-                problem = problem or f"«{m.group('word')}» را نفهمیدم؛ در این عکس {_fa(n)} بازدید هست."
-        else:
-            suf = m.group("suf") or ""
-            value = m.group("num") + ("K" if suf in ("k", "هزار") else "M" if suf in ("m", "میلیون") else "")
-            if slot is None:
-                loose.append(value)
-            else:
-                named[slot] = value
-                slot = None
-    rest_text.append(t[last:])
-    if strict and _SHOT_FILLER.sub("", "".join(rest_text)):
-        return None, None
-    if not named and not loose:
-        return None, None
-    if problem:
-        return None, problem
-    values = {i: named[_ALL] for i in range(n)} if _ALL in named else {}
-    named.pop(_ALL, None)
-    rest = [i for i in range(n) if i not in named]
-    if len(loose) > len(rest):
-        return None, (f"در این عکس {_fa(n)} بازدید هست ولی {_fa(len(loose) + len(named))} عدد نوشتی؛ "
-                      "عددها را از بالا به پایین بنویس (یک عدد فقط پایینی را عوض می‌کند).")
-    values.update(named)
-    values.update(zip(rest[len(rest) - len(loose):], loose))
-    return values, None
-
-
-def _read_image(data: bytes) -> np.ndarray:
-    with Image.open(io.BytesIO(data)) as im:
-        im = ImageOps.exif_transpose(im).convert("RGB")
-        return cv2.cvtColor(np.asarray(im), cv2.COLOR_RGB2BGR)
-
-
-HD_SIDE = 2560      # Telegram keeps photos up to this long side as "HD"; 1280 and below show as SD
-
-
-def _photo_bytes(img: np.ndarray) -> bytes:
-    """The result as a normal Telegram photo, always at HD size.
-
-    A forwarded photo is usually SD (1280 px), so the finished picture is enlarged as a whole: the new numbers
-    were drawn at the photo's own sharpness and grow with everything around them."""
-    h, w = img.shape[:2]
-    f = HD_SIDE / max(h, w)
-    if abs(f - 1) > 1e-3:
-        img = cv2.resize(img, (round(w * f), round(h * f)),
-                         interpolation=cv2.INTER_LANCZOS4 if f > 1 else cv2.INTER_AREA)
-    ok, buf = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, 95])
-    if not ok:
-        raise RuntimeError("jpeg encode failed")
-    return buf.tobytes()
+    return shotv.read_values(text, n, strict)
 
 
 async def _tg(call, *args, **kwargs):
@@ -726,11 +615,8 @@ def _find_shot(chat_id: int, msg: Message | None = None) -> ShotSession | None:
 
 @dataclass
 class ShotOutcome:
-    analysis: shot.Analysis | None = None
-    photo: bytes | None = None
-    notes: list[str] = field(default_factory=list)
+    read: shotv.ShotOut | None = None          # what the engine made of it (the photo, or what to ask)
     error: str | None = None
-    question: str | None = None                  # the caption had numbers that do not fit this screenshot
 
 
 class ShotLine:
@@ -744,33 +630,22 @@ SHOT_WORKERS = asyncio.Semaphore(3)              # screenshots downloaded and re
 SHOT_ALBUMS: dict[str, str] = {}                 # media group -> its caption (Telegram puts it on one photo)
 
 
-def _build(analysis: shot.Analysis, values: dict[int, str]) -> tuple[bytes, shot.Result]:
-    result = shot.apply_views(analysis, values)
-    return _photo_bytes(result.img), result
-
-
 async def _shot_work(context: ContextTypes.DEFAULT_TYPE, file_id: str, caption: str) -> ShotOutcome:
     out = ShotOutcome()
     async with SHOT_WORKERS:
         try:
             f = await _tg(context.bot.get_file, file_id)
-            img = await asyncio.to_thread(_read_image, bytes(await f.download_as_bytearray()))
+            data = bytes(await f.download_as_bytearray())
         except Exception:  # noqa: BLE001
             log.exception("shot download failed")
-            out.error = "دریافت یا خواندن عکس انجام نشد. دوباره بفرست."
+            out.error = "دریافت عکس انجام نشد. دوباره بفرست."
             return out
         try:
-            out.analysis = await asyncio.to_thread(shot.analyze, img)
-            raw, out.question = _shot_values(caption, len(out.analysis.footers), strict=True)
-            if raw is None:
-                return out
-            values = {i: shot.parse_value(v) for i, v in sorted(raw.items())}
-            out.photo, result = await asyncio.to_thread(_build, out.analysis, values)
-            out.notes = result.notes
-        except shot.ShotError as exc:
+            out.read = await ENGINE.call("shot_process", data, caption)
+        except shotv.ShotError as exc:
             out.error = str(exc)
-        except Exception:  # noqa: BLE001
-            log.exception("shot work failed")
+        except Exception as exc:  # noqa: BLE001
+            log.warning("shot work failed: %s", exc)
             out.error = "در ساخت این عکس خطایی رخ داد."
     return out
 
@@ -790,6 +665,7 @@ def _queue_shot(update: Update, context: ContextTypes.DEFAULT_TYPE, tg_file, cap
         else:
             caption = SHOT_ALBUMS.get(msg.media_group_id, "")
     line = SHOT_LINES.setdefault(chat_id, ShotLine())
+    ENGINE.warm()                                   # ready by the time the photo is downloaded
     work = asyncio.ensure_future(_shot_work(context, tg_file.file_id, caption))
     line.tail = context.application.create_task(_shot_answer(update, context, line, line.tail, work), update=update)
 
@@ -802,18 +678,19 @@ async def _shot_answer(update: Update, context: ContextTypes.DEFAULT_TYPE, line:
         with contextlib.suppress(Exception):
             await before
     out = await work
+    read = out.read
     try:
-        if out.photo is not None:
-            await _tg(context.bot.send_chat_action, chat_id, ChatAction.UPLOAD_PHOTO)
-            await _tg(msg.reply_photo, out.photo, do_quote=True)
-            if out.notes:
-                await _tg(msg.reply_text, "\n".join(f"⚠️ {n}" for n in out.notes[:3]), do_quote=True)
-            line.made += 1
-        elif out.error:
-            await _tg(msg.reply_text, f"❌ {out.error}", do_quote=True)
+        if out.error or read is None:
+            await _tg(msg.reply_text, f"❌ {out.error or 'در ساخت این عکس خطایی رخ داد.'}", do_quote=True)
             line.failed += 1
+        elif read.photo is not None:
+            await _tg(context.bot.send_chat_action, chat_id, ChatAction.UPLOAD_PHOTO)
+            await _tg(msg.reply_photo, read.photo, do_quote=True)
+            if read.notes:
+                await _tg(msg.reply_text, "\n".join(f"⚠️ {n}" for n in read.notes[:3]), do_quote=True)
+            line.made += 1
         else:
-            await _ask_shot(context, msg, out.analysis, out.question)
+            await _ask_shot(context, msg, read)
             line.asked += 1
     except Exception:  # noqa: BLE001
         log.exception("shot answer failed")
@@ -831,25 +708,22 @@ async def _shot_answer(update: Update, context: ContextTypes.DEFAULT_TYPE, line:
                 await _tg(context.bot.send_message, chat_id, "؛ ".join(parts) + ".")
 
 
-async def _ask_shot(context: ContextTypes.DEFAULT_TYPE, source: Message, analysis: shot.Analysis,
-                    question: str | None) -> None:
+async def _ask_shot(context: ContextTypes.DEFAULT_TYPE, source: Message, read: shotv.ShotOut) -> None:
     """A screenshot without numbers: one photo (found view counts boxed) with what they are now and the buttons."""
-    sess = ShotSession(analysis, source)
-    n = len(analysis.footers)
+    sess = ShotSession(read.count, read.blob, source)
+    n = read.count
     names = _shot_names(n)
-    now = [_fa(f.views_text) if f.readable else "؟" for f in analysis.footers]
+    now = [_fa(v) if v else "؟" for v in read.current]
     if n == 1:
         lines = [f"✅ بازدید فعلی: {now[0]}"]
     else:
         lines = [f"✅ {_fa(n)} بازدید پیدا شد:"]
         lines += [f"{'⬆️' if i == 0 else '⬇️' if i == n - 1 else '▫️'} {names[i]}: {v}" for i, v in enumerate(now)]
-    lines += [f"⚠️ {w}" for w in analysis.warnings[:2]]
-    if question:
-        lines.append(f"❓ {question}")
+    lines += [f"⚠️ {w}" for w in read.warnings[:2]]
+    if read.question:
+        lines.append(f"❓ {read.question}")
     lines.append(_shot_ask(n))
-    prev = await asyncio.to_thread(shot.preview, analysis)
-    ok, buf = cv2.imencode(".jpg", prev, [cv2.IMWRITE_JPEG_QUALITY, 85])
-    question_msg = await _tg(source.reply_photo, buf.tobytes(), caption="\n".join(lines)[:1024],
+    question_msg = await _tg(source.reply_photo, read.preview, caption="\n".join(lines)[:1024],
                              reply_markup=_shot_keyboard(sess), do_quote=True)
     _keep_shot(source.chat_id, question_msg, sess)
 
@@ -858,26 +732,26 @@ async def _apply_shot(context: ContextTypes.DEFAULT_TYPE, sess: ShotSession, raw
                       reply_to: Message) -> None:
     """Build a screenshot whose numbers came by text or buttons; the photo answers the screenshot itself."""
     try:
-        values = {i: shot.parse_value(v) for i, v in sorted(raw.items())}
-    except shot.ShotError as exc:
+        values = {i: shotv.parse_value(v) for i, v in sorted(raw.items())}
+    except shotv.ShotError as exc:
         await reply_to.reply_text(f"❓ {exc}")
         return
     await _tg(context.bot.send_chat_action, sess.source.chat_id, ChatAction.UPLOAD_PHOTO)
     try:
-        photo, result = await asyncio.to_thread(_build, sess.analysis, values)
-    except shot.ShotError as exc:
+        photo, notes = await ENGINE.call("shot_build", sess.blob, values)
+    except shotv.ShotError as exc:
         await reply_to.reply_text(f"❌ {exc}")
         return
-    except Exception:  # noqa: BLE001
-        log.exception("shot edit failed")
+    except Exception as exc:  # noqa: BLE001
+        log.warning("shot edit failed: %s", exc)
         await reply_to.reply_text("❌ ساخت عکس با خطا روبه‌رو شد.")
         return
     try:
         await _tg(sess.source.reply_photo, photo, do_quote=True)
     except BadRequest:                               # the screenshot was deleted meanwhile
         await _tg(context.bot.send_photo, sess.source.chat_id, photo)
-    if result.notes:
-        await reply_to.reply_text("\n".join(f"⚠️ {n}" for n in result.notes[:3]))
+    if notes:
+        await reply_to.reply_text("\n".join(f"⚠️ {n}" for n in notes[:3]))
 
 
 async def _on_shot_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -892,7 +766,7 @@ async def _on_shot_button(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if sess is None or sess.expired():
         await q.message.reply_text("این اسکرین‌شات منقضی شده؛ دوباره بفرستش.")
         return
-    n = len(sess.analysis.footers)
+    n = sess.count
     if action == "val":
         await _apply_shot(context, sess, {n - 1: args[0]}, q.message)
         return
@@ -929,7 +803,7 @@ async def _on_shot_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> b
         await msg.reply_text("اسکرین‌شات‌ها را بفرست؛ عدد هر کدام را در کپشنش بنویس (مثلاً «۳۴.۸»).\n"
                              "برای برگشتن به لیست قیمت: /start")
         return True
-    n = len(sess.analysis.footers)
+    n = sess.count
     values, question = _shot_values(msg.text or "", n)
     if values is None:
         await msg.reply_text(f"❓ {question or _shot_ask(n)}")
@@ -982,6 +856,8 @@ async def on_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             session = SESSIONS[chat_id] = Session(workdir)
 
         status = await msg.reply_text("📥 فایل دریافت شد، در حال بررسی…")
+        prepare = asyncio.create_task(ENGINE.call("prepare", "price"))   # loads while the file downloads
+        prepare.add_done_callback(lambda t: t.cancelled() or t.exception())
         fdir = session.workdir / f"f{len(session.analyses) + 1}"
         fdir.mkdir(parents=True, exist_ok=True)
         src = fdir / ("source" + (Path(filename).suffix or ""))
@@ -1019,13 +895,17 @@ async def on_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await _quota_warning(msg, src)
         tick = asyncio.create_task(ticker())
         try:
-            analysis = await asyncio.to_thread(pipeline.analyze, src, filename, fdir / "work", progress, False, stage)
-        except pipeline.UserError as exc:
+            analysis = await ENGINE.call("analyze", src, filename, fdir / "work", progress, False, stage)
+        except UserError as exc:
             await _safe_edit(status, f"❌ {exc}")
             return
         except ai.AIError as exc:
             log.warning("AI error: %s", exc)
             await _safe_edit(status, "❌ " + _ai_error_text(exc))
+            return
+        except EngineError as exc:
+            log.warning("analysis failed: %s", exc)
+            await _safe_edit(status, "❌ در بررسی فایل خطایی رخ داد.")
             return
         except Exception:  # noqa: BLE001
             log.exception("analysis failed")
@@ -1048,19 +928,18 @@ async def _quota_warning(msg: Message, src: Path) -> None:
     """Tell the user up front when today's free quota will not cover this file."""
     if not ai.enabled():
         return
-    kind = pipeline.detect_kind(src)
-    pages = 1
-    if kind == "pdf":
-        try:
-            with pymupdf.open(src) as doc:
-                pages = doc.page_count
-        except Exception:  # noqa: BLE001 - the analysis step reports broken files
-            return
+    try:
+        kind, pages = await ENGINE.call("file_info", src)
+    except Exception as exc:  # noqa: BLE001 - the analysis step reports broken files
+        log.debug("file info failed: %s", exc)
+        return
+    if pages is None:
+        return
     need = ai.estimate_requests(kind or "pdf", pages)
     left = ai.remaining_total()
     if left >= need:
         return
-    if brain.enabled():
+    if brain_light.enabled():
         if left == 0:
             await msg.reply_text("⚠️ سهمیه رایگان امروز Gemini تمام شده؛ این فایل را هوش خود ربات بررسی می‌کند "
                                  f"(تمدید سهمیه: {ai.reset_text()}).")
@@ -1078,7 +957,7 @@ async def _quota_warning(msg: Message, src: Path) -> None:
 def _brain_notes(analysis: Analysis) -> list[str]:
     notes: list[str] = []
     for page in sorted(analysis.brain):
-        note = brain.page_note(analysis.brain[page])
+        note = brain_light.page_note(analysis.brain[page])
         if note and note not in notes:
             notes.append(note)
     local = sum(1 for i in analysis.brain.values() if i.get("how") == "local")
@@ -1127,7 +1006,7 @@ async def _report_analysis(status: Message, analysis: Analysis, session: Session
 
 
 def _feedback_keyboard(analysis: Analysis) -> InlineKeyboardMarkup | None:
-    if not brain.enabled() or not analysis.brain:
+    if not brain_light.enabled() or not analysis.brain:
         return None
     aid = analysis.cache.setdefault("aid", uuid.uuid4().hex[:8])
     return InlineKeyboardMarkup([[InlineKeyboardButton("👍 تشخیص درست است", callback_data=f"fb:ok:{aid}"),
@@ -1139,13 +1018,11 @@ async def _send_preview(context: ContextTypes.DEFAULT_TYPE, chat_id: int, analys
         return
     page = analysis.items[0].page
     try:
-        im = await asyncio.to_thread(pipeline.preview, analysis, page)
-    except Exception:  # noqa: BLE001
-        log.exception("preview failed")
+        jpeg = await ENGINE.call("preview", analysis, page)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("preview failed: %s", exc)
         return
-    buf = io.BytesIO()
-    im.save(buf, "JPEG", quality=85)
-    buf.seek(0)
+    buf = io.BytesIO(jpeg)
     cap = "قیمت‌های پیدا شده با کادر سبز مشخص شده‌اند" + (f" (صفحه {_fa(page + 1)})" if analysis.kind == "pdf" else "")
     await context.bot.send_photo(chat_id, buf, caption=cap, reply_markup=_feedback_keyboard(analysis))
 
@@ -1201,7 +1078,7 @@ async def _handle_command_text(update: Update, context: ContextTypes.DEFAULT_TYP
                             "group": it.group or "-", "label": it.label or "-", "value": fmt_plain(it.value)})
     currency = next((a.currency for a in session.analyses if a.currency), "")
     try:
-        data = await asyncio.to_thread(ai.interpret_command, text, listing, currency)
+        data = await ENGINE.call("interpret_command", text, listing, currency)
     except Exception as exc:  # noqa: BLE001
         log.warning("command AI failed: %s", exc)
         detail = _ai_error_text(exc) if isinstance(exc, ai.AIError) else ""
@@ -1275,9 +1152,9 @@ def _compute(session: Session, plan: Plan, key: str) -> Pending:
     values = [commands.compute(plan, a.items, f"f{fi + 1}-" if namespaced else "")
               for fi, a in enumerate(session.analyses)]
     out_dir = session.workdir / f"out_{key}"
-    exporter = Exporter([(a, v) for a, v in zip(session.analyses, values) if v], out_dir, _label(plan),
-                        plan.summary or _label(plan))
-    return Pending(key, plan, values, exporter)
+    job = ExportJob([(a, v) for a, v in zip(session.analyses, values) if v], out_dir, _label(plan),
+                    plan.summary or _label(plan))
+    return Pending(key, plan, values, job)
 
 
 def _summary_text(session: Session, pending: Pending) -> str:
@@ -1310,8 +1187,8 @@ async def _prepare(update: Update, context: ContextTypes.DEFAULT_TYPE, session: 
 
 def _replace_pending(session: Session, pending: Pending) -> None:
     old = session.pending
-    if old is not None and old.exporter.out_dir != pending.exporter.out_dir:
-        shutil.rmtree(old.exporter.out_dir, ignore_errors=True)
+    if old is not None and old.export.out_dir != pending.export.out_dir:
+        shutil.rmtree(old.export.out_dir, ignore_errors=True)
     session.pending = pending
     session.sub_wait = None           # a question about the old change's Arizon header is over
 
@@ -1325,7 +1202,7 @@ async def _deliver(update: Update, context: ContextTypes.DEFAULT_TYPE, session: 
         status = await msg.reply_text(f"⏳ در حال ساخت خروجی {FORMAT_NAMES[fmt]}…")
         await context.bot.send_chat_action(chat_id, ChatAction.UPLOAD_DOCUMENT)
         try:
-            paths = await asyncio.to_thread(pending.exporter.build, fmt, subtitle)
+            paths, pending.export = await ENGINE.call("export", pending.export, fmt, subtitle)
         except ai.AIError as exc:
             log.warning("export %s failed: %s", fmt, exc)
             await _safe_edit(status, "❌ " + _ai_error_text(exc))
@@ -1340,7 +1217,7 @@ async def _deliver(update: Update, context: ContextTypes.DEFAULT_TYPE, session: 
             await status.delete()
         except Exception:  # noqa: BLE001
             pass
-    warnings = list(dict.fromkeys(pending.exporter.warnings))
+    warnings = list(dict.fromkeys(pending.export.warnings))
     text = "✅ آماده شد." + (f"\n{ai.usage_line()}" if ai.enabled() else "")
     if warnings:
         text += "\n" + "\n".join(f"⚠️ {w}" for w in warnings[:4])
@@ -1533,25 +1410,6 @@ async def _use_subtitle(update: Update, context: ContextTypes.DEFAULT_TYPE, sess
     await _deliver(update, context, session, session.pending, wait.formats, subtitle=text)
 
 
-def _learn_from_user(analysis: Analysis, good: bool) -> None:
-    """👍: every page becomes a checked example. 👎: formats lose their trust."""
-    ids: set[str] = set()
-    wrong_models: list[str] = []
-    for info in analysis.brain.values():
-        tpl = info.get("format") or {}
-        if good and not info.get("taught") and info.get("doc") is not None:
-            brain.BRAIN.learn(info["doc"], set(info.get("selected", set())), info.get("decision"), "user")
-            info["taught"] = True
-            continue
-        if tpl.get("id"):
-            ids.add(tpl["id"])
-        if (info.get("layout") or {}).get("id"):
-            ids.add(info["layout"]["id"])
-        if not good and info.get("how") in ("local", "fallback") and info.get("by") == "model":
-            wrong_models.append(info["doc"].source)
-    brain.BRAIN.feedback(ids, good, wrong_models)
-
-
 async def _on_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE, session: Session | None) -> None:
     q = update.callback_query
     _, verdict, aid = (q.data.split(":") + ["", ""])[:3]
@@ -1563,7 +1421,14 @@ async def _on_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE, sessi
         return
     analysis.cache["feedback"] = verdict
     good = verdict == "ok"
-    await asyncio.to_thread(_learn_from_user, analysis, good)
+    idx = session.analyses.index(analysis)
+    try:
+        analysis = session.analyses[idx] = await ENGINE.call("learn_from_user", analysis, good)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("learning from feedback failed: %s", exc)
+        analysis.cache.pop("feedback", None)
+        await q.message.reply_text("❌ ثبت نظر انجام نشد؛ دوباره دکمه را بزن.")
+        return
     try:
         await q.message.edit_reply_markup(None)
     except BadRequest:
@@ -1578,10 +1443,9 @@ async def _on_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE, sessi
         return
     # the brain got it wrong: ask the teacher now, and learn from its answer
     status = await q.message.reply_text("🔁 با Gemini دوباره بررسی می‌کنم و ربات از جوابش یاد می‌گیرد…")
-    idx = session.analyses.index(analysis)
     try:
-        fresh = await asyncio.to_thread(pipeline.analyze, analysis.source, analysis.filename,
-                                        analysis.workdir.parent / f"work_{uuid.uuid4().hex[:6]}", None, True)
+        fresh = await ENGINE.call("analyze", analysis.source, analysis.filename,
+                                  analysis.workdir.parent / f"work_{uuid.uuid4().hex[:6]}", None, True)
     except Exception as exc:  # noqa: BLE001
         log.warning("re-check failed: %s", exc)
         await _safe_edit(status, "❌ " + (_ai_error_text(exc) if isinstance(exc, ai.AIError) else "بررسی دوباره انجام نشد."))
@@ -1594,6 +1458,43 @@ async def _on_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE, sessi
 
 async def on_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     log.error("unhandled error", exc_info=context.error)
+
+
+async def _post_init(app: Application) -> None:
+    await _set_menu(app)
+    app.create_task(_housekeeping())
+
+
+async def _housekeeping() -> None:
+    """While nobody uses the bot: drop what expired and hand the freed memory back to the system."""
+    while True:
+        await asyncio.sleep(300)
+        with contextlib.suppress(Exception):
+            _purge_expired()
+            for chat_id, line in list(SHOT_LINES.items()):
+                if line.tail is None or line.tail.done():
+                    SHOT_LINES.pop(chat_id, None)
+            gc.collect()
+            _trim_heap()
+
+
+def _trim_heap() -> None:
+    """glibc keeps freed memory for later; give it back to the system (Linux only, a no-op elsewhere)."""
+    if sys.platform.startswith("linux"):
+        with contextlib.suppress(Exception):
+            ctypes.CDLL("libc.so.6").malloc_trim(0)
+
+
+def _memory_line() -> str:
+    """How much memory the bot itself holds, and whether the engine is up (for /status)."""
+    try:
+        with open("/proc/self/status", encoding="ascii") as fh:
+            rss = next(int(line.split()[1]) // 1024 for line in fh if line.startswith("VmRSS:"))
+        mem = f"حافظه ربات: {_fa(rss)} مگابایت"
+    except (OSError, StopIteration, ValueError):
+        mem = "حافظه ربات: نامعلوم"
+    engine = "در حال کار" if ENGINE.running() else f"خاموش (بعد از {_fa(config.ENGINE_IDLE_SECONDS)} ثانیه بیکاری)"
+    return f"{mem} — موتور پردازش: {engine}"
 
 
 async def _set_menu(app: Application) -> None:
@@ -1621,7 +1522,7 @@ def main() -> None:
     if not ai.enabled():
         log.warning("no AI key set: images/scans will not work, PDFs use simple detection")
     WORK_ROOT.mkdir(parents=True, exist_ok=True)
-    app = (Application.builder().token(config.TELEGRAM_BOT_TOKEN).concurrent_updates(True).post_init(_set_menu)
+    app = (Application.builder().token(config.TELEGRAM_BOT_TOKEN).concurrent_updates(True).post_init(_post_init)
            .read_timeout(60).write_timeout(180).connect_timeout(30).media_write_timeout(180).build())
     app.add_handler(CommandHandler(["start", "help"], cmd_start))
     app.add_handler(CommandHandler("id", cmd_id))
@@ -1637,9 +1538,11 @@ def main() -> None:
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))
     app.add_handler(CallbackQueryHandler(on_callback))
     app.add_error_handler(on_error)
-    if brain.enabled() and not brain.ocr.available():
+    if brain_light.enabled() and not shutil.which("tesseract"):
         log.warning("Tesseract OCR not found: the brain can learn PDFs only, photos still need Gemini")
-    log.info("bot started — AI: %s — brain: %s (%s)", ai.describe(), brain.mode(), config.BRAIN_DIR)
+    atexit.register(ENGINE.stop)
+    log.info("bot started — AI: %s — brain: %s (%s) — engine quits after %ds idle", ai.describe(),
+             brain_light.mode(), config.BRAIN_DIR, config.ENGINE_IDLE_SECONDS)
     app.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
 
 

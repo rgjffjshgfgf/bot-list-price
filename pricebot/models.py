@@ -48,6 +48,9 @@ class Analysis:
     page_count: int = 1
     cache: dict = field(default_factory=dict)   # e.g. transcribed tables for Excel
     brain: dict = field(default_factory=dict)   # page -> how the bot's own AI handled it
+    # what only the engine process can read (price payloads, the brain's page documents...), packed by
+    # pricebot.service so the bot process keeps the rest as plain data
+    heavy: bytes = b""
 
     def item(self, item_id: str) -> PriceItem | None:
         return next((it for it in self.items if it.id == item_id), None)
@@ -59,3 +62,15 @@ class Analysis:
             if it.group:
                 out[it.group] = out.get(it.group, 0) + 1
         return list(out.items())
+
+
+@dataclass
+class ExportJob:
+    """The output files of one price change. Built in the engine process; `state` carries the finished work
+    (the edited document) from one format to the next."""
+    entries: list                     # [(Analysis, {item id: new value})] until the first build
+    out_dir: Path
+    label: str
+    summary: str
+    warnings: list[str] = field(default_factory=list)
+    state: bytes = b""

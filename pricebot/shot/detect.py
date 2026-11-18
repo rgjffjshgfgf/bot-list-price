@@ -17,8 +17,7 @@ MIN_MARGIN = 0.04           # ... nor one whose runner-up is this close
 MIN_DOT = 0.40              # the decimal point is checked by its place instead (see _parse_footer)
 
 
-class ShotError(Exception):
-    """A problem worth telling the user about (the message is meant for them)."""
+from .values import ShotError  # noqa: E402,F401 - lives apart so the bot process can catch it
 
 
 @dataclass

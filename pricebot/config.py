@@ -105,6 +105,14 @@ FONTS_DIR = Path(os.environ.get("FONTS_DIR", str(BASE_DIR / "fonts")))
 
 LOG_LEVEL = _str("LOG_LEVEL", "INFO")
 
+# --- memory -------------------------------------------------------------------
+# All heavy work (PDF/photo reading, Gemini, output files, screenshots, the brain) runs in a separate
+# process that starts when there is work and quits after this many idle seconds, giving all its RAM back.
+# The bot itself only keeps the Telegram connection (~50 MB).
+ENGINE_IDLE_SECONDS = max(10, _int("ENGINE_IDLE_SECONDS", 90))
+# Jobs that one engine process works on at the same time.
+ENGINE_THREADS = max(2, _int("ENGINE_THREADS", 8))
+
 
 def ai_enabled() -> bool:
     return bool(GEMINI_API_KEY)
