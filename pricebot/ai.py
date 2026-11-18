@@ -22,13 +22,22 @@ from datetime import datetime, timedelta
 from typing import Callable, TypeVar
 from zoneinfo import ZoneInfo
 
-from google import genai
-from google.genai import errors, types
-from PIL import Image
-
 from . import config
 
 log = logging.getLogger(__name__)
+genai = errors = types = Image = None   # Gemini's SDK and PIL: loaded by _heavy() on the first real use
+
+
+def _heavy() -> None:
+    """The bot process only reads quota and settings from here; the ~25 MB of Gemini's SDK load in the
+    engine process, on the first request."""
+    global genai, errors, types, Image
+    if genai is None:
+        from google import genai as _genai
+        from google.genai import errors as _errors, types as _types
+        from PIL import Image as _image
+        errors, types, Image = _errors, _types, _image
+        genai = _genai
 
 MAX_IMAGE_EDGE = 2576
 PACIFIC = ZoneInfo("America/Los_Angeles")
@@ -47,9 +56,13 @@ class QuotaExceeded(AIError):
         super().__init__(message)
         self.reset_at = reset_at
 
+    def __reduce__(self):       # travels from the engine process to the bot whole
+        return QuotaExceeded, (str(self), self.reset_at)
+
 
 def fit_for_ai(img: Image.Image) -> tuple[Image.Image, float]:
     """Downscale so the long edge stays reasonable. Returns (image, scale)."""
+    _heavy()
     long_edge = max(img.size)
     if long_edge <= MAX_IMAGE_EDGE:
         return img, 1.0
@@ -87,9 +100,17 @@ class UsageBook:
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self._path = config.USAGE_FILE
+        self._mtime: int | None = None
         self._data = self._load()
 
+    def _stamp(self) -> int | None:
+        try:
+            return self._path.stat().st_mtime_ns
+        except OSError:
+            return None
+
     def _load(self) -> dict:
+        self._mtime = self._stamp()
         try:
             data = json.loads(self._path.read_text(encoding="utf-8"))
             if isinstance(data, dict) and isinstance(data.get("models"), dict):
@@ -99,8 +120,12 @@ class UsageBook:
         return {"day": _today(), "models": {}, "limits": {}}
 
     def _roll(self) -> None:
+        # the engine process counts the requests: what the bot shows is read again whenever the file changed
+        if self._stamp() != self._mtime:
+            self._data = self._load()
         if self._data.get("day") != _today():
-            self._data = {"day": _today(), "models": {}, "limits": self._data.get("limits", {})}
+            self._data = {"day": _today(), "models": {}, "limits": self._data.get("limits", {}),
+                          "routes": self._data.get("routes", {})}
 
     def _save(self) -> None:
         try:
@@ -108,6 +133,7 @@ class UsageBook:
             tmp = self._path.with_suffix(".tmp")
             tmp.write_text(json.dumps(self._data), encoding="utf-8")
             tmp.replace(self._path)
+            self._mtime = self._stamp()
         except OSError as exc:
             log.debug("could not save usage: %s", exc)
 
@@ -140,7 +166,23 @@ class UsageBook:
 
     def learned_limit(self, model: str) -> int | None:
         with self._lock:
+            self._roll()
             return self._data.get("limits", {}).get(model)
+
+    def route(self, name: str) -> dict:
+        """What one route (flash / lite) learned at run time: the model it switched to, its last error."""
+        with self._lock:
+            self._roll()
+            return dict(self._data.get("routes", {}).get(name, {}))
+
+    def set_route(self, name: str, **values) -> None:
+        with self._lock:
+            self._roll()
+            route = self._data.setdefault("routes", {}).setdefault(name, {})
+            if all(route.get(k) == v for k, v in values.items()):
+                return
+            route.update(values)
+            self._save()
 
 
 USAGE = UsageBook()
@@ -236,7 +278,7 @@ def short_error(exc: BaseException | str, limit: int = 300) -> str:
 class GeminiModel:
     def __init__(self, name: str, model: str, label: str, rpm: int, rpd: int):
         self.name = name
-        self.model = model
+        self.configured = model
         self.label = label
         self.default_rpd = rpd
         self.pacer = Pacer(rpm)
@@ -244,8 +286,27 @@ class GeminiModel:
         self._media_ok = True
         self._schema_ok = True
         self._tried: set[str] = {model}
-        self.last_error = ""
         self.last_ok: datetime | None = None
+
+    # the model in use and the last error live in the usage file: requests run in the engine process, the
+    # bot process reports them
+    @property
+    def model(self) -> str:
+        route = USAGE.route(self.name)
+        # a model switched to at run time counts only while the configured one is still the same
+        return route.get("model") if route.get("model") and route.get("for") == self.configured else self.configured
+
+    @model.setter
+    def model(self, value: str) -> None:
+        USAGE.set_route(self.name, model=value, **{"for": self.configured})
+
+    @property
+    def last_error(self) -> str:
+        return USAGE.route(self.name).get("last_error", "")
+
+    @last_error.setter
+    def last_error(self, value: str) -> None:
+        USAGE.set_route(self.name, last_error=value)
 
     def _degrade(self, has_media: bool) -> str | None:
         """Drop the next optional request feature after an unexplained 400."""
@@ -304,6 +365,7 @@ class GeminiModel:
               schema_name: str, effort: str, max_tokens: int) -> dict:
         if not self.available():
             raise QuotaExceeded(f"{self.label}: daily quota used up", next_reset())
+        _heavy()
         media = [types.Part.from_bytes(data=_jpeg(img) if fmt == "JPEG" else _png(img),
                                        mime_type="image/jpeg" if fmt == "JPEG" else "image/png")
                  for img, fmt in images]
@@ -422,6 +484,7 @@ _client_obj: genai.Client | None = None
 
 def _client() -> genai.Client:
     global _client_obj
+    _heavy()
     with _client_lock:
         if _client_obj is None:
             _client_obj = genai.Client(api_key=config.GEMINI_API_KEY,

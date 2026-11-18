@@ -35,8 +35,7 @@ Progress = Callable[[int, int], None]
 AI_TEXT_EDGE = 2000
 
 
-class UserError(Exception):
-    """An error whose message (Persian) can be shown to the user as is."""
+from .errors import UserError  # noqa: E402,F401 - lives apart so the bot process can catch it without numpy
 
 
 def detect_kind(path: Path) -> str | None:

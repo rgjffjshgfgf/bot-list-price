@@ -1,52 +1,14 @@
 """Redraw a footer with another view count: calibrate on the real time stamp, erase, draw, verify."""
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
-from decimal import Decimal
 
 import cv2
 import numpy as np
 
 from .bank import EYE, Bank, load_bank
-from .detect import VIEWS_RE, Analysis, Comp, Footer, ShotError, _gray, _warp, analyze, native_layout
-
-_FA = {**{ord(c): str(i) for i, c in enumerate("۰۱۲۳۴۵۶۷۸۹")}, **{ord(c): str(i) for i, c in enumerate("٠١٢٣٤٥٦٧٨٩")},
-       ord("٫"): ".", ord("٬"): "", ord(","): "", ord("،"): ""}
-
-
-# ------------------------------------------------------------- the number --
-
-def format_views(n: int) -> str:
-    """The way Telegram prints a view count: 999, 1K, 1.2K, 27K, 24.6K (one decimal, cut not rounded)."""
-    if n < 0:
-        raise ShotError("عدد بازدید نمی‌تواند منفی باشد.")
-    if n < 1000:
-        return str(n)
-    for div, suffix in ((1_000_000, "M"), (1000, "K")):
-        if n >= div:
-            tenths = n * 10 // div
-            if tenths >= 10000:      # 1000K -> 1M
-                continue
-            whole, frac = divmod(tenths, 10)
-            return f"{whole}{suffix}" if frac == 0 else f"{whole}.{frac}{suffix}"
-    return str(n)
-
-
-def parse_value(text: str, plain_thousands: bool = True) -> str:
-    """The text to draw for what the user typed: '36.2' / '36.2k' / '۳۶٫۲ هزار' -> '36.2K', '2500' -> '2.5K',
-    '0.5' -> '500'. A plain number under 1000 counts in thousands (views are almost always in K) unless
-    `plain_thousands` is off; Telegram's own rounding (one decimal, cut) is applied."""
-    t = (text or "").strip().translate(_FA).replace(" ", "").upper()
-    t = t.replace("هزار", "K").replace("میلیون", "M")
-    m = re.fullmatch(r"(\d+(?:\.\d+)?)([KM]?)", t)
-    if not m:
-        raise ShotError("عدد را درست نفهمیدم. مثلاً بنویس: 36.2 (یعنی 36.2K) یا 5 یا 2500")
-    num, suffix = Decimal(m.group(1)), m.group(2)
-    if not suffix and plain_thousands and num < 1000:
-        suffix = "K"
-    return format_views(int(num * {"": 1, "K": 1000, "M": 1_000_000}[suffix]))
-
+from .detect import VIEWS_RE, Analysis, Comp, Footer, _gray, _warp, analyze, native_layout
+from .values import ShotError, format_views, parse_value  # noqa: F401 - part of this module's API
 
 # --------------------------------------------------------- pixel plumbing --
 

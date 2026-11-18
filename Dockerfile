@@ -13,4 +13,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 ENV PYTHONUNBUFFERED=1
+# glibc gives each thread its own memory arena and keeps freed memory around; two arenas keep the bot small
+ENV MALLOC_ARENA_MAX=2
 CMD ["python", "bot.py"]
